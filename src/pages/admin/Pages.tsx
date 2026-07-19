@@ -1,6 +1,7 @@
 import { Link, useParams } from "react-router-dom";
 import { useMemo, useState } from "react";
 import { StatCard, EmptyState, MapPlaceholder } from "@/components/common";
+import { LiveCourierMap } from "@/components/admin/LiveCourierMap";
 import { StatusBadge, VerificationBadge, TrustBadge, PaymentBadge, RiskBadge } from "@/components/badges";
 import { naira, shortDate } from "@/lib/format";
 import { store, useStore } from "@/data/store";
@@ -634,7 +635,7 @@ export function AdminMap() {
         <h1 className="font-display text-2xl font-bold text-primary">Live operations map</h1>
         <RefreshButton />
       </div>
-      <MapPlaceholder label="Live couriers · GPS provider connection pending" className="h-[420px]" />
+      <LiveCourierMap className="h-[420px]" />
       {deliveries.length === 0 ? (
         <EmptyAdmin icon={MapPin} title="No live deliveries to map" />
       ) : (
