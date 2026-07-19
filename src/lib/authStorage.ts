@@ -5,8 +5,10 @@ export type StoredAuthSession = {
   role: Role;
 };
 
-const SENDAM_TOKEN_KEY = "sendam_auth_token";
-const SENDAM_SESSION_KEY = "sendam_auth_session";
+const MOVEDEK_TOKEN_KEY = "movedek_auth_token";
+const MOVEDEK_SESSION_KEY = "movedek_auth_session";
+const LEGACY_SENDAM_TOKEN_KEY = "sendam_auth_token";
+const LEGACY_SENDAM_SESSION_KEY = "sendam_auth_session";
 const VENUEDEK_TOKEN_KEY = "token";
 const VENUEDEK_USER_KEY = "user";
 
@@ -93,14 +95,18 @@ export function getStoredToken() {
   const store = storage();
   if (!store) return null;
 
-  return clean(store.getItem(VENUEDEK_TOKEN_KEY)) ?? clean(store.getItem(SENDAM_TOKEN_KEY));
+  return (
+    clean(store.getItem(MOVEDEK_TOKEN_KEY)) ??
+    clean(store.getItem(VENUEDEK_TOKEN_KEY)) ??
+    clean(store.getItem(LEGACY_SENDAM_TOKEN_KEY))
+  );
 }
 
 function sessionFromSendamKey(): StoredAuthSession | null {
   const store = storage();
   if (!store) return null;
 
-  const parsed = readJson(store.getItem(SENDAM_SESSION_KEY));
+  const parsed = readJson(store.getItem(MOVEDEK_SESSION_KEY)) ?? readJson(store.getItem(LEGACY_SENDAM_SESSION_KEY));
   if (!parsed) return null;
 
   const userId = String(parsed.userId ?? parsed.id ?? parsed.sub ?? "").trim();
@@ -152,7 +158,7 @@ function userFromToken(token: string): Partial<User> | null {
 
   return {
     id: userId,
-    full_name: email || "SendAm User",
+    full_name: email || "MoveDek User",
     email,
     phone: "",
     role,
@@ -166,8 +172,10 @@ function syncAuthAliases(token: string, session: StoredAuthSession, user?: Parti
   if (!store) return;
 
   store.setItem(VENUEDEK_TOKEN_KEY, token);
-  store.setItem(SENDAM_TOKEN_KEY, token);
-  store.setItem(SENDAM_SESSION_KEY, JSON.stringify(session));
+  store.setItem(MOVEDEK_TOKEN_KEY, token);
+  store.setItem(MOVEDEK_SESSION_KEY, JSON.stringify(session));
+  store.removeItem(LEGACY_SENDAM_TOKEN_KEY);
+  store.removeItem(LEGACY_SENDAM_SESSION_KEY);
 
   const existingUser = readJson(store.getItem(VENUEDEK_USER_KEY));
   const finalUser = (user ?? existingUser ?? userFromToken(token)) as Record<string, unknown> | null;
@@ -184,7 +192,7 @@ function syncAuthAliases(token: string, session: StoredAuthSession, user?: Parti
         sub: id,
         userId: id,
         role,
-        name: String(finalUser.full_name ?? finalUser.name ?? finalUser.email ?? "SendAm User"),
+        name: String(finalUser.full_name ?? finalUser.name ?? finalUser.email ?? "MoveDek User"),
       }),
     );
   }
@@ -203,12 +211,12 @@ export function getStoredAuthUser(): Partial<User> | null {
   const email = String(record.email ?? "")
     .trim()
     .toLowerCase();
-  const fullName = String(record.full_name ?? record.name ?? email ?? "SendAm User").trim();
+  const fullName = String(record.full_name ?? record.name ?? email ?? "MoveDek User").trim();
   const role = normalizeRole(record.role) ?? "customer";
 
   return {
     id,
-    full_name: fullName || "SendAm User",
+    full_name: fullName || "MoveDek User",
     email,
     phone: String(record.phone ?? "").trim(),
     role,
@@ -247,8 +255,10 @@ export function clearStoredAuth() {
 
   store.removeItem(VENUEDEK_TOKEN_KEY);
   store.removeItem(VENUEDEK_USER_KEY);
-  store.removeItem(SENDAM_TOKEN_KEY);
-  store.removeItem(SENDAM_SESSION_KEY);
+  store.removeItem(MOVEDEK_TOKEN_KEY);
+  store.removeItem(MOVEDEK_SESSION_KEY);
+  store.removeItem(LEGACY_SENDAM_TOKEN_KEY);
+  store.removeItem(LEGACY_SENDAM_SESSION_KEY);
 }
 
 export function isTokenValid(token: string | null) {
@@ -256,7 +266,7 @@ export function isTokenValid(token: string | null) {
 
   const payload = getJwtPayload(token);
 
-  // SendAm should always send JWTs, but this keeps local/dev tokens from causing a false logout.
+  // MoveDek should always send JWTs, but this keeps local/dev tokens from causing a false logout.
   if (!payload) return true;
 
   if (typeof payload.exp !== "number") return true;

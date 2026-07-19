@@ -127,7 +127,7 @@ export function AdminOverview() {
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="font-display text-2xl font-bold text-primary">Admin overview</h1>
-          <p className="text-sm text-muted-foreground">Live SendAm control center connected to PostgreSQL.</p>
+          <p className="text-sm text-muted-foreground">Live MoveDek control center connected to PostgreSQL.</p>
         </div>
         <RefreshButton />
       </div>

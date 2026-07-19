@@ -56,7 +56,7 @@ export default function Landing() {
             <span className="grid h-9 w-9 place-items-center rounded-xl accent-gradient shadow-glow">
               <Zap className="h-5 w-5 text-white" />
             </span>
-            <span className="font-display text-xl font-bold text-primary">SendAm</span>
+            <span className="font-display text-xl font-bold text-primary">MoveDek</span>
           </Link>
           <nav className="hidden items-center gap-8 md:flex text-sm text-muted-foreground">
             <a href="#how" className="hover:text-primary">
@@ -107,7 +107,7 @@ export default function Landing() {
               </span>
             </h1>
             <p className="mt-5 max-w-xl text-white/80 text-lg">
-              SendAm connects you with verified nearby couriers for food, groceries, pharmacy pickups, parcels
+              MoveDek connects you with verified nearby couriers for food, groceries, pharmacy pickups, parcels
               and business logistics — with live tracking, PINs and delivery protection built in.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
@@ -192,7 +192,7 @@ export default function Landing() {
       {/* HOW IT WORKS */}
       <section id="how" className="section container-x">
         <div className="mx-auto max-w-2xl text-center">
-          <h2 className="font-display text-3xl md:text-4xl font-bold text-primary">How SendAm works</h2>
+          <h2 className="font-display text-3xl md:text-4xl font-bold text-primary">How MoveDek works</h2>
           <p className="mt-3 text-muted-foreground">Three steps between you and delivered.</p>
         </div>
         <div className="mt-12 grid gap-6 md:grid-cols-3">
@@ -258,7 +258,7 @@ export default function Landing() {
               Safer than your average dispatch.
             </h2>
             <p className="mt-3 text-muted-foreground max-w-md">
-              Every SendAm delivery is protected by identity verification, live tracking, PIN confirmation,
+              Every MoveDek delivery is protected by identity verification, live tracking, PIN confirmation,
               delivery proof and escrow-style payments.
             </p>
           </div>
@@ -287,7 +287,7 @@ export default function Landing() {
             ))}
           </div>
           <div className="order-1 md:order-2">
-            <span className="chip bg-white/10 text-white/80">Earn with SendAm</span>
+            <span className="chip bg-white/10 text-white/80">Earn with MoveDek</span>
             <h2 className="mt-4 font-display text-3xl md:text-4xl font-bold">
               Already moving? Get paid to deliver on the way.
             </h2>
@@ -313,7 +313,7 @@ export default function Landing() {
                 <Building2 className="h-3 w-3" /> For merchants
               </span>
               <h2 className="mt-4 font-display text-3xl md:text-4xl font-bold text-primary">
-                You sell. SendAm delivers.
+                You sell. MoveDek delivers.
               </h2>
               <p className="mt-3 text-muted-foreground">
                 One dashboard for all your outbound orders — restaurants, pharmacies, boutiques, and online
@@ -333,7 +333,7 @@ export default function Landing() {
               </ul>
               <Link to="/auth/register?role=merchant">
                 <Button size="lg" className="mt-6 bg-primary text-primary-foreground hover:bg-primary/90">
-                  Partner with SendAm
+                  Partner with MoveDek
                 </Button>
               </Link>
             </div>
@@ -370,7 +370,7 @@ export default function Landing() {
         <Accordion type="single" collapsible className="mt-8">
           {[
             {
-              q: "Where does SendAm operate?",
+              q: "Where does MoveDek operate?",
               a: "We're launching in Lagos, starting with Yaba and surrounding mainland/island corridors. New areas roll out monthly.",
             },
             {
@@ -379,7 +379,7 @@ export default function Landing() {
             },
             {
               q: "What is delivery protection?",
-              a: "For a small extra fee, SendAm covers up to the declared value of your item if it's lost or damaged in transit.",
+              a: "For a small extra fee, MoveDek covers up to the declared value of your item if it's lost or damaged in transit.",
             },
             {
               q: "How does payment work?",
@@ -406,7 +406,7 @@ export default function Landing() {
               <span className="grid h-9 w-9 place-items-center rounded-xl accent-gradient">
                 <Zap className="h-5 w-5 text-white" />
               </span>
-              <span className="font-display text-xl font-bold">SendAm</span>
+              <span className="font-display text-xl font-bold">MoveDek</span>
             </div>
             <p className="mt-3 text-sm text-primary-foreground/70">
               Fast delivery powered by people already moving.
@@ -444,8 +444,8 @@ export default function Landing() {
             <div className="text-sm font-semibold">Company</div>
             <ul className="mt-3 space-y-2 text-sm text-primary-foreground/70">
               <li>Lagos, Nigeria</li>
-              <li>hello@sendam.ng</li>
-              <li>© {new Date().getFullYear()} SendAm</li>
+              <li>hello@movedek.ng</li>
+              <li>© {new Date().getFullYear()} MoveDek</li>
             </ul>
           </div>
         </div>

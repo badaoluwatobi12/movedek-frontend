@@ -331,7 +331,7 @@ const loadRemoteState = async () => {
       clearStoredSession();
     }
 
-    state.apiError = error instanceof Error ? error.message : "Could not connect to the SendAm backend.";
+    state.apiError = error instanceof Error ? error.message : "Could not connect to the MoveDek backend.";
   } finally {
     state.loading = false;
     emit();

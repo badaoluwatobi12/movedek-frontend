@@ -45,7 +45,7 @@ export function DashboardShell({ role, nav, title }: { role: Role; nav: NavItem[
   const user = useStore((s) =>
     storedSession ? s.users.find((u) => u.id === storedSession.userId) : undefined,
   );
-  const displayName = user?.full_name || storedUser?.full_name || "SendAm User";
+  const displayName = user?.full_name || storedUser?.full_name || "MoveDek User";
   const displayEmail = user?.email || storedUser?.email || "";
   const unreadNotifications = useNotificationUnreadCount();
   const notificationPath = role === "customer" ? "/app/notifications" : `/${role}/notifications`;
@@ -60,7 +60,7 @@ export function DashboardShell({ role, nav, title }: { role: Role; nav: NavItem[
           <Zap className="h-5 w-5 text-white" />
         </span>
         <div>
-          <div className="font-display text-lg font-bold leading-none">SendAm</div>
+          <div className="font-display text-lg font-bold leading-none">MoveDek</div>
           <div className="text-[10px] uppercase tracking-widest text-sidebar-foreground/60">{title}</div>
         </div>
       </Link>
@@ -128,7 +128,7 @@ export function DashboardShell({ role, nav, title }: { role: Role; nav: NavItem[
                 {Sidebar}
               </SheetContent>
             </Sheet>
-            <span className="font-display font-semibold text-primary">SendAm</span>
+            <span className="font-display font-semibold text-primary">MoveDek</span>
           </div>
           <div className="hidden md:block text-sm text-muted-foreground capitalize">{title}</div>
           <div className="flex items-center gap-2">

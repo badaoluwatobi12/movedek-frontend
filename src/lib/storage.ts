@@ -1,4 +1,4 @@
-// Browser local storage is intentionally disabled for SendAm app data.
+// Browser local storage is intentionally disabled for MoveDek app data.
 // The frontend now reads/writes state through the backend PostgreSQL API.
 export function safeGet(_key: string) {
   return null;

@@ -41,7 +41,7 @@ type AuthLayoutProps = PropsWithChildren<{
   eyebrow?: string;
 }>;
 
-function AuthLayout({ children, title, subtitle, eyebrow = "SendAm Account" }: AuthLayoutProps) {
+function AuthLayout({ children, title, subtitle, eyebrow = "MoveDek Account" }: AuthLayoutProps) {
   return (
     <main className="min-h-screen bg-background text-foreground">
       <div className="mx-auto grid min-h-screen w-full max-w-[1440px] grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(380px,514px)]">
@@ -289,7 +289,7 @@ export function Register() {
   });
 
   return (
-    <AuthLayout title="Sign up" subtitle="Create your SendAm account">
+    <AuthLayout title="Sign up" subtitle="Create your MoveDek account">
       <div className="mb-6 grid gap-3">
         {roleOptions.map((r) => (
           <button
@@ -403,7 +403,7 @@ export function Register() {
 
         <div className="flex items-start gap-2 text-sm font-medium text-muted-foreground">
           <Shield className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
-          By continuing you agree to SendAm&apos;s Terms and Privacy Policy.
+          By continuing you agree to MoveDek&apos;s Terms and Privacy Policy.
         </div>
 
         <Button

@@ -38,12 +38,12 @@ describe("authStorage — single source of truth for session persistence", () =>
     }
   });
 
-  it("writes both the SendAm and legacy Venuedek-style localStorage keys", () => {
+  it("writes both the MoveDek and legacy Venuedek-style localStorage keys", () => {
     saveStoredAuth(makeUser(), "fake.jwt.token");
 
-    expect(window.localStorage.getItem("sendam_auth_token")).toBe("fake.jwt.token");
+    expect(window.localStorage.getItem("movedek_auth_token")).toBe("fake.jwt.token");
     expect(window.localStorage.getItem("token")).toBe("fake.jwt.token");
-    expect(window.localStorage.getItem("sendam_auth_session")).toBeTruthy();
+    expect(window.localStorage.getItem("movedek_auth_session")).toBeTruthy();
     expect(window.localStorage.getItem("user")).toBeTruthy();
   });
 
@@ -69,7 +69,7 @@ describe("authStorage — single source of truth for session persistence", () =>
 
   it("treats a malformed stored session as logged out rather than throwing", () => {
     window.localStorage.setItem("token", "fake.jwt.token");
-    window.localStorage.setItem("sendam_auth_session", "not-json");
+    window.localStorage.setItem("movedek_auth_session", "not-json");
     window.localStorage.setItem("user", "not-json");
 
     expect(() => getStoredSession()).not.toThrow();

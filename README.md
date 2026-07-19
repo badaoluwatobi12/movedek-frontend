@@ -1,6 +1,6 @@
-# SendAm Frontend
+# MoveDek Frontend
 
-React + Vite + TypeScript frontend for SendAm.
+React + Vite + TypeScript frontend for MoveDek.
 
 ## Main folders
 

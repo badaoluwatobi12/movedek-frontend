@@ -77,7 +77,7 @@ export default function DeliveryHistory() {
         <EmptyState
           icon={Package}
           title="No deliveries found"
-          desc="Create your first backend-powered SendAm delivery request."
+          desc="Create your first backend-powered MoveDek delivery request."
           action={
             <Link to="/app/new">
               <Button className="accent-gradient text-white shadow-glow">Create delivery</Button>

@@ -475,7 +475,7 @@ export default function CreateDelivery() {
               </div>
               {!hasEnoughBalance && (
                 <div className="mt-3 rounded-lg bg-warning/10 p-3 text-sm text-warning-foreground">
-                  Wallet balance is lower than the delivery fee. SendAm will try to initialize a secure
+                  Wallet balance is lower than the delivery fee. MoveDek will try to initialize a secure
                   Paystack payment instead.
                 </div>
               )}

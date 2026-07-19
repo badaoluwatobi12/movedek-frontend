@@ -199,7 +199,7 @@ export default function NotificationsPage() {
         <EmptyState
           icon={Inbox}
           title="No notifications yet"
-          desc="Important SendAm updates will appear here."
+          desc="Important MoveDek updates will appear here."
         />
       )}
 

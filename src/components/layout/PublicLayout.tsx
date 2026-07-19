@@ -11,7 +11,7 @@ export default function PublicLayout({ children }: PropsWithChildren) {
             <span className="grid h-9 w-9 place-items-center rounded-xl accent-gradient text-white">
               <Zap className="h-5 w-5" />
             </span>
-            SendAm
+            MoveDek
           </Link>
           <Link to="/auth/login" className="text-sm font-medium text-accent">
             Sign in

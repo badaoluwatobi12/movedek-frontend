@@ -90,5 +90,5 @@
     "vite": "^8.1.4",
     "vitest": "^4.1.10"
   },
-  "description": "SendAm delivery marketplace frontend with customer, courier, merchant, and admin screens."
+  "description": "MoveDek logistics marketplace frontend with customer, courier, merchant, and admin screens."
 }
