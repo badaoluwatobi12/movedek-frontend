@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
 import { useSession, useStore, store } from "@/data/store";
 import { useDeliveries } from "@/hooks/useDeliveries";
 import { useWallet } from "@/hooks/useWallet";
@@ -9,7 +8,7 @@ import { naira, shortDate } from "@/lib/format";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Star, Coins, Package, Wallet, RefreshCcw, Landmark, Clock3, ArrowRight } from "lucide-react";
+import { Star, Coins, Package, Wallet, RefreshCcw } from "lucide-react";
 import { toast } from "sonner";
 
 export function CourierEarnings() {
@@ -48,7 +47,7 @@ export function CourierEarnings() {
         <StatCard label="All-time earned" value={naira(totalEarned)} icon={Coins} tone="accent" />
       </div>
       <div className="card-elevated overflow-hidden">
-        <div className="flex items-center justify-between gap-3 border-b p-4"><div><div className="font-display font-semibold text-primary">Payout history</div><div className="text-xs text-muted-foreground">Credits released after completed deliveries.</div></div><span className="chip bg-success/10 text-success">{payoutTransactions.length} payout{payoutTransactions.length === 1 ? "" : "s"}</span></div>
+        <div className="p-4 border-b font-display font-semibold text-primary">Payout history</div>
         <Table>
           <TableHeader>
             <TableRow>
@@ -97,18 +96,6 @@ export function CourierWithdrawals() {
   if (!me) return <EmptyState icon={Package} title="Courier profile not found" />;
 
   const request = () => {
-    if (!me.bank_name || !me.account_number) {
-      toast.error("Add and verify your bank details during onboarding before withdrawing.");
-      return;
-    }
-    if (amount < 1000) {
-      toast.error("Minimum withdrawal is ₦1,000.");
-      return;
-    }
-    if (amount > (wallet?.balance ?? 0)) {
-      toast.error("Withdrawal amount is higher than your available balance.");
-      return;
-    }
     try {
       const created = store.requestWithdrawal(me.id, amount);
       if (!created) return toast.error("Enter a valid withdrawal amount");
@@ -128,34 +115,17 @@ export function CourierWithdrawals() {
             Available balance: <b className="text-primary">{naira(wallet?.balance ?? 0)}</b>
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          {[1000, 5000, 10000].map((value) => (
-            <Button key={value} type="button" size="sm" variant="outline" onClick={() => setAmount(value)}>
-              {naira(value)}
-            </Button>
-          ))}
+        <div className="flex gap-2">
           <Input
-            className="w-36"
+            className="w-40"
             type="number"
             min={1000}
-            max={wallet?.balance ?? undefined}
             value={amount}
             onChange={(e) => setAmount(Number(e.target.value))}
-            aria-label="Withdrawal amount"
           />
           <Button className="accent-gradient text-white shadow-glow" onClick={request}>
             Request withdrawal
           </Button>
-        </div>
-      </div>
-      <div className="grid gap-3 sm:grid-cols-2">
-        <div className="card-elevated flex items-center gap-3 p-4">
-          <div className="grid h-10 w-10 place-items-center rounded-full bg-primary/10 text-primary"><Landmark className="h-5 w-5" /></div>
-          <div><div className="text-sm font-medium text-primary">Payout account</div><div className="text-xs text-muted-foreground">{me.bank_name && me.account_number ? `${me.bank_name} · ${me.account_number}` : "Bank details required"}</div></div>
-        </div>
-        <div className="card-elevated flex items-center gap-3 p-4">
-          <div className="grid h-10 w-10 place-items-center rounded-full bg-muted text-muted-foreground"><Clock3 className="h-5 w-5" /></div>
-          <div><div className="text-sm font-medium text-primary">Processing</div><div className="text-xs text-muted-foreground">Approved requests are sent to your verified bank account.</div></div>
         </div>
       </div>
       <div className="card-elevated overflow-hidden">
@@ -271,27 +241,26 @@ export function CourierHistory() {
               <TableHead>Route</TableHead>
               <TableHead>Payout</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead className="text-right">Details</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {historyQuery.isLoading && (
               <TableRow>
-                <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
                   Loading delivery history...
                 </TableCell>
               </TableRow>
             )}
             {historyQuery.error && (
               <TableRow>
-                <TableCell colSpan={6} className="text-center text-destructive py-8">
+                <TableCell colSpan={5} className="text-center text-destructive py-8">
                   Could not load delivery history.
                 </TableCell>
               </TableRow>
             )}
             {!historyQuery.isLoading && !historyQuery.error && list.length === 0 && (
               <TableRow>
-                <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
                   No delivery history yet.
                 </TableCell>
               </TableRow>
@@ -306,11 +275,6 @@ export function CourierHistory() {
                 <TableCell>{naira(delivery.courier_payout)}</TableCell>
                 <TableCell>
                   <StatusBadge status={delivery.status} />
-                </TableCell>
-                <TableCell className="text-right">
-                  <Button asChild size="sm" variant="ghost">
-                    <Link to={`/courier/jobs/${delivery.id}`}>View <ArrowRight className="ml-1 h-3 w-3" /></Link>
-                  </Button>
                 </TableCell>
               </TableRow>
             ))}
