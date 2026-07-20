@@ -1,3 +1,4 @@
+import { useLayoutEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -51,6 +52,15 @@ const trust = [
 ];
 
 export default function Landing() {
+  useLayoutEffect(() => {
+    // Marketing pages should always open at the beginning instead of restoring
+    // a stale scroll position from a previous route or deployment refresh.
+    if ("scrollRestoration" in window.history) {
+      window.history.scrollRestoration = "manual";
+    }
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+  }, []);
+
   return (
     <div className="min-h-screen bg-background">
       {/* NAV */}
@@ -94,21 +104,23 @@ export default function Landing() {
       </header>
 
       {/* HERO */}
-      <section className="landing-hero relative overflow-hidden text-white">
-        <div className="landing-dot-grid absolute inset-0 opacity-30" />
-        <div className="landing-route landing-route-one" />
-        <div className="landing-route landing-route-two" />
+      <section className="landing-hero relative text-white" aria-labelledby="landing-heading">
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          <div className="landing-dot-grid absolute inset-0 opacity-30" />
+          <div className="landing-route landing-route-one" />
+          <div className="landing-route landing-route-two" />
+        </div>
 
-        <div className="container-x relative grid min-h-[680px] items-center gap-12 pb-28 pt-16 lg:grid-cols-[.9fr_1.1fr] lg:pb-32 lg:pt-20">
+        <div className="container-x relative grid min-h-[calc(100svh-76px)] items-center gap-12 py-16 lg:grid-cols-[.95fr_1.05fr] lg:py-20 xl:min-h-[760px]">
           <div className="relative z-10 animate-fade-up">
             <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-4 py-2 text-xs font-semibold text-emerald-50 shadow-lg backdrop-blur">
               <Navigation className="h-3.5 w-3.5" /> Launching in Lagos — Yaba first
             </span>
-            <h1 className="mt-7 max-w-2xl font-display text-5xl font-extrabold leading-[.96] tracking-[-0.055em] sm:text-6xl lg:text-7xl">
-              Fast delivery<br />powered by <span className="text-emerald-300">people</span><br />already <span className="text-emerald-300">moving.</span>
+            <h1 id="landing-heading" className="mt-7 max-w-3xl font-display text-4xl font-extrabold leading-[1.02] tracking-[-0.05em] sm:text-5xl lg:text-6xl xl:text-7xl">
+              Same-day delivery in Lagos for <span className="text-emerald-300">parcels, groceries</span> and business logistics.
             </h1>
-            <p className="mt-7 max-w-xl text-base leading-7 text-emerald-50/80 sm:text-lg">
-              MoveDek connects you with verified nearby couriers for food, groceries, pharmacy pickups, parcels and business logistics — with live tracking, secure PINs and delivery protection built in.
+            <p className="mt-7 max-w-2xl text-base leading-7 text-emerald-50/85 sm:text-lg">
+              Request a verified courier for parcel delivery, grocery runs, pharmacy pickups and business logistics across Lagos. Track every trip live and confirm pickup and delivery with secure PINs.
             </p>
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -162,11 +174,11 @@ export default function Landing() {
                   </svg>
                 </div>
                 <div className="landing-delivery-card">
-                  <div className="text-[10px] font-medium uppercase tracking-[.12em] text-slate-400">Delivery #SL-4291</div>
-                  <div className="mt-1 text-lg font-extrabold text-slate-900">Jollof rice & chicken</div>
+                  <div className="text-[10px] font-medium uppercase tracking-[.12em] text-slate-400">Delivery #MD-4291</div>
+                  <div className="mt-1 text-lg font-extrabold text-slate-900">Live parcel delivery</div>
                   <div className="mt-4 space-y-3 text-xs text-slate-600">
-                    <div className="flex gap-3"><MapPin className="mt-0.5 h-4 w-4 text-emerald-600" /><span><b className="block text-slate-400">From</b>Mama T&apos;s Kitchen</span></div>
-                    <div className="flex gap-3"><Navigation className="mt-0.5 h-4 w-4 text-emerald-600" /><span><b className="block text-slate-400">To</b>Victoria Island</span></div>
+                    <div className="flex gap-3"><MapPin className="mt-0.5 h-4 w-4 text-emerald-600" /><span><b className="block text-slate-400">Pickup</b>Yaba, Lagos</span></div>
+                    <div className="flex gap-3"><Navigation className="mt-0.5 h-4 w-4 text-emerald-600" /><span><b className="block text-slate-400">Drop-off</b>Victoria Island, Lagos</span></div>
                   </div>
                   <div className="mt-4 flex items-center justify-center gap-2 rounded-xl bg-emerald-50 py-3 text-xs font-bold text-emerald-700"><CheckCircle2 className="h-4 w-4" /> Share live tracking</div>
                 </div>
@@ -178,8 +190,8 @@ export default function Landing() {
           </div>
         </div>
 
-        <div className="container-x absolute inset-x-0 bottom-0 z-20 translate-y-1/2">
-          <div className="grid overflow-hidden rounded-3xl border border-emerald-950/10 bg-white text-slate-900 shadow-[0_28px_70px_-30px_rgba(6,78,59,.45)] sm:grid-cols-2 lg:grid-cols-4">
+        <div className="container-x relative z-20 pb-10 lg:pb-12">
+          <div className="grid overflow-hidden rounded-3xl border border-white/20 bg-white text-slate-900 shadow-[0_28px_70px_-30px_rgba(6,78,59,.55)] sm:grid-cols-2 lg:grid-cols-4">
             {[
               { icon: Bike, value: "8 min", label: "Average pickup" },
               { icon: Users, value: "Verified", label: "Courier network" },
@@ -194,8 +206,6 @@ export default function Landing() {
           </div>
         </div>
       </section>
-
-      <div className="h-32 bg-background sm:h-24" />
 
       {/* HOW IT WORKS */}
       <section id="how" className="section container-x">
