@@ -4,7 +4,7 @@ import { useDelivery, useAssignCourier, useUpdateDeliveryStatus } from "@/hooks/
 import { useStore, store, useSession } from "@/data/store";
 import { Button } from "@/components/ui/button";
 import { StatusBadge, RiskBadge, TrustBadge } from "@/components/badges";
-import { PinInput, UploadPlaceholder, Stepper, MapPlaceholder, EmptyState } from "@/components/common";
+import { PinInput, UploadPlaceholder, Stepper, DeliveryRouteMap, EmptyState } from "@/components/common";
 import { naira, trustCap, shortDate } from "@/lib/format";
 import {
   ArrowLeft,
@@ -137,7 +137,7 @@ export function JobDetails() {
             {shortDate(d.created_at)}
           </div>
         </div>
-        <MapPlaceholder label="Job route" className="h-56" />
+        <DeliveryRouteMap pickupAddress={d.pickup_address} dropoffAddress={d.dropoff_address} className="h-56" />
         <div className="grid gap-3 sm:grid-cols-2">
           <Info
             title="Pickup"
@@ -352,7 +352,7 @@ export function ActiveJob() {
               <Truck className="mr-2 inline h-4 w-4" />
               Head to <b>{d.pickup_address}</b>. Contact {d.pickup_contact} · {d.pickup_phone}.
             </div>
-            <MapPlaceholder label="Navigating to pickup" className="h-56" />
+            <DeliveryRouteMap pickupAddress={d.pickup_address} dropoffAddress={d.dropoff_address} className="h-56" />
           </div>
         )}
         {currentStep === 1 && (
@@ -376,7 +376,7 @@ export function ActiveJob() {
               <Truck className="mr-2 inline h-4 w-4" />
               Deliver to <b>{d.dropoff_address}</b>. Receiver: {d.dropoff_contact} · {d.dropoff_phone}.
             </div>
-            <MapPlaceholder label="Navigating to drop-off" className="h-56" />
+            <DeliveryRouteMap pickupAddress={d.pickup_address} dropoffAddress={d.dropoff_address} className="h-56" />
           </div>
         )}
         {currentStep === 4 && (

@@ -1,6 +1,8 @@
 import { cn } from "@/lib/utils";
 import { MapPin, Navigation, type LucideIcon } from "lucide-react";
 
+export { DeliveryRouteMap } from "./common/DeliveryRouteMap";
+
 export const MapPlaceholder = ({ className, label = "Live map" }: { className?: string; label?: string }) => (
   <div
     className={cn(
