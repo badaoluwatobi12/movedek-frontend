@@ -20,6 +20,10 @@ import {
   Timer,
   Users,
   ArrowRight,
+  Globe2,
+  Navigation,
+  PhoneCall,
+  CheckCircle2,
 } from "lucide-react";
 
 const categories = [
@@ -50,144 +54,148 @@ export default function Landing() {
   return (
     <div className="min-h-screen bg-background">
       {/* NAV */}
-      <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur">
-        <div className="container-x flex h-16 items-center justify-between">
-          <Link to="/" className="flex items-center gap-2">
-            <span className="grid h-9 w-9 place-items-center rounded-xl accent-gradient shadow-glow">
-              <Zap className="h-5 w-5 text-white" />
+      <header className="sticky top-0 z-50 border-b border-emerald-950/5 bg-white/95 backdrop-blur-xl">
+        <div className="container-x flex h-[76px] items-center justify-between">
+          <Link to="/" className="group flex items-center gap-3" aria-label="MoveDek home">
+            <span className="grid h-11 w-11 place-items-center rounded-2xl bg-emerald-600 shadow-[0_10px_24px_-10px_rgba(5,150,105,.8)] transition-transform group-hover:-rotate-3 group-hover:scale-105">
+              <Zap className="h-6 w-6 fill-white text-white" />
             </span>
-            <span className="font-display text-xl font-bold text-primary">MoveDek</span>
+            <span className="font-display text-2xl font-extrabold tracking-[-0.04em] text-emerald-800">MoveDek</span>
           </Link>
-          <nav className="hidden items-center gap-8 md:flex text-sm text-muted-foreground">
-            <a href="#how" className="hover:text-primary">
-              How it works
-            </a>
-            <a href="#categories" className="hover:text-primary">
-              Categories
-            </a>
-            <a href="#couriers" className="hover:text-primary">
-              Couriers
-            </a>
-            <a href="#merchants" className="hover:text-primary">
-              For merchants
-            </a>
-            <a href="#faq" className="hover:text-primary">
-              FAQ
-            </a>
+
+          <nav className="hidden items-center gap-9 lg:flex" aria-label="Primary navigation">
+            {[
+              ["#how", "How it works"],
+              ["#categories", "Categories"],
+              ["#couriers", "Couriers"],
+              ["#merchants", "For merchants"],
+              ["#faq", "FAQ"],
+            ].map(([href, label]) => (
+              <a key={href} href={href} className="text-sm font-medium text-slate-600 transition hover:text-emerald-700">
+                {label}
+              </a>
+            ))}
           </nav>
-          <div className="flex items-center gap-2">
+
+          <div className="flex items-center gap-2 sm:gap-3">
+            <button className="hidden items-center gap-2 border-r border-slate-200 pr-4 text-sm font-medium text-slate-600 xl:flex" type="button">
+              <Globe2 className="h-4 w-4" /> English
+            </button>
             <Link to="/auth/login">
-              <Button variant="ghost">Sign in</Button>
+              <Button variant="ghost" className="font-semibold text-emerald-800 hover:bg-emerald-50 hover:text-emerald-900">Sign in</Button>
             </Link>
             <Link to="/auth/register">
-              <Button className="accent-gradient text-white shadow-glow hover:opacity-95">Get started</Button>
+              <Button className="rounded-xl bg-emerald-600 px-5 font-semibold text-white shadow-[0_12px_30px_-12px_rgba(5,150,105,.8)] hover:bg-emerald-700">
+                <span className="hidden sm:inline">Get started</span><ArrowRight className="h-4 w-4 sm:ml-1" />
+              </Button>
             </Link>
           </div>
         </div>
       </header>
 
       {/* HERO */}
-      <section className="relative overflow-hidden hero-gradient text-white">
-        <div
-          className="absolute inset-0 opacity-20"
-          style={{
-            backgroundImage: "radial-gradient(hsl(200 100% 70% / .5) 1px, transparent 1px)",
-            backgroundSize: "26px 26px",
-          }}
-        />
-        <div className="container-x relative py-20 md:py-28 grid md:grid-cols-2 gap-12 items-center">
-          <div className="animate-fade-up">
-            <span className="chip bg-white/10 text-white/90 backdrop-blur">
-              <span className="h-1.5 w-1.5 rounded-full bg-success" /> Launching in Lagos — Yaba first
+      <section className="landing-hero relative overflow-hidden text-white">
+        <div className="landing-dot-grid absolute inset-0 opacity-30" />
+        <div className="landing-route landing-route-one" />
+        <div className="landing-route landing-route-two" />
+
+        <div className="container-x relative grid min-h-[680px] items-center gap-12 pb-28 pt-16 lg:grid-cols-[.9fr_1.1fr] lg:pb-32 lg:pt-20">
+          <div className="relative z-10 animate-fade-up">
+            <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-4 py-2 text-xs font-semibold text-emerald-50 shadow-lg backdrop-blur">
+              <Navigation className="h-3.5 w-3.5" /> Launching in Lagos — Yaba first
             </span>
-            <h1 className="mt-5 font-display text-4xl md:text-6xl font-extrabold leading-[1.05]">
-              Fast delivery powered by{" "}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-green-300">
-                people already moving.
-              </span>
+            <h1 className="mt-7 max-w-2xl font-display text-5xl font-extrabold leading-[.96] tracking-[-0.055em] sm:text-6xl lg:text-7xl">
+              Fast delivery<br />powered by <span className="text-emerald-300">people</span><br />already <span className="text-emerald-300">moving.</span>
             </h1>
-            <p className="mt-5 max-w-xl text-white/80 text-lg">
-              MoveDek connects you with verified nearby couriers for food, groceries, pharmacy pickups, parcels
-              and business logistics — with live tracking, PINs and delivery protection built in.
+            <p className="mt-7 max-w-xl text-base leading-7 text-emerald-50/80 sm:text-lg">
+              MoveDek connects you with verified nearby couriers for food, groceries, pharmacy pickups, parcels and business logistics — with live tracking, secure PINs and delivery protection built in.
             </p>
-            <div className="mt-8 flex flex-wrap gap-3">
+
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Link to="/auth/register?role=customer">
-                <Button size="lg" className="accent-gradient text-white shadow-glow hover:opacity-95">
-                  Request delivery <ArrowRight className="ml-2 h-4 w-4" />
+                <Button size="lg" className="h-14 w-full rounded-2xl border border-emerald-300/70 bg-emerald-500 px-7 font-bold text-white shadow-[0_20px_45px_-18px_rgba(16,185,129,.9)] hover:bg-emerald-400 sm:w-auto">
+                  <Zap className="mr-2 h-4 w-4 fill-current" /> Request delivery <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </Link>
               <Link to="/auth/register?role=courier">
-                <Button
-                  size="lg"
-                  variant="secondary"
-                  className="bg-white/10 text-white hover:bg-white/20 border border-white/20"
-                >
-                  Become a courier
-                </Button>
-              </Link>
-              <Link to="/auth/register?role=merchant">
-                <Button size="lg" variant="ghost" className="text-white hover:bg-white/10">
-                  Partner as merchant
+                <Button size="lg" variant="outline" className="h-14 w-full rounded-2xl border-white/45 bg-white/5 px-7 font-bold text-white backdrop-blur hover:bg-white/15 hover:text-white sm:w-auto">
+                  <Users className="mr-2 h-4 w-4" /> Become a courier
                 </Button>
               </Link>
             </div>
-            <div className="mt-8 flex flex-wrap gap-6 text-sm text-white/80">
-              <div className="flex items-center gap-2">
-                <Timer className="h-4 w-4 text-green-300" /> Average pickup in 8 min
-              </div>
-              <div className="flex items-center gap-2">
-                <ShieldCheck className="h-4 w-4 text-green-300" /> ID-verified couriers
-              </div>
-              <div className="flex items-center gap-2">
-                <Star className="h-4 w-4 text-green-300" /> 4.9 rider rating
-              </div>
+
+            <div className="mt-8 flex flex-wrap gap-x-6 gap-y-3 text-sm text-emerald-50/80">
+              <span className="flex items-center gap-2"><ShieldCheck className="h-5 w-5 text-emerald-300" /> ID-verified couriers</span>
+              <span className="flex items-center gap-2"><MapPin className="h-5 w-5 text-emerald-300" /> Live tracking</span>
+              <span className="flex items-center gap-2"><Lock className="h-5 w-5 text-emerald-300" /> PIN protection</span>
+              <span className="flex items-center gap-2"><Star className="h-5 w-5 text-emerald-300" /> Rated service</span>
             </div>
           </div>
 
-          <div className="animate-fade-up">
-            <div className="relative mx-auto max-w-md rounded-3xl bg-white/10 p-4 backdrop-blur ring-1 ring-white/20 shadow-2xl">
-              <div className="rounded-2xl bg-white text-foreground p-5">
-                <div className="flex items-center justify-between">
+          <div className="relative hidden min-h-[570px] lg:block" aria-label="MoveDek live delivery tracking preview">
+            <div className="landing-pin landing-pin-one"><MapPin className="h-7 w-7" /></div>
+            <div className="landing-pin landing-pin-two"><MapPin className="h-5 w-5" /></div>
+
+            <div className="landing-scooter" aria-hidden="true">
+              <Bike className="h-28 w-28 text-emerald-100/90" strokeWidth={1.35} />
+            </div>
+
+            <div className="landing-phone">
+              <div className="landing-phone-notch" />
+              <div className="landing-phone-screen">
+                <div className="flex items-center justify-between px-5 pb-3 pt-7">
                   <div>
-                    <div className="text-xs text-muted-foreground">Delivery #SL-4291</div>
-                    <div className="font-display text-lg font-semibold">Jollof rice & chicken</div>
+                    <div className="text-sm font-extrabold text-slate-900">In transit</div>
+                    <div className="text-[11px] text-slate-500">Arriving in 12 min</div>
                   </div>
-                  <span className="chip bg-warning/15 text-warning-foreground">In transit</span>
+                  <span className="grid h-10 w-10 place-items-center rounded-full bg-emerald-50 text-emerald-700"><PhoneCall className="h-4 w-4" /></span>
                 </div>
-                <div className="mt-4 rounded-xl bg-muted/60 p-3 text-sm">
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <MapPin className="h-4 w-4" /> Yaba → Victoria Island
-                  </div>
+                <div className="landing-map">
+                  <span className="landing-map-label landing-map-label-one">YABA</span>
+                  <span className="landing-map-label landing-map-label-two">UNILAG</span>
+                  <span className="landing-map-label landing-map-label-three">ONIKE</span>
+                  <svg viewBox="0 0 320 220" className="absolute inset-0 h-full w-full" aria-hidden="true">
+                    <path d="M70 170 C115 170 95 125 145 122 S176 70 232 58" fill="none" stroke="#059669" strokeWidth="7" strokeLinecap="round" />
+                    <circle cx="70" cy="170" r="8" fill="white" stroke="#059669" strokeWidth="5" />
+                    <circle cx="145" cy="122" r="7" fill="white" stroke="#059669" strokeWidth="5" />
+                    <circle cx="232" cy="58" r="14" fill="#059669" stroke="white" strokeWidth="5" />
+                  </svg>
                 </div>
-                <div className="mt-4 flex items-center gap-3 rounded-xl bg-primary/5 p-3">
-                  <div className="grid h-10 w-10 place-items-center rounded-full bg-primary text-primary-foreground font-semibold">
-                    TB
+                <div className="landing-delivery-card">
+                  <div className="text-[10px] font-medium uppercase tracking-[.12em] text-slate-400">Delivery #SL-4291</div>
+                  <div className="mt-1 text-lg font-extrabold text-slate-900">Jollof rice & chicken</div>
+                  <div className="mt-4 space-y-3 text-xs text-slate-600">
+                    <div className="flex gap-3"><MapPin className="mt-0.5 h-4 w-4 text-emerald-600" /><span><b className="block text-slate-400">From</b>Mama T&apos;s Kitchen</span></div>
+                    <div className="flex gap-3"><Navigation className="mt-0.5 h-4 w-4 text-emerald-600" /><span><b className="block text-slate-400">To</b>Victoria Island</span></div>
                   </div>
-                  <div className="flex-1">
-                    <div className="text-sm font-medium">Tunde B. · Motorcycle</div>
-                    <div className="text-xs text-muted-foreground flex items-center gap-1">
-                      <Star className="h-3 w-3 fill-gold text-gold" />
-                      4.9 · Gold courier
-                    </div>
-                  </div>
-                  <span className="chip bg-success/15 text-success">PIN 2847</span>
-                </div>
-                <div className="mt-4 grid grid-cols-1 gap-2 text-center text-xs sm:grid-cols-3">
-                  <div className="rounded-lg bg-muted p-2">
-                    <div className="font-semibold text-primary">6.4 km</div>Distance
-                  </div>
-                  <div className="rounded-lg bg-muted p-2">
-                    <div className="font-semibold text-primary">₦1,900</div>Fee
-                  </div>
-                  <div className="rounded-lg bg-muted p-2">
-                    <div className="font-semibold text-primary">12 min</div>ETA
-                  </div>
+                  <div className="mt-4 flex items-center justify-center gap-2 rounded-xl bg-emerald-50 py-3 text-xs font-bold text-emerald-700"><CheckCircle2 className="h-4 w-4" /> Share live tracking</div>
                 </div>
               </div>
             </div>
+
+            <div className="landing-parcel landing-parcel-one"><Package className="h-8 w-8" /></div>
+            <div className="landing-parcel landing-parcel-two"><ShoppingBasket className="h-8 w-8" /></div>
+          </div>
+        </div>
+
+        <div className="container-x absolute inset-x-0 bottom-0 z-20 translate-y-1/2">
+          <div className="grid overflow-hidden rounded-3xl border border-emerald-950/10 bg-white text-slate-900 shadow-[0_28px_70px_-30px_rgba(6,78,59,.45)] sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              { icon: Bike, value: "8 min", label: "Average pickup" },
+              { icon: Users, value: "Verified", label: "Courier network" },
+              { icon: ShieldCheck, value: "Protected", label: "PIN-confirmed trips" },
+              { icon: Star, value: "4.9", label: "Target rider rating" },
+            ].map(({ icon: Icon, value, label }, index) => (
+              <div key={label} className={`flex items-center gap-4 px-6 py-6 ${index ? "border-t border-slate-100 sm:border-l sm:border-t-0" : ""}`}>
+                <span className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-emerald-50 text-emerald-700"><Icon className="h-6 w-6" /></span>
+                <div><div className="font-display text-xl font-extrabold text-emerald-950">{value}</div><div className="text-sm text-slate-500">{label}</div></div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
+
+      <div className="h-32 bg-background sm:h-24" />
 
       {/* HOW IT WORKS */}
       <section id="how" className="section container-x">
