@@ -1,5 +1,5 @@
 export type DeliveryCategory =
-  "food" | "groceries" | "pharmacy" | "parcel" | "personal_pickup" | "buy_for_me" | "business";
+  "food" | "groceries" | "pharmacy" | "parcel" | "personal_pickup" | "business";
 
 export type CourierType = "everyday" | "motorcycle" | "car" | "van" | "logistics";
 

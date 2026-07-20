@@ -965,7 +965,6 @@ export function AdminCategories() {
     pharmacy: "Pharmacy",
     parcel: "Parcel",
     personal_pickup: "Personal Pickup",
-    buy_for_me: "Shop & Deliver",
     business: "Business",
   };
   return (

@@ -120,7 +120,6 @@ const defaultSettings = (): AdminSettings => ({
     pharmacy: true,
     parcel: true,
     personal_pickup: true,
-    buy_for_me: true,
     business: true,
   },
 });

@@ -6,7 +6,6 @@ export type DeliveryCategory =
   | "pharmacy"
   | "parcel"
   | "personal_pickup"
-  | "buy_for_me"
   | "business";
 
 export type CourierType =

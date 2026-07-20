@@ -26,7 +26,6 @@ export const DELIVERY_CATEGORIES = [
   "pharmacy",
   "parcel",
   "personal_pickup",
-  "buy_for_me",
   "business",
 ] as const;
 export type DeliveryCategory = (typeof DELIVERY_CATEGORIES)[number];

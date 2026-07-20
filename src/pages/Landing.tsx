@@ -10,7 +10,6 @@ import {
   ShieldCheck,
   MapPin,
   Lock,
-  CircleDollarSign,
   Utensils,
   Pill,
   ShoppingBasket,
@@ -33,7 +32,6 @@ const categories = [
   { icon: Pill, name: "Pharmacy", desc: "Prescription pickups" },
   { icon: Package, name: "Parcel", desc: "Send anything, anywhere" },
   { icon: HandHeart, name: "Personal Pickup", desc: "Grab it for me" },
-  { icon: CircleDollarSign, name: "Shop & Deliver", desc: "Item price confirmed before purchase" },
   { icon: Building2, name: "Business", desc: "Bulk & merchant logistics" },
 ];
 
@@ -398,10 +396,6 @@ export default function Landing() {
             {
               q: "What is delivery protection?",
               a: "For a small extra fee, MoveDek covers up to the declared value of your item if it's lost or damaged in transit.",
-            },
-            {
-              q: "How does Shop & Deliver pricing work?",
-              a: "The item price may change by store or availability. MoveDek shows the confirmed product cost, service fee, and delivery fee for your approval before purchase.",
             },
             {
               q: "How does payment work?",
