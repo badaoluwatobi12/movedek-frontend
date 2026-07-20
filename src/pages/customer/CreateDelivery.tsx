@@ -45,7 +45,7 @@ const categories: { id: DeliveryCategory; icon: LucideIcon; label: string; desc:
   { id: "pharmacy", icon: Pill, label: "Pharmacy", desc: "Legal pharmacy pickup" },
   { id: "parcel", icon: Package, label: "Parcel", desc: "Packages and documents" },
   { id: "personal_pickup", icon: HandHeart, label: "Personal Pickup", desc: "Forgotten items" },
-  { id: "buy_for_me", icon: CircleDollarSign, label: "Buy For Me", desc: "Courier buys and delivers" },
+  { id: "buy_for_me", icon: CircleDollarSign, label: "Shop & Deliver", desc: "Price confirmed before purchase" },
   { id: "business", icon: Building2, label: "Business Delivery", desc: "Bulk / commercial" },
 ];
 
@@ -251,6 +251,14 @@ export default function CreateDelivery() {
                     <div className="text-xs text-muted-foreground">{c.desc}</div>
                   </button>
                 ))}
+              </div>
+            )}
+            {data.category === "buy_for_me" && (
+              <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900">
+                <div className="font-semibold">How Shop & Deliver pricing works</div>
+                <p className="mt-1 text-emerald-800">
+                  Product prices can vary by store or availability. You will see and approve the confirmed item cost, service fee, and delivery fee before anything is purchased.
+                </p>
               </div>
             )}
           </div>
