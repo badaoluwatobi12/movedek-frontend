@@ -1,7 +1,7 @@
 import { Link, useParams } from "react-router-dom";
 import { useMemo, useState } from "react";
 import { useSession, useStore, store } from "@/data/store";
-import { MapPlaceholder } from "@/components/common";
+import { DeliveryRouteMap } from "@/components/common";
 import ErrorState from "@/components/common/ErrorState";
 import LoadingState from "@/components/common/LoadingState";
 import { PaymentBadge, StatusBadge } from "@/components/badges";
@@ -186,7 +186,11 @@ export default function Tracking() {
 
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="space-y-4 lg:col-span-2">
-          <MapPlaceholder label={courier ? "Live courier location" : "Waiting for courier assignment"} />
+          <DeliveryRouteMap
+            pickupAddress={delivery.pickup_address}
+            dropoffAddress={delivery.dropoff_address}
+            className="h-80"
+          />
 
           <div className="card-elevated p-5">
             <div className="flex flex-wrap items-start justify-between gap-3">

@@ -1,6 +1,6 @@
 import { Link, useParams } from "react-router-dom";
 import { useMemo, useState } from "react";
-import { StatCard, EmptyState, MapPlaceholder } from "@/components/common";
+import { StatCard, EmptyState } from "@/components/common";
 import { LiveCourierMap } from "@/components/admin/LiveCourierMap";
 import { StatusBadge, VerificationBadge, TrustBadge, PaymentBadge, RiskBadge } from "@/components/badges";
 import { naira, shortDate } from "@/lib/format";
@@ -190,7 +190,7 @@ export function AdminOverview() {
             </div>
           )}
         </div>
-        <MapPlaceholder label="Live courier map — active records only" className="h-80" />
+        <LiveCourierMap className="h-80" />
       </div>
     </div>
   );
