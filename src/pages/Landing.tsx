@@ -102,7 +102,7 @@ export default function Landing() {
             </span>
             <h1 className="mt-5 font-display text-4xl md:text-6xl font-extrabold leading-[1.05]">
               Fast delivery powered by{" "}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-cyan-300">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-green-300">
                 people already moving.
               </span>
             </h1>
@@ -133,13 +133,13 @@ export default function Landing() {
             </div>
             <div className="mt-8 flex flex-wrap gap-6 text-sm text-white/80">
               <div className="flex items-center gap-2">
-                <Timer className="h-4 w-4 text-cyan-300" /> Average pickup in 8 min
+                <Timer className="h-4 w-4 text-green-300" /> Average pickup in 8 min
               </div>
               <div className="flex items-center gap-2">
-                <ShieldCheck className="h-4 w-4 text-cyan-300" /> ID-verified couriers
+                <ShieldCheck className="h-4 w-4 text-green-300" /> ID-verified couriers
               </div>
               <div className="flex items-center gap-2">
-                <Star className="h-4 w-4 text-cyan-300" /> 4.9 rider rating
+                <Star className="h-4 w-4 text-green-300" /> 4.9 rider rating
               </div>
             </div>
           </div>
@@ -280,7 +280,7 @@ export default function Landing() {
           <div className="order-2 md:order-1 grid gap-4 sm:grid-cols-2">
             {couriers.map((c) => (
               <div key={c.name} className="rounded-2xl bg-white/10 backdrop-blur p-5 ring-1 ring-white/20">
-                <c.icon className="h-6 w-6 text-cyan-300" />
+                <c.icon className="h-6 w-6 text-green-300" />
                 <div className="mt-3 font-display font-semibold">{c.name}</div>
                 <div className="text-sm text-white/70">{c.tag}</div>
               </div>

@@ -4,28 +4,28 @@
 
 @layer base {
   :root {
-    /* MoveDek brand — deep navy + electric accent + naija green success */
+    /* MoveDek brand — forest green, emerald action, and accessible neutral surfaces */
     --background: 210 40% 98%;
-    --foreground: 218 65% 12%;
+    --foreground: 154 45% 10%;
 
     --card: 0 0% 100%;
-    --card-foreground: 218 65% 12%;
+    --card-foreground: 154 45% 10%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 218 65% 12%;
+    --popover-foreground: 154 45% 10%;
 
-    --primary: 219 72% 15%; /* deep navy #0B1E3F */
+    --primary: 151 70% 27%; /* MoveDek forest green */
     --primary-foreground: 210 40% 98%;
-    --primary-glow: 219 80% 28%;
+    --primary-glow: 151 72% 36%;
 
-    --accent: 200 98% 45%; /* electric blue */
+    --accent: 142 69% 42%; /* emerald green */
     --accent-foreground: 0 0% 100%;
 
     --secondary: 215 30% 95%;
-    --secondary-foreground: 218 65% 12%;
+    --secondary-foreground: 154 45% 12%;
 
     --muted: 214 30% 94%;
-    --muted-foreground: 218 15% 42%;
+    --muted-foreground: 154 12% 40%;
 
     --success: 152 62% 38%;
     --success-foreground: 0 0% 100%;
@@ -43,32 +43,32 @@
 
     --border: 215 25% 88%;
     --input: 215 25% 88%;
-    --ring: 200 98% 45%;
+    --ring: 151 70% 32%;
 
     --radius: 1rem;
 
     --gradient-hero: linear-gradient(
       135deg,
-      hsl(219 72% 15%) 0%,
-      hsl(219 80% 22%) 55%,
-      hsl(200 98% 30%) 100%
+      hsl(151 70% 22%) 0%,
+      hsl(151 70% 29%) 55%,
+      hsl(142 69% 38%) 100%
     );
-    --gradient-accent: linear-gradient(135deg, hsl(200 98% 45%), hsl(180 85% 45%));
+    --gradient-accent: linear-gradient(135deg, hsl(151 70% 32%), hsl(142 69% 45%));
     --gradient-card: linear-gradient(180deg, hsl(0 0% 100%), hsl(215 30% 98%));
 
     --shadow-sm: 0 1px 2px hsl(219 40% 20% / 0.06);
     --shadow-md: 0 8px 24px -8px hsl(219 40% 20% / 0.14);
     --shadow-lg: 0 24px 60px -20px hsl(219 60% 15% / 0.28);
-    --shadow-glow: 0 12px 40px -8px hsl(200 98% 45% / 0.4);
+    --shadow-glow: 0 12px 40px -8px hsl(151 70% 32% / 0.35);
 
-    --sidebar-background: 219 72% 15%;
+    --sidebar-background: 151 70% 20%;
     --sidebar-foreground: 210 40% 96%;
-    --sidebar-primary: 200 98% 45%;
+    --sidebar-primary: 142 69% 45%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 219 60% 22%;
+    --sidebar-accent: 151 55% 27%;
     --sidebar-accent-foreground: 210 40% 96%;
-    --sidebar-border: 219 60% 22%;
-    --sidebar-ring: 200 98% 45%;
+    --sidebar-border: 151 45% 30%;
+    --sidebar-ring: 142 69% 45%;
   }
 }
 

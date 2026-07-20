@@ -33,4 +33,10 @@ export const profileService = {
       token: token(),
       body: JSON.stringify({ current_password, new_password }),
     }),
+  deleteAccount: (password: string, confirmation: string, reason?: string) =>
+    http<{ deleted: boolean }>("/users/me", {
+      method: "DELETE",
+      token: token(),
+      body: JSON.stringify({ password, confirmation, reason }),
+    }),
 };
