@@ -1,13 +1,15 @@
 import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { getStoredAuthUser, store, useSession, useStore } from "@/data/store";
 import { getStoredSession as getStorageSession, getStoredToken } from "@/lib/authStorage";
 import type { Role } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import NotificationCenter from "@/components/notifications/NotificationCenter";
-import { LogOut, Menu, Zap, type LucideIcon } from "lucide-react";
+import { useMarkAllNotificationsRead, useNotificationUnreadCount, useNotifications } from "@/hooks/useNotifications";
+import { Bell, CheckCheck, LogOut, Menu, Settings, Zap, type LucideIcon } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { toast } from "sonner";
 
 export type NavItem = { to: string; label: string; icon: LucideIcon; end?: boolean };
 
@@ -47,7 +49,29 @@ export function DashboardShell({ role, nav, title }: { role: Role; nav: NavItem[
   );
   const displayName = user?.full_name || storedUser?.full_name || "MoveDek User";
   const displayEmail = user?.email || storedUser?.email || "";
+  const unreadNotifications = useNotificationUnreadCount();
+  const recentNotifications = useNotifications({ read_status: "all", page: 1, limit: 5 });
+  const markAllRead = useMarkAllNotificationsRead();
   const notificationPath = role === "customer" ? "/app/notifications" : `/${role}/notifications`;
+  const unreadCount = unreadNotifications.data?.unread_count ?? 0;
+  const previousUnread = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (previousUnread.current !== null && unreadCount > previousUnread.current) {
+      const latest = recentNotifications.data?.items.find((item) => !item.read_at);
+      toast.info(latest?.title ?? "You have a new MoveDek alert", {
+        description: latest?.message,
+        action: latest?.action_url
+          ? { label: "Open", onClick: () => navigate(latest.action_url!) }
+          : undefined,
+      });
+
+      if (document.visibilityState !== "visible" && Notification.permission === "granted") {
+        new Notification(latest?.title ?? "New MoveDek alert", { body: latest?.message });
+      }
+    }
+    previousUnread.current = unreadCount;
+  }, [navigate, recentNotifications.data?.items, unreadCount]);
 
   if (!storedSession || !token) return null;
 
@@ -130,7 +154,59 @@ export function DashboardShell({ role, nav, title }: { role: Role; nav: NavItem[
           </div>
           <div className="hidden md:block text-sm text-muted-foreground capitalize">{title}</div>
           <div className="flex items-center gap-2">
-            <NotificationCenter notificationPath={notificationPath} />
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="ghost" size="icon" className="relative" aria-label="Open notification alerts">
+                  <Bell className="h-5 w-5" />
+                  {unreadCount > 0 && (
+                    <span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground">
+                      {unreadCount > 99 ? "99+" : unreadCount}
+                    </span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent align="end" className="w-[min(24rem,calc(100vw-1rem))] p-0">
+                <div className="flex items-center justify-between border-b p-3">
+                  <div>
+                    <div className="font-display font-semibold text-primary">Alerts</div>
+                    <div className="text-xs text-muted-foreground">{unreadCount} unread notification{unreadCount === 1 ? "" : "s"}</div>
+                  </div>
+                  {unreadCount > 0 && (
+                    <Button size="sm" variant="ghost" disabled={markAllRead.isPending} onClick={() => markAllRead.mutate()}>
+                      <CheckCheck className="mr-1 h-4 w-4" /> Read all
+                    </Button>
+                  )}
+                </div>
+                <div className="max-h-80 overflow-y-auto p-2">
+                  {recentNotifications.isLoading && <div className="p-4 text-sm text-muted-foreground">Loading alerts…</div>}
+                  {recentNotifications.data?.items.length === 0 && <div className="p-6 text-center text-sm text-muted-foreground">No alerts yet.</div>}
+                  {recentNotifications.data?.items.map((item) => (
+                    <Link key={item.id} to={item.action_url || notificationPath} className="block rounded-lg p-3 hover:bg-muted/70">
+                      <div className="flex gap-2">
+                        <span className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${item.read_at ? "bg-muted-foreground/30" : "bg-primary"}`} />
+                        <div className="min-w-0">
+                          <div className="truncate text-sm font-medium text-primary">{item.title}</div>
+                          <div className="line-clamp-2 text-xs text-muted-foreground">{item.message}</div>
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+                <div className="grid grid-cols-2 gap-2 border-t p-2">
+                  <Button asChild variant="ghost" size="sm"><Link to={notificationPath}>View all</Link></Button>
+                  <Button variant="ghost" size="sm" onClick={() => {
+                    if (!("Notification" in window)) return toast.error("Browser notifications are not supported.");
+                    void Notification.requestPermission().then((permission) => {
+                      if (permission === "granted") {
+                        toast.success("Browser alerts enabled");
+                      } else {
+                        toast.info("Browser alerts remain disabled");
+                      }
+                    });
+                  }}><Settings className="mr-1 h-4 w-4" /> Browser alerts</Button>
+                </div>
+              </PopoverContent>
+            </Popover>
           </div>
         </header>
         <main className="min-w-0 flex-1 p-3 sm:p-5 lg:p-8">

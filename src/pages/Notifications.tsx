@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { Bell, CheckCheck, Inbox, Search, Trash2, ShieldCheck, PackageCheck } from "lucide-react";
+import { Bell, CheckCheck, Inbox, Search, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -165,20 +165,19 @@ export default function NotificationsPage() {
       </div>
 
       <div className="grid gap-3 md:grid-cols-3">
-        <div className="rounded-2xl border bg-gradient-to-br from-emerald-950 to-emerald-700 p-5 text-white shadow-sm">
-          <PackageCheck className="h-5 w-5 text-emerald-200" />
-          <span className="mt-4 block text-sm text-white/70">Total alerts</span>
-          <div className="font-display text-3xl font-bold">{data?.pagination.total ?? 0}</div>
+        <div className="stat-card">
+          <span className="text-sm text-muted-foreground">Total results</span>
+          <div className="font-display text-2xl font-bold text-primary">{data?.pagination.total ?? 0}</div>
         </div>
-        <div className="rounded-2xl border bg-card p-5 shadow-sm">
-          <Bell className="h-5 w-5 text-primary" />
-          <span className="mt-4 block text-sm text-muted-foreground">Unread alerts</span>
-          <div className="font-display text-3xl font-bold text-primary">{data?.unread_count ?? 0}</div>
+        <div className="stat-card">
+          <span className="text-sm text-muted-foreground">Unread</span>
+          <div className="font-display text-2xl font-bold text-primary">{data?.unread_count ?? 0}</div>
         </div>
-        <div className="rounded-2xl border bg-card p-5 shadow-sm">
-          <ShieldCheck className="h-5 w-5 text-primary" />
-          <span className="mt-4 block text-sm text-muted-foreground">Alert center</span>
-          <div className="mt-1 text-sm font-medium text-foreground">Delivery, payout and account updates</div>
+        <div className="stat-card">
+          <span className="text-sm text-muted-foreground">Current page</span>
+          <div className="font-display text-2xl font-bold text-primary">
+            {data?.pagination.page ?? 1}/{data?.pagination.total_pages ?? 1}
+          </div>
         </div>
       </div>
 
@@ -205,7 +204,7 @@ export default function NotificationsPage() {
       )}
 
       {data && data.items.length > 0 && (
-        <div className="grid gap-3 xl:grid-cols-2">
+        <div className="space-y-3">
           {data.items.map((notification) => (
             <NotificationItem key={notification.id} notification={notification} />
           ))}

@@ -18,7 +18,6 @@ export function useNotifications(params?: NotificationListParams) {
     queryFn: () => notificationService.list(params),
     enabled: hasToken(),
     refetchInterval: 15_000,
-    refetchIntervalInBackground: true,
   });
 }
 
@@ -28,7 +27,6 @@ export function useNotificationUnreadCount() {
     queryFn: () => notificationService.unreadCount(),
     enabled: hasToken(),
     refetchInterval: 15_000,
-    refetchIntervalInBackground: true,
   });
 }
 
