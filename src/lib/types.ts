@@ -50,7 +50,7 @@ export interface Courier {
   earnings_today: number;
   created_at: string;
   home_address?: string;
-  service_zones?: string;
+  service_zones?: string[];
   plate_number?: string;
   vehicle_colour?: string;
   account_name?: string;

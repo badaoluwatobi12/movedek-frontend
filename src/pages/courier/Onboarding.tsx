@@ -29,7 +29,7 @@ export default function Onboarding() {
   const [profile, setProfile] = useState({
     fullName: user?.full_name ?? "",
     address: me?.home_address ?? "",
-    zones: me?.service_zones ?? "",
+    zones: Array.isArray(me?.service_zones) ? me.service_zones.join(", ") : (me?.service_zones ?? ""),
     vehicleType: me?.courier_type ?? "motorcycle",
     vehicleModel: me?.vehicle_type === "Not added yet" ? "" : (me?.vehicle_type ?? ""),
     plate: me?.plate_number ?? "",
@@ -90,7 +90,10 @@ export default function Onboarding() {
       account_number: profile.accountNumber,
       account_name: profile.accountName,
       home_address: profile.address,
-      service_zones: profile.zones,
+      service_zones: profile.zones
+        .split(",")
+        .map((zone) => zone.trim())
+        .filter(Boolean),
       plate_number: profile.plate,
       vehicle_colour: profile.colour,
       emergency_contact_name: profile.emergencyName,
