@@ -62,9 +62,9 @@ export default function Landing() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pt-[76px]">
       {/* NAV */}
-      <header className="sticky top-0 z-50 border-b border-emerald-950/5 bg-white/95 backdrop-blur-xl">
+      <header className="fixed inset-x-0 top-0 z-[100] border-b border-emerald-950/10 bg-white/90 shadow-[0_8px_30px_-24px_rgba(6,78,59,.55)] backdrop-blur-xl supports-[backdrop-filter]:bg-white/82">
         <div className="container-x flex h-[76px] items-center justify-between">
           <Link to="/" className="group flex items-center gap-3" aria-label="MoveDek home">
             <span className="grid h-11 w-11 place-items-center rounded-2xl bg-emerald-600 shadow-[0_10px_24px_-10px_rgba(5,150,105,.8)] transition-transform group-hover:-rotate-3 group-hover:scale-105">
@@ -114,13 +114,13 @@ export default function Landing() {
         <div className="container-x relative grid min-h-[calc(100svh-76px)] items-center gap-12 py-16 lg:grid-cols-[.95fr_1.05fr] lg:py-20 xl:min-h-[760px]">
           <div className="relative z-10 animate-fade-up">
             <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-4 py-2 text-xs font-semibold text-emerald-50 shadow-lg backdrop-blur">
-              <Navigation className="h-3.5 w-3.5" /> Launching in Lagos — Yaba first
+              <Navigation className="h-3.5 w-3.5" /> Delivery built for everyday movement
             </span>
             <h1 id="landing-heading" className="mt-7 max-w-3xl font-display text-4xl font-extrabold leading-[1.02] tracking-[-0.05em] sm:text-5xl lg:text-6xl xl:text-7xl">
-              Same-day delivery in Lagos for <span className="text-emerald-300">parcels, groceries</span> and business logistics.
+              Fast, trackable delivery for <span className="text-emerald-300">parcels, groceries</span> and growing businesses.
             </h1>
             <p className="mt-7 max-w-2xl text-base leading-7 text-emerald-50/85 sm:text-lg">
-              Request a verified courier for parcel delivery, grocery runs, pharmacy pickups and business logistics across Lagos. Track every trip live and confirm pickup and delivery with secure PINs.
+              Book a verified courier for parcels, groceries, pharmacy pickups, personal errands and business logistics. Follow every trip live and confirm each handoff with secure PINs.
             </p>
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -163,9 +163,9 @@ export default function Landing() {
                   <span className="grid h-10 w-10 place-items-center rounded-full bg-emerald-50 text-emerald-700"><PhoneCall className="h-4 w-4" /></span>
                 </div>
                 <div className="landing-map">
-                  <span className="landing-map-label landing-map-label-one">YABA</span>
-                  <span className="landing-map-label landing-map-label-two">UNILAG</span>
-                  <span className="landing-map-label landing-map-label-three">ONIKE</span>
+                  <span className="landing-map-label landing-map-label-one">PICKUP</span>
+                  <span className="landing-map-label landing-map-label-two">IN TRANSIT</span>
+                  <span className="landing-map-label landing-map-label-three">DROP-OFF</span>
                   <svg viewBox="0 0 320 220" className="absolute inset-0 h-full w-full" aria-hidden="true">
                     <path d="M70 170 C115 170 95 125 145 122 S176 70 232 58" fill="none" stroke="#059669" strokeWidth="7" strokeLinecap="round" />
                     <circle cx="70" cy="170" r="8" fill="white" stroke="#059669" strokeWidth="5" />
@@ -177,8 +177,8 @@ export default function Landing() {
                   <div className="text-[10px] font-medium uppercase tracking-[.12em] text-slate-400">Delivery #MD-4291</div>
                   <div className="mt-1 text-lg font-extrabold text-slate-900">Live parcel delivery</div>
                   <div className="mt-4 space-y-3 text-xs text-slate-600">
-                    <div className="flex gap-3"><MapPin className="mt-0.5 h-4 w-4 text-emerald-600" /><span><b className="block text-slate-400">Pickup</b>Yaba, Lagos</span></div>
-                    <div className="flex gap-3"><Navigation className="mt-0.5 h-4 w-4 text-emerald-600" /><span><b className="block text-slate-400">Drop-off</b>Victoria Island, Lagos</span></div>
+                    <div className="flex gap-3"><MapPin className="mt-0.5 h-4 w-4 text-emerald-600" /><span><b className="block text-slate-400">Pickup</b>Collection point</span></div>
+                    <div className="flex gap-3"><Navigation className="mt-0.5 h-4 w-4 text-emerald-600" /><span><b className="block text-slate-400">Drop-off</b>Delivery destination</span></div>
                   </div>
                   <div className="mt-4 flex items-center justify-center gap-2 rounded-xl bg-emerald-50 py-3 text-xs font-bold text-emerald-700"><CheckCircle2 className="h-4 w-4" /> Share live tracking</div>
                 </div>
@@ -193,10 +193,10 @@ export default function Landing() {
         <div className="container-x relative z-20 pb-10 lg:pb-12">
           <div className="grid overflow-hidden rounded-3xl border border-white/20 bg-white text-slate-900 shadow-[0_28px_70px_-30px_rgba(6,78,59,.55)] sm:grid-cols-2 lg:grid-cols-4">
             {[
-              { icon: Bike, value: "8 min", label: "Average pickup" },
+              { icon: Bike, value: "Fast", label: "Courier matching" },
               { icon: Users, value: "Verified", label: "Courier network" },
               { icon: ShieldCheck, value: "Protected", label: "PIN-confirmed trips" },
-              { icon: Star, value: "4.9", label: "Target rider rating" },
+              { icon: Star, value: "Rated", label: "Service quality" },
             ].map(({ icon: Icon, value, label }, index) => (
               <div key={label} className={`flex items-center gap-4 px-6 py-6 ${index ? "border-t border-slate-100 sm:border-l sm:border-t-0" : ""}`}>
                 <span className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-emerald-50 text-emerald-700"><Icon className="h-6 w-6" /></span>
@@ -208,7 +208,7 @@ export default function Landing() {
       </section>
 
       {/* HOW IT WORKS */}
-      <section id="how" className="section container-x">
+      <section id="how" className="section container-x scroll-mt-24">
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="font-display text-3xl md:text-4xl font-bold text-primary">How MoveDek works</h2>
           <p className="mt-3 text-muted-foreground">Three steps between you and delivered.</p>
@@ -243,7 +243,7 @@ export default function Landing() {
       </section>
 
       {/* CATEGORIES */}
-      <section id="categories" className="section bg-muted/40">
+      <section id="categories" className="section scroll-mt-24 bg-muted/40">
         <div className="container-x">
           <div className="flex items-end justify-between flex-wrap gap-4">
             <div>
@@ -293,7 +293,7 @@ export default function Landing() {
       </section>
 
       {/* COURIERS */}
-      <section id="couriers" className="section hero-gradient text-white">
+      <section id="couriers" className="section scroll-mt-24 hero-gradient text-white">
         <div className="container-x grid md:grid-cols-2 gap-12 items-center">
           <div className="order-2 md:order-1 grid gap-4 sm:grid-cols-2">
             {couriers.map((c) => (
@@ -323,7 +323,7 @@ export default function Landing() {
       </section>
 
       {/* MERCHANTS */}
-      <section id="merchants" className="section container-x">
+      <section id="merchants" className="section container-x scroll-mt-24">
         <div className="card-elevated overflow-hidden">
           <div className="grid md:grid-cols-2">
             <div className="p-8 md:p-12">
@@ -381,7 +381,7 @@ export default function Landing() {
       </section>
 
       {/* FAQ */}
-      <section id="faq" className="section container-x max-w-3xl">
+      <section id="faq" className="section container-x max-w-3xl scroll-mt-24">
         <h2 className="font-display text-3xl md:text-4xl font-bold text-primary text-center">
           Frequently asked
         </h2>
@@ -389,7 +389,7 @@ export default function Landing() {
           {[
             {
               q: "Where does MoveDek operate?",
-              a: "We're launching in Lagos, starting with Yaba and surrounding mainland/island corridors. New areas roll out monthly.",
+              a: "MoveDek is expanding service coverage in phases. Enter your pickup and destination during booking to confirm whether delivery is available in your area.",
             },
             {
               q: "How are couriers verified?",
@@ -427,7 +427,7 @@ export default function Landing() {
               <span className="font-display text-xl font-bold">MoveDek</span>
             </div>
             <p className="mt-3 text-sm text-primary-foreground/70">
-              Fast delivery powered by people already moving.
+              Flexible delivery for parcels, errands and business logistics.
             </p>
           </div>
           <div>
@@ -461,7 +461,7 @@ export default function Landing() {
           <div>
             <div className="text-sm font-semibold">Company</div>
             <ul className="mt-3 space-y-2 text-sm text-primary-foreground/70">
-              <li>Lagos, Nigeria</li>
+              <li>Delivery and logistics platform</li>
               <li>hello@movedek.ng</li>
               <li>© {new Date().getFullYear()} MoveDek</li>
             </ul>
