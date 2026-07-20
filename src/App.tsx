@@ -14,9 +14,13 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Forgot from "./pages/ForgotPassword";
 import NotificationsPage from "./pages/Notifications";
+import ProfilePage from "./pages/profile/ProfilePage";
 import { Otp } from "./pages/Auth";
 
-import { DashboardShell, type NavItem } from "@/components/layout/DashboardLayout";
+import {
+  DashboardShell,
+  type NavItem,
+} from "@/components/layout/DashboardLayout";
 import {
   LayoutDashboard,
   Plus,
@@ -100,7 +104,8 @@ const customerNav: NavItem[] = [
   { to: "/app/wallet", label: "Wallet", icon: Wallet },
   { to: "/app/addresses", label: "Addresses", icon: MapPin },
   { to: "/app/support", label: "Support", icon: LifeBuoy },
-  { to: "/app/settings", label: "Settings", icon: User },
+  { to: "/app/profile", label: "Profile", icon: User },
+  { to: "/app/settings", label: "Settings", icon: Settings },
 ];
 
 const courierNav: NavItem[] = [
@@ -111,6 +116,7 @@ const courierNav: NavItem[] = [
   { to: "/courier/notifications", label: "Notifications", icon: BellRing },
   { to: "/courier/ratings", label: "Ratings", icon: Star },
   { to: "/courier/history", label: "History", icon: History },
+  { to: "/courier/profile", label: "Profile", icon: User },
 ];
 
 const merchantNav: NavItem[] = [
@@ -122,6 +128,7 @@ const merchantNav: NavItem[] = [
   { to: "/merchant/payments", label: "Payments", icon: CreditCard },
   { to: "/merchant/notifications", label: "Notifications", icon: BellRing },
   { to: "/merchant/staff", label: "Staff", icon: Store },
+  { to: "/merchant/profile", label: "Profile", icon: User },
   { to: "/merchant/settings", label: "Settings", icon: Settings },
 ];
 
@@ -141,6 +148,7 @@ const adminNav: NavItem[] = [
   { to: "/admin/settings/trust", label: "Trust levels", icon: BadgeCheck },
   { to: "/admin/support", label: "Support", icon: LifeBuoy },
   { to: "/admin/audit", label: "Audit log", icon: FileText },
+  { to: "/admin/profile", label: "Profile", icon: User },
 ];
 
 const App = () => {
@@ -159,71 +167,150 @@ const App = () => {
       <TooltipProvider>
         <Toaster />
         <Sonner />
-        <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+        <BrowserRouter
+          future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+        >
           <Routes>
             <Route path="/" element={<Landing />} />
-            <Route path="/auth" element={<Navigate to="/auth/login" replace />} />
+            <Route
+              path="/auth"
+              element={<Navigate to="/auth/login" replace />}
+            />
             <Route path="/auth/login" element={<Login />} />
             <Route path="/auth/register" element={<Register />} />
             <Route path="/auth/otp" element={<Otp />} />
             <Route path="/auth/forgot" element={<Forgot />} />
 
             <Route element={<RequireAuth />}>
-              <Route element={<DashboardShell role="customer" nav={customerNav} title="Customer" />}>
+              <Route
+                element={
+                  <DashboardShell
+                    role="customer"
+                    nav={customerNav}
+                    title="Customer"
+                  />
+                }
+              >
                 <Route path="/app" element={<CustomerDashboard />} />
                 <Route path="/app/new" element={<CreateDelivery />} />
                 <Route path="/app/track/:id" element={<Tracking />} />
                 <Route path="/app/history" element={<CHistory />} />
-                <Route path="/app/notifications" element={<NotificationsPage />} />
+                <Route
+                  path="/app/notifications"
+                  element={<NotificationsPage />}
+                />
                 <Route path="/app/wallet" element={<WalletPage />} />
-                <Route path="/app/wallet/callback" element={<WalletTopUpCallback />} />
-                <Route path="/app/payments/callback" element={<PaymentCallback />} />
+                <Route
+                  path="/app/wallet/callback"
+                  element={<WalletTopUpCallback />}
+                />
+                <Route
+                  path="/app/payments/callback"
+                  element={<PaymentCallback />}
+                />
                 <Route path="/app/addresses" element={<Addresses />} />
                 <Route path="/app/support" element={<Support />} />
+                <Route path="/app/profile" element={<ProfilePage />} />
                 <Route path="/app/settings" element={<CSettings />} />
               </Route>
 
-              <Route element={<DashboardShell role="courier" nav={courierNav} title="Courier" />}>
+              <Route
+                element={
+                  <DashboardShell
+                    role="courier"
+                    nav={courierNav}
+                    title="Courier"
+                  />
+                }
+              >
                 <Route path="/courier" element={<CourierHome />} />
                 <Route path="/courier/onboarding" element={<Onboarding />} />
                 <Route path="/courier/jobs/:id" element={<JobDetails />} />
                 <Route path="/courier/active/:id" element={<ActiveJob />} />
                 <Route path="/courier/earnings" element={<CourierEarnings />} />
-                <Route path="/courier/withdrawals" element={<CourierWithdrawals />} />
-                <Route path="/courier/notifications" element={<NotificationsPage />} />
+                <Route
+                  path="/courier/withdrawals"
+                  element={<CourierWithdrawals />}
+                />
+                <Route
+                  path="/courier/notifications"
+                  element={<NotificationsPage />}
+                />
                 <Route path="/courier/ratings" element={<CourierRatings />} />
                 <Route path="/courier/history" element={<CourierHistory />} />
+                <Route path="/courier/profile" element={<ProfilePage />} />
               </Route>
 
-              <Route element={<DashboardShell role="merchant" nav={merchantNav} title="Merchant" />}>
+              <Route
+                element={
+                  <DashboardShell
+                    role="merchant"
+                    nav={merchantNav}
+                    title="Merchant"
+                  />
+                }
+              >
                 <Route path="/merchant" element={<MerchantOverview />} />
                 <Route path="/merchant/new" element={<CreateDelivery />} />
                 <Route path="/merchant/orders" element={<MerchantOrders />} />
                 <Route path="/merchant/bulk" element={<MerchantBulk />} />
-                <Route path="/merchant/customers" element={<MerchantCustomers />} />
-                <Route path="/merchant/payments" element={<MerchantPayments />} />
-                <Route path="/merchant/notifications" element={<NotificationsPage />} />
+                <Route
+                  path="/merchant/customers"
+                  element={<MerchantCustomers />}
+                />
+                <Route
+                  path="/merchant/payments"
+                  element={<MerchantPayments />}
+                />
+                <Route
+                  path="/merchant/notifications"
+                  element={<NotificationsPage />}
+                />
                 <Route path="/merchant/staff" element={<MerchantStaff />} />
-                <Route path="/merchant/settings" element={<MerchantSettings />} />
+                <Route path="/merchant/profile" element={<ProfilePage />} />
+                <Route
+                  path="/merchant/settings"
+                  element={<MerchantSettings />}
+                />
               </Route>
 
-              <Route element={<DashboardShell role="admin" nav={adminNav} title="Admin" />}>
+              <Route
+                element={
+                  <DashboardShell role="admin" nav={adminNav} title="Admin" />
+                }
+              >
                 <Route path="/admin" element={<AdminOverview />} />
                 <Route path="/admin/users" element={<AdminUsers />} />
                 <Route path="/admin/couriers" element={<AdminCouriers />} />
-                <Route path="/admin/couriers/:id" element={<AdminCourierDetail />} />
+                <Route
+                  path="/admin/couriers/:id"
+                  element={<AdminCourierDetail />}
+                />
                 <Route path="/admin/deliveries" element={<AdminDeliveries />} />
                 <Route path="/admin/map" element={<AdminMap />} />
                 <Route path="/admin/payments" element={<AdminPayments />} />
-                <Route path="/admin/notifications" element={<NotificationsPage />} />
-                <Route path="/admin/withdrawals" element={<AdminWithdrawals />} />
+                <Route
+                  path="/admin/notifications"
+                  element={<NotificationsPage />}
+                />
+                <Route
+                  path="/admin/withdrawals"
+                  element={<AdminWithdrawals />}
+                />
                 <Route path="/admin/disputes" element={<AdminDisputes />} />
                 <Route path="/admin/fraud" element={<AdminFraud />} />
-                <Route path="/admin/settings/pricing" element={<AdminPricing />} />
-                <Route path="/admin/settings/categories" element={<AdminCategories />} />
+                <Route
+                  path="/admin/settings/pricing"
+                  element={<AdminPricing />}
+                />
+                <Route
+                  path="/admin/settings/categories"
+                  element={<AdminCategories />}
+                />
                 <Route path="/admin/settings/trust" element={<AdminTrust />} />
                 <Route path="/admin/support" element={<AdminSupport />} />
                 <Route path="/admin/audit" element={<AdminAudit />} />
+                <Route path="/admin/profile" element={<ProfilePage />} />
               </Route>
             </Route>
 

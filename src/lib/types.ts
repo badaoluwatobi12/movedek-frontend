@@ -1,9 +1,16 @@
 export type Role = "customer" | "courier" | "merchant" | "admin";
 
 export type DeliveryCategory =
-  "food" | "groceries" | "pharmacy" | "parcel" | "personal_pickup" | "buy_for_me" | "business";
+  | "food"
+  | "groceries"
+  | "pharmacy"
+  | "parcel"
+  | "personal_pickup"
+  | "buy_for_me"
+  | "business";
 
-export type CourierType = "everyday" | "motorcycle" | "car" | "van" | "logistics";
+export type CourierType =
+  "everyday" | "motorcycle" | "car" | "van" | "logistics";
 
 export type TrustLevel = "bronze" | "silver" | "gold" | "platinum";
 
@@ -30,6 +37,17 @@ export interface User {
   phone: string;
   role: Role;
   avatar_url?: string;
+  bio?: string;
+  location?: string;
+  timezone?: string;
+  language?: "en" | "fr" | "pt";
+  notification_preferences?: {
+    email?: boolean;
+    sms?: boolean;
+    push?: boolean;
+    delivery_updates?: boolean;
+    promotions?: boolean;
+  };
   status: "active" | "suspended";
   created_at: string;
 }
