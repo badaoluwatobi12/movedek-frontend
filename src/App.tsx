@@ -145,10 +145,13 @@ const adminNav: NavItem[] = [
 
 const App = () => {
   useEffect(() => {
-    // Auth pages should not load /api/app-state. That endpoint is protected,
-    // so calling it before login creates a 401 noise in the console.
-    if (window.location.pathname.startsWith("/auth")) return;
-
+    // hydrate() checks for a stored session and no-ops immediately if there
+    // isn't one, so it's safe to call unconditionally here. Gating this on
+    // the pathname at mount time meant logging in from /auth/login and
+    // getting routed to a protected page never called hydrate() at all,
+    // since this effect only runs once and the app never remounts on
+    // client-side navigation — leaving the store stuck in its initial
+    // loading:true state for the rest of the session.
     store.hydrate();
   }, []);
   return (
