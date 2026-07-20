@@ -176,3 +176,20 @@
     max-width: 100%;
   }
 }
+
+@layer components {
+  .auth-portal-hero {
+    background:
+      radial-gradient(circle at 15% 15%, rgb(52 211 153 / 0.28), transparent 28%),
+      radial-gradient(circle at 85% 80%, rgb(163 230 53 / 0.18), transparent 30%),
+      linear-gradient(145deg, #064e3b 0%, #047857 48%, #059669 100%);
+  }
+
+  .auth-portal-grid {
+    background-image:
+      linear-gradient(rgb(255 255 255 / 0.08) 1px, transparent 1px),
+      linear-gradient(90deg, rgb(255 255 255 / 0.08) 1px, transparent 1px);
+    background-size: 48px 48px;
+    mask-image: linear-gradient(to bottom right, black, transparent 88%);
+  }
+}

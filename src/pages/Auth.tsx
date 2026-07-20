@@ -19,53 +19,160 @@ import { getStoredSession, getStoredToken, isTokenValid, safeInternalNext } from
 import type { Role } from "@/lib/types";
 import {
   ArrowLeft,
+  BarChart3,
   Bike,
   Eye,
   EyeOff,
+  Headphones,
   Lock,
   Mail,
+  MapPinned,
   Package,
   Phone,
   Shield,
+  ShieldCheck,
   Store,
   User,
+  Users,
   Zap,
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
+type AuthPortal = "admin" | "courier" | "merchant" | "customer" | "account";
+
 type AuthLayoutProps = PropsWithChildren<{
   title: string;
   subtitle?: string;
-  eyebrow?: string;
+  portal?: AuthPortal;
 }>;
 
-function AuthLayout({ children, title, subtitle, eyebrow = "MoveDek Account" }: AuthLayoutProps) {
+const portalContent: Record<
+  AuthPortal,
+  { label: string; headline: string; description: string; icon: LucideIcon; features: { icon: LucideIcon; label: string }[] }
+> = {
+  admin: {
+    label: "MoveDek Admin",
+    headline: "Run every MoveDek operation from one secure command center.",
+    description: "Manage users, deliveries, finance, live operations, compliance, and platform performance in real time.",
+    icon: ShieldCheck,
+    features: [
+      { icon: MapPinned, label: "Live operations and courier tracking" },
+      { icon: Users, label: "User, courier, and merchant management" },
+      { icon: BarChart3, label: "Financial and performance intelligence" },
+    ],
+  },
+  courier: {
+    label: "MoveDek Courier",
+    headline: "Your delivery workspace, built to keep you moving.",
+    description: "Manage assignments, publish live location, track earnings, and complete deliveries from one reliable workspace.",
+    icon: Bike,
+    features: [
+      { icon: MapPinned, label: "Live routes and delivery navigation" },
+      { icon: Package, label: "Assignment and delivery management" },
+      { icon: ShieldCheck, label: "Secure account and payout access" },
+    ],
+  },
+  merchant: {
+    label: "MoveDek Merchant",
+    headline: "Reliable logistics for every order your business sends.",
+    description: "Create deliveries, monitor fulfilment, manage your team, and understand performance from one merchant dashboard.",
+    icon: Store,
+    features: [
+      { icon: Package, label: "Order and dispatch management" },
+      { icon: MapPinned, label: "Real-time delivery visibility" },
+      { icon: BarChart3, label: "Business performance insights" },
+    ],
+  },
+  customer: {
+    label: "MoveDek Customer",
+    headline: "Send, track, and receive with confidence.",
+    description: "Book deliveries in minutes, follow every movement, and get help whenever you need it.",
+    icon: Package,
+    features: [
+      { icon: Zap, label: "Fast delivery booking" },
+      { icon: MapPinned, label: "Real-time package tracking" },
+      { icon: Headphones, label: "Responsive customer support" },
+    ],
+  },
+  account: {
+    label: "MoveDek Account",
+    headline: "One account for every MoveDek experience.",
+    description: "Access your deliveries, operations, business tools, and account settings securely.",
+    icon: Zap,
+    features: [
+      { icon: ShieldCheck, label: "Secure account access" },
+      { icon: MapPinned, label: "Real-time logistics visibility" },
+      { icon: Headphones, label: "Support when you need it" },
+    ],
+  },
+};
+
+function AuthLayout({ children, title, subtitle, portal = "account" }: AuthLayoutProps) {
+  const content = portalContent[portal];
+  const PortalIcon = content.icon;
+
   return (
     <main className="min-h-screen bg-background text-foreground">
-      <div className="mx-auto grid min-h-screen w-full max-w-[1440px] grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(380px,514px)]">
-        <div className="hidden lg:block hero-gradient" aria-hidden="true" />
-        <section className="flex min-h-screen items-center px-4 py-8 sm:px-8 sm:py-10 lg:px-10 xl:pr-20">
-          <div className="mx-auto w-full max-w-[514px]">
-            <div className="mb-9 flex flex-wrap items-center gap-3">
+      <div className="mx-auto grid min-h-screen w-full max-w-[1600px] grid-cols-1 lg:grid-cols-[minmax(0,1.25fr)_minmax(420px,0.75fr)]">
+        <aside className="auth-portal-hero relative hidden min-h-screen overflow-hidden px-12 py-14 text-white lg:flex xl:px-16">
+          <div className="auth-portal-grid absolute inset-0 opacity-35" aria-hidden="true" />
+          <div className="absolute -left-24 top-1/3 h-72 w-72 rounded-full bg-emerald-300/20 blur-3xl" aria-hidden="true" />
+          <div className="absolute -right-20 bottom-14 h-80 w-80 rounded-full bg-lime-300/10 blur-3xl" aria-hidden="true" />
+
+          <div className="relative z-10 flex w-full max-w-2xl flex-col">
+            <Link to="/" className="inline-flex w-fit items-center gap-3 font-display text-2xl font-black tracking-[-0.04em]">
+              <span className="grid h-11 w-11 place-items-center rounded-2xl border border-white/25 bg-white/15 shadow-lg backdrop-blur">
+                <Zap className="h-6 w-6" />
+              </span>
+              MoveDek
+            </Link>
+
+            <div className="my-auto py-16">
+              <span className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-4 py-2 text-sm font-extrabold backdrop-blur">
+                <PortalIcon className="h-4 w-4" />
+                {content.label} Portal
+              </span>
+              <h2 className="mt-7 max-w-xl font-display text-4xl font-black leading-[1.08] tracking-[-0.045em] xl:text-5xl">
+                {content.headline}
+              </h2>
+              <p className="mt-5 max-w-xl text-lg font-medium leading-8 text-emerald-50/90">{content.description}</p>
+
+              <div className="mt-10 grid max-w-xl gap-3">
+                {content.features.map(({ icon: FeatureIcon, label }) => (
+                  <div key={label} className="flex items-center gap-4 rounded-2xl border border-white/15 bg-white/10 px-5 py-4 backdrop-blur-sm">
+                    <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-white/15">
+                      <FeatureIcon className="h-5 w-5" />
+                    </span>
+                    <span className="font-bold">{label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <p className="text-sm font-medium text-emerald-100/75">Secure access • Real-time operations • Built for Africa</p>
+          </div>
+        </aside>
+
+        <section className="flex min-h-screen items-center px-5 py-8 sm:px-10 lg:px-12 xl:px-16">
+          <div className="mx-auto w-full max-w-[500px]">
+            <div className="mb-10 flex flex-wrap items-center justify-between gap-3">
               <Link
                 to="/"
-                className="inline-flex items-center gap-2 text-[15px] font-medium text-muted-foreground transition hover:text-primary"
+                className="inline-flex items-center gap-2 text-[15px] font-semibold text-muted-foreground transition hover:text-primary"
               >
                 <ArrowLeft className="h-4 w-4" />
                 Back
               </Link>
-              <span className="chip bg-accent/10 text-accent px-3.5 py-2 text-sm font-bold">
-                <span className="grid h-5 w-5 place-items-center rounded-md bg-accent/10">
-                  <Zap className="h-3.5 w-3.5" />
-                </span>
-                {eyebrow}
+              <span className="inline-flex items-center gap-2 rounded-full border border-primary/15 bg-primary/10 px-4 py-2 text-sm font-extrabold text-primary">
+                <PortalIcon className="h-4 w-4" />
+                {content.label}
               </span>
             </div>
 
             <div className="space-y-2">
-              <h1 className="font-display text-[32px] font-extrabold leading-tight tracking-[-0.04em] text-primary sm:text-[36px]">
+              <h1 className="font-display text-[34px] font-black leading-tight tracking-[-0.045em] text-primary sm:text-[40px]">
                 {title}
               </h1>
               {subtitle && <p className="text-base font-medium text-muted-foreground">{subtitle}</p>}
@@ -123,10 +230,19 @@ function redirectPathForRole(role: Role, next: string | null) {
   return next;
 }
 
+export function portalFromNext(next: string | null): AuthPortal {
+  if (next?.startsWith("/admin")) return "admin";
+  if (next?.startsWith("/courier")) return "courier";
+  if (next?.startsWith("/merchant")) return "merchant";
+  if (next?.startsWith("/app")) return "customer";
+  return "account";
+}
+
 export function Login() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const next = useMemo(() => safeInternalNext(searchParams.get("next")), [searchParams]);
+  const portal = useMemo(() => portalFromNext(next), [next]);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -163,7 +279,15 @@ export function Login() {
   });
 
   return (
-    <AuthLayout title="Sign in" subtitle="Login to your account">
+    <AuthLayout
+      portal={portal}
+      title={portal === "admin" ? "Admin sign in" : "Welcome back"}
+      subtitle={
+        portal === "admin"
+          ? "Sign in to manage MoveDek operations securely."
+          : `Sign in to your ${portal === "account" ? "MoveDek" : portal} workspace.`
+      }
+    >
       <form onSubmit={submit} className="space-y-6">
         <div className="space-y-2">
           <Label className="text-base font-bold text-primary">Email</Label>
