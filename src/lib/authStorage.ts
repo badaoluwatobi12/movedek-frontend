@@ -7,6 +7,7 @@ export type StoredAuthSession = {
 
 const MOVEDEK_TOKEN_KEY = "movedek_auth_token";
 const MOVEDEK_SESSION_KEY = "movedek_auth_session";
+const MOVEDEK_USER_KEY = "movedek_auth_user";
 const LEGACY_SENDAM_TOKEN_KEY = "sendam_auth_token";
 const LEGACY_SENDAM_SESSION_KEY = "sendam_auth_session";
 const VENUEDEK_TOKEN_KEY = "token";
@@ -167,42 +168,44 @@ function userFromToken(token: string): Partial<User> | null {
   };
 }
 
-function syncAuthAliases(token: string, session: StoredAuthSession, user?: Partial<User> | null) {
+function removeLegacyKeys(store: Storage) {
+  store.removeItem(LEGACY_SENDAM_TOKEN_KEY);
+  store.removeItem(LEGACY_SENDAM_SESSION_KEY);
+  store.removeItem(VENUEDEK_TOKEN_KEY);
+  store.removeItem(VENUEDEK_USER_KEY);
+}
+
+function persistCanonicalAuth(
+  token: string,
+  session: StoredAuthSession,
+  user?: Partial<User> | null,
+) {
   const store = storage();
   if (!store) return;
 
-  store.setItem(VENUEDEK_TOKEN_KEY, token);
   store.setItem(MOVEDEK_TOKEN_KEY, token);
   store.setItem(MOVEDEK_SESSION_KEY, JSON.stringify(session));
-  store.removeItem(LEGACY_SENDAM_TOKEN_KEY);
-  store.removeItem(LEGACY_SENDAM_SESSION_KEY);
 
-  const existingUser = readJson(store.getItem(VENUEDEK_USER_KEY));
-  const finalUser = (user ?? existingUser ?? userFromToken(token)) as Record<string, unknown> | null;
-
-  if (finalUser && (finalUser.id || finalUser.sub || finalUser.userId)) {
-    const id = String(finalUser.id ?? finalUser.sub ?? finalUser.userId);
-    const role = normalizeRole(finalUser.role) ?? session.role;
-
+  const finalUser = user ?? userFromToken(token);
+  if (finalUser) {
     store.setItem(
-      VENUEDEK_USER_KEY,
+      MOVEDEK_USER_KEY,
       JSON.stringify({
         ...finalUser,
-        id,
-        sub: id,
-        userId: id,
-        role,
-        name: String(finalUser.full_name ?? finalUser.name ?? finalUser.email ?? "MoveDek User"),
+        id: session.userId,
+        role: session.role,
       }),
     );
   }
+
+  removeLegacyKeys(store);
 }
 
 export function getStoredAuthUser(): Partial<User> | null {
   const store = storage();
   if (!store) return null;
 
-  const record = readJson(store.getItem(VENUEDEK_USER_KEY));
+  const record = readJson(store.getItem(MOVEDEK_USER_KEY)) ?? readJson(store.getItem(VENUEDEK_USER_KEY));
   if (!record) return null;
 
   const id = String(record.id ?? record.sub ?? record.userId ?? "").trim();
@@ -226,27 +229,34 @@ export function getStoredAuthUser(): Partial<User> | null {
 }
 
 export function getStoredSession(): StoredAuthSession | null {
+  const store = storage();
   const token = getStoredToken();
-  if (!token || !isTokenValid(token)) return null;
+  if (!store || !token || !isTokenValid(token)) return null;
 
-  const session = sessionFromVenuedekKey() ?? sessionFromSendamKey() ?? sessionFromToken(token);
+  const canonical = readJson(store.getItem(MOVEDEK_SESSION_KEY));
+  const canonicalSession = canonical
+    ? {
+        userId: String(canonical.userId ?? canonical.id ?? canonical.sub ?? "").trim(),
+        role: normalizeRole(canonical.role),
+      }
+    : null;
+
+  const session =
+    canonicalSession?.userId && canonicalSession.role
+      ? ({ userId: canonicalSession.userId, role: canonicalSession.role } as StoredAuthSession)
+      : sessionFromVenuedekKey() ?? sessionFromSendamKey() ?? sessionFromToken(token);
 
   if (session) {
-    syncAuthAliases(token, session);
+    persistCanonicalAuth(token, session, getStoredAuthUser());
   }
 
   return session;
 }
 
 export function saveStoredAuth(user: User, token: string) {
-  const store = storage();
-  if (!store) return;
-
   const role = normalizeRole(user.role) ?? "customer";
   const session: StoredAuthSession = { userId: user.id, role };
-  const userForStorage = { ...user, id: user.id, sub: user.id, userId: user.id, role };
-
-  syncAuthAliases(token, session, userForStorage);
+  persistCanonicalAuth(token, session, user);
 }
 
 export function clearStoredAuth() {
@@ -257,6 +267,7 @@ export function clearStoredAuth() {
   store.removeItem(VENUEDEK_USER_KEY);
   store.removeItem(MOVEDEK_TOKEN_KEY);
   store.removeItem(MOVEDEK_SESSION_KEY);
+  store.removeItem(MOVEDEK_USER_KEY);
   store.removeItem(LEGACY_SENDAM_TOKEN_KEY);
   store.removeItem(LEGACY_SENDAM_SESSION_KEY);
 }
@@ -303,4 +314,4 @@ export function safeInternalNext(raw: string | null) {
   return decoded;
 }
 
-export const SENDAM_AUTH_FIX_VERSION = "ctrlr-token-only-2026-07-09";
+export const SENDAM_AUTH_FIX_VERSION = "movedek-canonical-auth-2026-07-20";

@@ -38,13 +38,14 @@ describe("authStorage — single source of truth for session persistence", () =>
     }
   });
 
-  it("writes both the MoveDek and legacy Venuedek-style localStorage keys", () => {
+  it("writes only canonical MoveDek localStorage keys", () => {
     saveStoredAuth(makeUser(), "fake.jwt.token");
 
     expect(window.localStorage.getItem("movedek_auth_token")).toBe("fake.jwt.token");
-    expect(window.localStorage.getItem("token")).toBe("fake.jwt.token");
     expect(window.localStorage.getItem("movedek_auth_session")).toBeTruthy();
-    expect(window.localStorage.getItem("user")).toBeTruthy();
+    expect(window.localStorage.getItem("movedek_auth_user")).toBeTruthy();
+    expect(window.localStorage.getItem("token")).toBeNull();
+    expect(window.localStorage.getItem("user")).toBeNull();
   });
 
   it("clearStoredAuth removes every key so no session survives", () => {
@@ -57,7 +58,7 @@ describe("authStorage — single source of truth for session persistence", () =>
     expect(window.localStorage.getItem("user")).toBeNull();
   });
 
-  it("recovers a session from only the legacy Venuedek 'user' key (no explicit session key)", () => {
+  it("migrates a legacy Venuedek session once and removes its aliases", () => {
     window.localStorage.setItem("token", "fake.jwt.token");
     window.localStorage.setItem(
       "user",
@@ -65,6 +66,10 @@ describe("authStorage — single source of truth for session persistence", () =>
     );
 
     expect(getStoredSession()).toEqual({ userId: "merchant-1", role: "merchant" });
+    expect(window.localStorage.getItem("movedek_auth_token")).toBe("fake.jwt.token");
+    expect(window.localStorage.getItem("movedek_auth_session")).toBeTruthy();
+    expect(window.localStorage.getItem("token")).toBeNull();
+    expect(window.localStorage.getItem("user")).toBeNull();
   });
 
   it("treats a malformed stored session as logged out rather than throwing", () => {

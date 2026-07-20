@@ -75,6 +75,7 @@ type RemoteSnapshot = Partial<Omit<State, "session" | "pendingRegistration" | "l
 let authToken: string | null = null;
 let remoteSaveTimer: ReturnType<typeof setTimeout> | null = null;
 let storeVersion = 0;
+let hydrationPromise: Promise<void> | null = null;
 
 // Session/token persistence lives in one place: @/lib/authStorage. Everything
 // below is a thin wrapper so the rest of this file (and its public API) can
@@ -286,25 +287,44 @@ const getErrorStatus = (error: unknown) =>
     ? (error as { status: number }).status
     : null;
 
+const API_TIMEOUT_MS = 15_000;
+
 const apiFetch = async <T>(path: string, options: RequestInit = {}): Promise<T> => {
   if (!authToken) readStoredSession();
 
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    cache: "no-store",
-    credentials: "include",
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      "Cache-Control": "no-cache",
-      Pragma: "no-cache",
-      ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
-      ...(options.headers ?? {}),
-    },
-  });
-  return unwrapApiData(response) as Promise<T>;
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), API_TIMEOUT_MS);
+  const upstreamSignal = options.signal;
+  const abortFromUpstream = () => controller.abort();
+  upstreamSignal?.addEventListener("abort", abortFromUpstream, { once: true });
+
+  try {
+    const response = await fetch(`${API_BASE_URL}${path}`, {
+      cache: "no-store",
+      credentials: "include",
+      ...options,
+      signal: controller.signal,
+      headers: {
+        "Content-Type": "application/json",
+        "Cache-Control": "no-cache",
+        Pragma: "no-cache",
+        ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+        ...(options.headers ?? {}),
+      },
+    });
+    return unwrapApiData(response) as Promise<T>;
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "AbortError") {
+      throw new Error("The MoveDek server took too long to respond. Please retry.");
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeout);
+    upstreamSignal?.removeEventListener("abort", abortFromUpstream);
+  }
 };
 
-const loadRemoteState = async () => {
+const performRemoteStateLoad = async () => {
   const storedSession = readStoredSession();
 
   if (!storedSession) {
@@ -336,6 +356,16 @@ const loadRemoteState = async () => {
     state.loading = false;
     emit();
   }
+};
+
+const loadRemoteState = () => {
+  if (hydrationPromise) return hydrationPromise;
+
+  hydrationPromise = performRemoteStateLoad().finally(() => {
+    hydrationPromise = null;
+  });
+
+  return hydrationPromise;
 };
 
 /**
@@ -408,12 +438,12 @@ export const store = {
       state.loading = false;
       state.apiError = null;
       emit();
-      return;
+      return Promise.resolve();
     }
 
     state.session = storedSession;
     emit();
-    void loadRemoteState();
+    return loadRemoteState();
   },
 
   refresh() {
@@ -462,14 +492,19 @@ export const store = {
   },
 
   async loginWithCredentials(email: string, password: string) {
+    const normalizedEmail = email.trim().toLowerCase();
     const result = await apiFetch<{ user: User; token: string; snapshot?: RemoteSnapshot }>("/auth/login", {
       method: "POST",
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ email: normalizedEmail, password }),
     });
     if (result.snapshot) applySnapshot(result.snapshot);
     setSessionFromUser(result.user, result.token);
     state.apiError = null;
     emit();
+
+    // Do not resolve login until the authorization-scoped PostgreSQL snapshot is ready.
+    // This prevents role dashboards from mounting against an empty cache on first navigation.
+    await loadRemoteState();
     return result.user;
   },
 
@@ -515,6 +550,7 @@ export const store = {
     setSessionFromUser(result.user, result.token);
     state.apiError = null;
     emit();
+    await loadRemoteState();
     return result.user;
   },
 
