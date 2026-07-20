@@ -5,8 +5,8 @@ import { getStoredSession as getStorageSession, getStoredToken } from "@/lib/aut
 import type { Role } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { useNotificationUnreadCount } from "@/hooks/useNotifications";
-import { Bell, LogOut, Menu, Zap, type LucideIcon } from "lucide-react";
+import NotificationCenter from "@/components/notifications/NotificationCenter";
+import { LogOut, Menu, Zap, type LucideIcon } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 export type NavItem = { to: string; label: string; icon: LucideIcon; end?: boolean };
@@ -47,9 +47,7 @@ export function DashboardShell({ role, nav, title }: { role: Role; nav: NavItem[
   );
   const displayName = user?.full_name || storedUser?.full_name || "MoveDek User";
   const displayEmail = user?.email || storedUser?.email || "";
-  const unreadNotifications = useNotificationUnreadCount();
   const notificationPath = role === "customer" ? "/app/notifications" : `/${role}/notifications`;
-  const unreadCount = unreadNotifications.data?.unread_count ?? 0;
 
   if (!storedSession || !token) return null;
 
@@ -132,16 +130,7 @@ export function DashboardShell({ role, nav, title }: { role: Role; nav: NavItem[
           </div>
           <div className="hidden md:block text-sm text-muted-foreground capitalize">{title}</div>
           <div className="flex items-center gap-2">
-            <Button asChild variant="ghost" size="icon" className="relative">
-              <Link to={notificationPath} aria-label="Open notifications">
-                <Bell className="h-5 w-5" />
-                {unreadCount > 0 && (
-                  <span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground">
-                    {unreadCount > 99 ? "99+" : unreadCount}
-                  </span>
-                )}
-              </Link>
-            </Button>
+            <NotificationCenter notificationPath={notificationPath} />
           </div>
         </header>
         <main className="min-w-0 flex-1 p-3 sm:p-5 lg:p-8">

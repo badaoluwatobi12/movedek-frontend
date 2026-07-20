@@ -17,7 +17,8 @@ export function useNotifications(params?: NotificationListParams) {
     queryKey: notificationKeys.list(params),
     queryFn: () => notificationService.list(params),
     enabled: hasToken(),
-    refetchInterval: 60_000,
+    refetchInterval: 15_000,
+    refetchIntervalInBackground: true,
   });
 }
 
@@ -26,7 +27,8 @@ export function useNotificationUnreadCount() {
     queryKey: notificationKeys.unreadCount(),
     queryFn: () => notificationService.unreadCount(),
     enabled: hasToken(),
-    refetchInterval: 60_000,
+    refetchInterval: 15_000,
+    refetchIntervalInBackground: true,
   });
 }
 

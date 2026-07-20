@@ -117,24 +117,28 @@ export default function CourierHome() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h1 className="font-display text-2xl font-bold text-primary">
-            Hi, {user?.full_name.split(" ")[0] ?? "Courier"}
-          </h1>
-          <div className="mt-1 flex items-center gap-2">
-            <TrustBadge level={me.trust_level} />
-            <VerificationBadge status={me.verification_status} />
-          </div>
-        </div>
-        <div className="card-elevated flex items-center gap-3 px-4 py-3">
+      <div className="rounded-3xl bg-gradient-to-br from-emerald-950 via-emerald-800 to-emerald-600 p-6 text-white shadow-lg sm:p-7">
+        <div className="flex flex-wrap items-center justify-between gap-5">
           <div>
-            <div className="text-sm font-medium">{me.is_online ? "You're online" : "You're offline"}</div>
-            <div className="text-xs text-muted-foreground">
+            <p className="text-sm text-emerald-100/80">Courier workspace</p>
+            <h1 className="mt-1 font-display text-3xl font-bold">
+              Welcome back, {user?.full_name.split(" ")[0] ?? "Courier"}
+            </h1>
+            <p className="mt-2 max-w-xl text-sm leading-6 text-white/70">Manage jobs, track earnings and stay ready for new delivery requests.</p>
+            <div className="mt-4 flex items-center gap-2">
+              <TrustBadge level={me.trust_level} />
+              <VerificationBadge status={me.verification_status} />
+            </div>
+          </div>
+          <div className="flex items-center gap-3 rounded-2xl bg-white/10 px-4 py-3 backdrop-blur">
+          <div>
+            <div className="text-sm font-semibold">{me.is_online ? "You're online" : "You're offline"}</div>
+            <div className="text-xs text-white/70">
               {me.is_online ? "Available for eligible jobs" : "Go online to accept jobs"}
             </div>
           </div>
           <Switch checked={me.is_online} onCheckedChange={toggleOnline} />
+          </div>
         </div>
       </div>
 
