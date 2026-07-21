@@ -1,7 +1,11 @@
 import { API_BASE_URL } from "./apiBase";
 
-export async function api<T>(path: string, options: RequestInit = {}): Promise<T> {
+export async function api<T>(
+  path: string,
+  options: RequestInit = {},
+): Promise<T> {
   const response = await fetch(`${API_BASE_URL}${path}`, {
+    credentials: "include",
     ...options,
     headers: { "Content-Type": "application/json", ...(options.headers ?? {}) },
   });

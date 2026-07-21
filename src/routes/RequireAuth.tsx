@@ -1,16 +1,26 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom";
-import { getStoredToken, isTokenValid } from "@/lib/authStorage";
+import { useSession, useStore } from "@/data/store";
 
 export default function RequireAuth() {
   const location = useLocation();
-  const token = getStoredToken();
+  const session = useSession();
+  const loading = useStore((state) => state.loading);
 
-  // Hard rule: only send the user to login when there is no token at all.
-  // Do not clear localStorage during page refresh because that was causing
-  // valid sessions to be destroyed before the app finished restoring state.
-  if (!token || !isTokenValid(token)) {
+  // Authentication is restored from the HttpOnly cookie through /auth/me.
+  // Never trust localStorage alone when deciding whether a protected route can render.
+  if (loading) {
+    return (
+      <div className="grid min-h-screen place-items-center bg-background text-sm text-muted-foreground">
+        Restoring your MoveDek session…
+      </div>
+    );
+  }
+
+  if (!session) {
     const next = `${location.pathname}${location.search || ""}`;
-    return <Navigate to={`/auth/login?next=${encodeURIComponent(next)}`} replace />;
+    return (
+      <Navigate to={`/auth/login?next=${encodeURIComponent(next)}`} replace />
+    );
   }
 
   return <Outlet />;

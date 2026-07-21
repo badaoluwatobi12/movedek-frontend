@@ -1,13 +1,18 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { store } from "@/data/store";
+import { store, useSession } from "@/data/store";
 import { disputeService } from "@/services/dispute.service";
-import type { CreateDisputePayload, DisputeListParams, UpdateDisputePayload } from "@/types/dispute";
+import type {
+  CreateDisputePayload,
+  DisputeListParams,
+  UpdateDisputePayload,
+} from "@/types/dispute";
 import { deliveryKeys } from "./useDeliveries";
 
 export const disputeKeys = {
   all: ["disputes"] as const,
   lists: () => [...disputeKeys.all, "list"] as const,
-  list: (params?: DisputeListParams) => [...disputeKeys.lists(), params ?? {}] as const,
+  list: (params?: DisputeListParams) =>
+    [...disputeKeys.lists(), params ?? {}] as const,
   details: () => [...disputeKeys.all, "detail"] as const,
   detail: (id: string) => [...disputeKeys.details(), id] as const,
 };
@@ -17,11 +22,11 @@ const syncAppState = () => {
 };
 
 export function useDisputes(params?: DisputeListParams) {
-  const hasToken = Boolean(store.getAuthToken());
+  const session = useSession();
   return useQuery({
     queryKey: disputeKeys.list(params),
     queryFn: () => disputeService.list(params),
-    enabled: hasToken,
+    enabled: Boolean(session),
   });
 }
 

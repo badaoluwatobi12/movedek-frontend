@@ -10,12 +10,17 @@ import {
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { loginSchema, registerSchema, type LoginInput, type RegisterInput } from "@/shared";
+import {
+  loginSchema,
+  registerSchema,
+  type LoginInput,
+  type RegisterInput,
+} from "@/shared";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { store, useStore } from "@/data/store";
-import { getStoredSession, getStoredToken, isTokenValid, safeInternalNext } from "@/lib/authStorage";
+import { safeInternalNext } from "@/lib/authStorage";
 import type { Role } from "@/lib/types";
 import {
   ArrowLeft,
@@ -50,12 +55,19 @@ type AuthLayoutProps = PropsWithChildren<{
 
 const portalContent: Record<
   AuthPortal,
-  { label: string; headline: string; description: string; icon: LucideIcon; features: { icon: LucideIcon; label: string }[] }
+  {
+    label: string;
+    headline: string;
+    description: string;
+    icon: LucideIcon;
+    features: { icon: LucideIcon; label: string }[];
+  }
 > = {
   admin: {
     label: "MoveDek Admin",
     headline: "Run every MoveDek operation from one secure command center.",
-    description: "Manage users, deliveries, finance, live operations, compliance, and platform performance in real time.",
+    description:
+      "Manage users, deliveries, finance, live operations, compliance, and platform performance in real time.",
     icon: ShieldCheck,
     features: [
       { icon: MapPinned, label: "Live operations and courier tracking" },
@@ -66,7 +78,8 @@ const portalContent: Record<
   courier: {
     label: "MoveDek Courier",
     headline: "Your delivery workspace, built to keep you moving.",
-    description: "Manage assignments, publish live location, track earnings, and complete deliveries from one reliable workspace.",
+    description:
+      "Manage assignments, publish live location, track earnings, and complete deliveries from one reliable workspace.",
     icon: Bike,
     features: [
       { icon: MapPinned, label: "Live routes and delivery navigation" },
@@ -77,7 +90,8 @@ const portalContent: Record<
   merchant: {
     label: "MoveDek Merchant",
     headline: "Reliable logistics for every order your business sends.",
-    description: "Create deliveries, monitor fulfilment, manage your team, and understand performance from one merchant dashboard.",
+    description:
+      "Create deliveries, monitor fulfilment, manage your team, and understand performance from one merchant dashboard.",
     icon: Store,
     features: [
       { icon: Package, label: "Order and dispatch management" },
@@ -88,7 +102,8 @@ const portalContent: Record<
   customer: {
     label: "MoveDek Customer",
     headline: "Send, track, and receive with confidence.",
-    description: "Book deliveries in minutes, follow every movement, and get help whenever you need it.",
+    description:
+      "Book deliveries in minutes, follow every movement, and get help whenever you need it.",
     icon: Package,
     features: [
       { icon: Zap, label: "Fast delivery booking" },
@@ -99,7 +114,8 @@ const portalContent: Record<
   account: {
     label: "MoveDek Account",
     headline: "One account for every MoveDek experience.",
-    description: "Access your deliveries, operations, business tools, and account settings securely.",
+    description:
+      "Access your deliveries, operations, business tools, and account settings securely.",
     icon: Zap,
     features: [
       { icon: ShieldCheck, label: "Secure account access" },
@@ -109,7 +125,12 @@ const portalContent: Record<
   },
 };
 
-function AuthLayout({ children, title, subtitle, portal = "account" }: AuthLayoutProps) {
+function AuthLayout({
+  children,
+  title,
+  subtitle,
+  portal = "account",
+}: AuthLayoutProps) {
   const content = portalContent[portal];
   const PortalIcon = content.icon;
 
@@ -117,12 +138,24 @@ function AuthLayout({ children, title, subtitle, portal = "account" }: AuthLayou
     <main className="min-h-screen bg-background text-foreground">
       <div className="mx-auto grid min-h-screen w-full max-w-[1600px] grid-cols-1 lg:grid-cols-[minmax(0,1.25fr)_minmax(420px,0.75fr)]">
         <aside className="auth-portal-hero relative hidden min-h-screen overflow-hidden px-12 py-14 text-white lg:flex xl:px-16">
-          <div className="auth-portal-grid absolute inset-0 opacity-35" aria-hidden="true" />
-          <div className="absolute -left-24 top-1/3 h-72 w-72 rounded-full bg-emerald-300/20 blur-3xl" aria-hidden="true" />
-          <div className="absolute -right-20 bottom-14 h-80 w-80 rounded-full bg-lime-300/10 blur-3xl" aria-hidden="true" />
+          <div
+            className="auth-portal-grid absolute inset-0 opacity-35"
+            aria-hidden="true"
+          />
+          <div
+            className="absolute -left-24 top-1/3 h-72 w-72 rounded-full bg-emerald-300/20 blur-3xl"
+            aria-hidden="true"
+          />
+          <div
+            className="absolute -right-20 bottom-14 h-80 w-80 rounded-full bg-lime-300/10 blur-3xl"
+            aria-hidden="true"
+          />
 
           <div className="relative z-10 flex w-full max-w-2xl flex-col">
-            <Link to="/" className="inline-flex w-fit items-center gap-3 font-display text-2xl font-black tracking-[-0.04em]">
+            <Link
+              to="/"
+              className="inline-flex w-fit items-center gap-3 font-display text-2xl font-black tracking-[-0.04em]"
+            >
               <span className="grid h-11 w-11 place-items-center rounded-2xl border border-white/25 bg-white/15 shadow-lg backdrop-blur">
                 <Zap className="h-6 w-6" />
               </span>
@@ -137,11 +170,16 @@ function AuthLayout({ children, title, subtitle, portal = "account" }: AuthLayou
               <h2 className="mt-7 max-w-xl font-display text-4xl font-black leading-[1.08] tracking-[-0.045em] xl:text-5xl">
                 {content.headline}
               </h2>
-              <p className="mt-5 max-w-xl text-lg font-medium leading-8 text-emerald-50/90">{content.description}</p>
+              <p className="mt-5 max-w-xl text-lg font-medium leading-8 text-emerald-50/90">
+                {content.description}
+              </p>
 
               <div className="mt-10 grid max-w-xl gap-3">
                 {content.features.map(({ icon: FeatureIcon, label }) => (
-                  <div key={label} className="flex items-center gap-4 rounded-2xl border border-white/15 bg-white/10 px-5 py-4 backdrop-blur-sm">
+                  <div
+                    key={label}
+                    className="flex items-center gap-4 rounded-2xl border border-white/15 bg-white/10 px-5 py-4 backdrop-blur-sm"
+                  >
                     <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-white/15">
                       <FeatureIcon className="h-5 w-5" />
                     </span>
@@ -151,7 +189,9 @@ function AuthLayout({ children, title, subtitle, portal = "account" }: AuthLayou
               </div>
             </div>
 
-            <p className="text-sm font-medium text-emerald-100/75">Secure access • Real-time operations • Built for Africa</p>
+            <p className="text-sm font-medium text-emerald-100/75">
+              Secure access • Real-time operations • Built for Africa
+            </p>
           </div>
         </aside>
 
@@ -175,7 +215,11 @@ function AuthLayout({ children, title, subtitle, portal = "account" }: AuthLayou
               <h1 className="font-display text-[34px] font-black leading-tight tracking-[-0.045em] text-primary sm:text-[40px]">
                 {title}
               </h1>
-              {subtitle && <p className="text-base font-medium text-muted-foreground">{subtitle}</p>}
+              {subtitle && (
+                <p className="text-base font-medium text-muted-foreground">
+                  {subtitle}
+                </p>
+              )}
             </div>
 
             <div className="mt-9">{children}</div>
@@ -194,18 +238,19 @@ function FieldIcon({ icon: Icon }: { icon: LucideIcon }) {
   );
 }
 
-const AuthInput = forwardRef<HTMLInputElement, ComponentPropsWithRef<typeof Input>>(
-  ({ className, ...props }, ref) => (
-    <Input
-      ref={ref}
-      className={cn(
-        "h-[54px] rounded-xl border border-input bg-muted/40 px-4 text-[15px] font-medium text-foreground shadow-none outline-none placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring",
-        className,
-      )}
-      {...props}
-    />
-  ),
-);
+const AuthInput = forwardRef<
+  HTMLInputElement,
+  ComponentPropsWithRef<typeof Input>
+>(({ className, ...props }, ref) => (
+  <Input
+    ref={ref}
+    className={cn(
+      "h-[54px] rounded-xl border border-input bg-muted/40 px-4 text-[15px] font-medium text-foreground shadow-none outline-none placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring",
+      className,
+    )}
+    {...props}
+  />
+));
 AuthInput.displayName = "AuthInput";
 
 function FieldError({ message }: { message?: string }) {
@@ -220,12 +265,14 @@ function dashboardPathForRole(role: Role) {
 function redirectPathForRole(role: Role, next: string | null) {
   if (!next) return dashboardPathForRole(role);
 
-  if (next.startsWith("/admin") && role !== "admin") return dashboardPathForRole(role);
+  if (next.startsWith("/admin") && role !== "admin")
+    return dashboardPathForRole(role);
   if (next.startsWith("/courier") && role !== "courier" && role !== "admin")
     return dashboardPathForRole(role);
   if (next.startsWith("/merchant") && role !== "merchant" && role !== "admin")
     return dashboardPathForRole(role);
-  if (next.startsWith("/app") && role !== "customer" && role !== "admin") return dashboardPathForRole(role);
+  if (next.startsWith("/app") && role !== "customer" && role !== "admin")
+    return dashboardPathForRole(role);
 
   return next;
 }
@@ -241,10 +288,15 @@ export function portalFromNext(next: string | null): AuthPortal {
 export function Login() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const next = useMemo(() => safeInternalNext(searchParams.get("next")), [searchParams]);
+  const next = useMemo(
+    () => safeInternalNext(searchParams.get("next")),
+    [searchParams],
+  );
   const portal = useMemo(() => portalFromNext(next), [next]);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const activeSession = useStore((state) => state.session);
+  const authLoading = useStore((state) => state.loading);
 
   const {
     register,
@@ -255,23 +307,27 @@ export function Login() {
   });
 
   useEffect(() => {
-    const token = getStoredToken();
-    const session = getStoredSession();
-
-    if (token && session && isTokenValid(token)) {
-      navigate(redirectPathForRole(session.role, next), { replace: true });
+    if (!authLoading && activeSession) {
+      navigate(redirectPathForRole(activeSession.role, next), {
+        replace: true,
+      });
     }
-  }, [navigate, next]);
+  }, [activeSession, authLoading, navigate, next]);
 
   const submit = handleSubmit(async (input) => {
     setLoading(true);
     try {
-      const user = await store.loginWithCredentials(input.email, input.password);
+      const user = await store.loginWithCredentials(
+        input.email,
+        input.password,
+      );
       toast.success("Signed in");
       navigate(redirectPathForRole(user.role, next), { replace: true });
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : "Login failed. Check that the backend is running.",
+        error instanceof Error
+          ? error.message
+          : "Login failed. Check that the backend is running.",
       );
     } finally {
       setLoading(false);
@@ -321,7 +377,11 @@ export function Login() {
               className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground transition hover:text-primary"
               aria-label={showPassword ? "Hide password" : "Show password"}
             >
-              {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+              {showPassword ? (
+                <EyeOff className="h-5 w-5" />
+              ) : (
+                <Eye className="h-5 w-5" />
+              )}
             </button>
           </div>
           <FieldError message={errors.password?.message} />
@@ -345,13 +405,19 @@ export function Login() {
       <div className="mt-8 space-y-4 text-center text-base font-medium text-muted-foreground">
         <p>
           Don&apos;t have an account?{" "}
-          <Link className="font-bold text-accent transition hover:underline" to="/auth/register">
+          <Link
+            className="font-bold text-accent transition hover:underline"
+            to="/auth/register"
+          >
             Sign up
           </Link>
         </p>
         <p>
           Courier or merchant?{" "}
-          <Link className="font-bold text-accent transition hover:underline" to="/auth/register">
+          <Link
+            className="font-bold text-accent transition hover:underline"
+            to="/auth/register"
+          >
             Create business account
           </Link>
         </p>
@@ -360,10 +426,30 @@ export function Login() {
   );
 }
 
-const roleOptions: { role: Role; icon: LucideIcon; label: string; desc: string }[] = [
-  { role: "customer", icon: Package, label: "Customer", desc: "Send packages, order food, request pickups." },
-  { role: "courier", icon: Bike, label: "Courier", desc: "Earn by delivering along your route." },
-  { role: "merchant", icon: Store, label: "Merchant", desc: "Grow your business with reliable dispatch." },
+const roleOptions: {
+  role: Role;
+  icon: LucideIcon;
+  label: string;
+  desc: string;
+}[] = [
+  {
+    role: "customer",
+    icon: Package,
+    label: "Customer",
+    desc: "Send packages, order food, request pickups.",
+  },
+  {
+    role: "courier",
+    icon: Bike,
+    label: "Courier",
+    desc: "Earn by delivering along your route.",
+  },
+  {
+    role: "merchant",
+    icon: Store,
+    label: "Merchant",
+    desc: "Grow your business with reliable dispatch.",
+  },
 ];
 
 const registerFormSchema = registerSchema
@@ -378,7 +464,9 @@ export function Register() {
   const navigate = useNavigate();
   const [sp] = useSearchParams();
   const initial = (sp.get("role") as Role) || "customer";
-  const [role, setRole] = useState<Role>(roleOptions.some((r) => r.role === initial) ? initial : "customer");
+  const [role, setRole] = useState<Role>(
+    roleOptions.some((r) => r.role === initial) ? initial : "customer",
+  );
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -405,7 +493,9 @@ export function Register() {
       navigate(dashboardPathForRole(user.role), { replace: true });
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : "Registration failed. Check that the backend is running.",
+        error instanceof Error
+          ? error.message
+          : "Registration failed. Check that the backend is running.",
       );
     } finally {
       setLoading(false);
@@ -430,14 +520,18 @@ export function Register() {
             <span
               className={cn(
                 "grid h-10 w-10 place-items-center rounded-xl",
-                role === r.role ? "bg-accent text-accent-foreground" : "bg-muted text-muted-foreground",
+                role === r.role
+                  ? "bg-accent text-accent-foreground"
+                  : "bg-muted text-muted-foreground",
               )}
             >
               <r.icon className="h-5 w-5" />
             </span>
             <span className="flex-1">
               <span className="block font-bold text-primary">{r.label}</span>
-              <span className="block text-sm font-medium text-muted-foreground">{r.desc}</span>
+              <span className="block text-sm font-medium text-muted-foreground">
+                {r.desc}
+              </span>
             </span>
           </button>
         ))}
@@ -504,14 +598,20 @@ export function Register() {
               className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground transition hover:text-primary"
               aria-label={showPassword ? "Hide password" : "Show password"}
             >
-              {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+              {showPassword ? (
+                <EyeOff className="h-5 w-5" />
+              ) : (
+                <Eye className="h-5 w-5" />
+              )}
             </button>
           </div>
           <FieldError message={errors.password?.message} />
         </div>
 
         <div className="space-y-2">
-          <Label className="text-base font-bold text-primary">Confirm password</Label>
+          <Label className="text-base font-bold text-primary">
+            Confirm password
+          </Label>
           <div className="relative">
             <FieldIcon icon={Lock} />
             <AuthInput
@@ -541,7 +641,10 @@ export function Register() {
 
       <p className="mt-8 text-center text-base font-medium text-muted-foreground">
         Have an account?{" "}
-        <Link className="font-bold text-accent transition hover:underline" to="/auth/login">
+        <Link
+          className="font-bold text-accent transition hover:underline"
+          to="/auth/login"
+        >
           Sign in
         </Link>
       </p>
@@ -556,7 +659,9 @@ export function Otp() {
 
   const verify = () => {
     if (pin.length !== 4) return toast.error("Enter the 4-digit code");
-    toast.success("Phone verified. Create your account from the register screen to continue.");
+    toast.success(
+      "Phone verified. Create your account from the register screen to continue.",
+    );
     navigate("/auth/register");
   };
 
@@ -564,7 +669,9 @@ export function Otp() {
     <AuthLayout
       title="Verify phone"
       subtitle={
-        pending ? `Enter the 4-digit code sent to ${pending.phone}.` : "Enter the 4-digit verification code."
+        pending
+          ? `Enter the 4-digit code sent to ${pending.phone}.`
+          : "Enter the 4-digit verification code."
       }
     >
       <div className="flex gap-3">
@@ -578,7 +685,8 @@ export function Otp() {
               const arr = pin.split("");
               arr[i] = e.target.value.replace(/\D/g, "");
               setPin(arr.join("").slice(0, 4));
-              const next = e.target.nextElementSibling as HTMLInputElement | null;
+              const next = e.target
+                .nextElementSibling as HTMLInputElement | null;
               if (e.target.value && next) next.focus();
             }}
             className="h-14 w-14 rounded-xl border border-input bg-muted/40 text-center font-display text-2xl font-bold text-primary outline-none transition focus:border-accent focus:ring-2 focus:ring-ring"
@@ -608,7 +716,10 @@ export function Forgot() {
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
   return (
-    <AuthLayout title="Reset password" subtitle="We'll email a secure reset link.">
+    <AuthLayout
+      title="Reset password"
+      subtitle="We'll email a secure reset link."
+    >
       {sent ? (
         <div className="rounded-xl bg-accent/10 p-4 text-sm font-bold text-accent">
           Check your inbox for reset instructions.
@@ -645,7 +756,10 @@ export function Forgot() {
         </form>
       )}
       <p className="mt-8 text-center text-base font-medium text-muted-foreground">
-        <Link to="/auth/login" className="font-bold text-accent hover:underline">
+        <Link
+          to="/auth/login"
+          className="font-bold text-accent hover:underline"
+        >
           Back to sign in
         </Link>
       </p>

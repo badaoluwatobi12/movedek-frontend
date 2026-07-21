@@ -1,7 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { store } from "@/data/store";
+import { store, useSession } from "@/data/store";
 import { paymentService } from "@/services/payment.service";
-import type { InitializePaymentPayload, RefundPaymentPayload } from "@/types/payment";
+import type {
+  InitializePaymentPayload,
+  RefundPaymentPayload,
+} from "@/types/payment";
 import { deliveryKeys } from "./useDeliveries";
 
 export const paymentKeys = {
@@ -14,11 +17,11 @@ const syncAppState = () => {
 };
 
 export function usePayments() {
-  const hasToken = Boolean(store.getAuthToken());
+  const session = useSession();
   return useQuery({
     queryKey: paymentKeys.lists(),
     queryFn: paymentService.list,
-    enabled: hasToken,
+    enabled: Boolean(session),
   });
 }
 
@@ -26,7 +29,8 @@ export function useInitializePayment() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (input: InitializePaymentPayload) => paymentService.initialize(input),
+    mutationFn: (input: InitializePaymentPayload) =>
+      paymentService.initialize(input),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: paymentKeys.all });
       void queryClient.invalidateQueries({ queryKey: deliveryKeys.all });

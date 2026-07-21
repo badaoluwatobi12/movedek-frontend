@@ -1,4 +1,3 @@
-import { getStoredToken } from "@/lib/authStorage";
 import type { User } from "@/lib/types";
 import { http } from "./http";
 
@@ -17,26 +16,21 @@ export type ProfileUpdate = Pick<User, "full_name" | "email" | "phone"> & {
   };
 };
 
-const token = () => getStoredToken();
-
 export const profileService = {
-  get: () => http<User>("/users/me", { token: token() }),
+  get: () => http<User>("/users/me"),
   update: (payload: Partial<ProfileUpdate>) =>
     http<User>("/users/me", {
       method: "PATCH",
-      token: token(),
       body: JSON.stringify(payload),
     }),
   changePassword: (current_password: string, new_password: string) =>
     http<{ changed: boolean }>("/users/me/password", {
       method: "POST",
-      token: token(),
       body: JSON.stringify({ current_password, new_password }),
     }),
   deleteAccount: (password: string, confirmation: string, reason?: string) =>
     http<{ deleted: boolean }>("/users/me", {
       method: "DELETE",
-      token: token(),
       body: JSON.stringify({ password, confirmation, reason }),
     }),
 };

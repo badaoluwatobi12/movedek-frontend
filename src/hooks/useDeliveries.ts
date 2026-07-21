@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { store } from "@/data/store";
+import { store, useSession } from "@/data/store";
 import { deliveryService } from "@/services/delivery.service";
 import type {
   AssignCourierPayload,
@@ -11,7 +11,8 @@ import type {
 export const deliveryKeys = {
   all: ["deliveries"] as const,
   lists: () => [...deliveryKeys.all, "list"] as const,
-  list: (params?: DeliveryListParams) => [...deliveryKeys.lists(), params ?? {}] as const,
+  list: (params?: DeliveryListParams) =>
+    [...deliveryKeys.lists(), params ?? {}] as const,
   details: () => [...deliveryKeys.all, "detail"] as const,
   detail: (id: string) => [...deliveryKeys.details(), id] as const,
 };
@@ -21,22 +22,22 @@ const syncAppState = () => {
 };
 
 export function useDeliveries(params?: DeliveryListParams) {
-  const hasToken = Boolean(store.getAuthToken());
+  const session = useSession();
 
   return useQuery({
     queryKey: deliveryKeys.list(params),
     queryFn: () => deliveryService.list(params),
-    enabled: hasToken,
+    enabled: Boolean(session),
   });
 }
 
 export function useDelivery(id?: string) {
-  const hasToken = Boolean(store.getAuthToken());
+  const session = useSession();
 
   return useQuery({
     queryKey: deliveryKeys.detail(id ?? ""),
     queryFn: () => deliveryService.get(id ?? ""),
-    enabled: hasToken && Boolean(id),
+    enabled: Boolean(session) && Boolean(id),
   });
 }
 
@@ -84,8 +85,13 @@ export function useUpdateDeliveryStatus() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, input }: { id: string; input: UpdateDeliveryStatusPayload }) =>
-      deliveryService.updateStatus(id, input),
+    mutationFn: ({
+      id,
+      input,
+    }: {
+      id: string;
+      input: UpdateDeliveryStatusPayload;
+    }) => deliveryService.updateStatus(id, input),
     onSuccess: (delivery) => {
       queryClient.setQueryData(deliveryKeys.detail(delivery.id), delivery);
       void queryClient.invalidateQueries({ queryKey: deliveryKeys.all });

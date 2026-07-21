@@ -6,11 +6,8 @@ export interface ApiEnvelope<T> {
   data: T;
 }
 
-interface HttpOptions extends RequestInit {
-  token?: string | null;
-}
-
-const isJsonBody = (body: BodyInit | null | undefined) => body !== undefined && !(body instanceof FormData);
+const isJsonBody = (body: BodyInit | null | undefined) =>
+  body !== undefined && !(body instanceof FormData);
 
 export class HttpError extends Error {
   constructor(
@@ -25,7 +22,10 @@ export class HttpError extends Error {
 
 function hasMessage(value: unknown): value is { message: string } {
   return (
-    typeof value === "object" && value !== null && "message" in value && typeof value.message === "string"
+    typeof value === "object" &&
+    value !== null &&
+    "message" in value &&
+    typeof value.message === "string"
   );
 }
 
@@ -33,15 +33,13 @@ function hasData<T>(value: unknown): value is ApiEnvelope<T> {
   return typeof value === "object" && value !== null && "data" in value;
 }
 
-export async function http<T>(path: string, options: HttpOptions = {}): Promise<T> {
+export async function http<T>(
+  path: string,
+  options: RequestInit = {},
+): Promise<T> {
   const headers = new Headers(options.headers);
 
-  if (isJsonBody(options.body)) {
-    headers.set("Content-Type", "application/json");
-  }
-
-  if (options.token) headers.set("Authorization", `Bearer ${options.token}`);
-
+  if (isJsonBody(options.body)) headers.set("Content-Type", "application/json");
   headers.set("Cache-Control", "no-cache");
   headers.set("Pragma", "no-cache");
 
@@ -57,7 +55,9 @@ export async function http<T>(path: string, options: HttpOptions = {}): Promise<
   if (!response.ok) {
     throw new HttpError(
       response.status,
-      hasMessage(body) ? body.message : `Request failed with status ${response.status}`,
+      hasMessage(body)
+        ? body.message
+        : `Request failed with status ${response.status}`,
       body,
     );
   }

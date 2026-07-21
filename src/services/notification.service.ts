@@ -1,4 +1,3 @@
-import { store } from "@/data/store";
 import { http } from "@/services/http";
 import type {
   NotificationListParams,
@@ -7,17 +6,12 @@ import type {
   PaginatedNotifications,
 } from "@/types/notification";
 
-const requireToken = () => {
-  const token = store.getAuthToken();
-  if (!token) throw new Error("Please log in again to continue.");
-  return token;
-};
-
 const buildQueryString = (params: NotificationListParams = {}) => {
   const search = new URLSearchParams();
 
   Object.entries(params).forEach(([key, value]) => {
-    if (value !== undefined && value !== null && value !== "") search.set(key, String(value));
+    if (value !== undefined && value !== null && value !== "")
+      search.set(key, String(value));
   });
 
   const query = search.toString();
@@ -26,30 +20,26 @@ const buildQueryString = (params: NotificationListParams = {}) => {
 
 export const notificationService = {
   list: (params?: NotificationListParams) =>
-    http<PaginatedNotifications>(`/notifications${buildQueryString(params)}`, {
-      token: requireToken(),
-    }),
+    http<PaginatedNotifications>(
+      `/notifications${buildQueryString(params)}`,
+      {},
+    ),
 
   unreadCount: () =>
-    http<NotificationUnreadCount>("/notifications/unread-count", {
-      token: requireToken(),
-    }),
+    http<NotificationUnreadCount>("/notifications/unread-count", {}),
 
   markRead: (id: string) =>
     http<NotificationRecord>(`/notifications/${id}/read`, {
       method: "PATCH",
-      token: requireToken(),
     }),
 
   markAllRead: () =>
     http<{ updated_count: number }>("/notifications/read-all", {
       method: "PATCH",
-      token: requireToken(),
     }),
 
   clearRead: () =>
     http<{ deleted_count: number }>("/notifications/clear-read", {
       method: "PATCH",
-      token: requireToken(),
     }),
 };

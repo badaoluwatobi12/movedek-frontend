@@ -21,14 +21,15 @@ import {
   clearStoredAuth,
   getStoredAuthUser as getAuthStorageUser,
   getStoredSession as getAuthStorageSession,
-  getStoredToken,
-  isTokenValid,
   normalizeRole as normalizeStoredRole,
   saveStoredAuth,
 } from "@/lib/authStorage";
 
 type Session = { userId: string; role: Role } | null;
-type RegistrationDraft = Pick<User, "full_name" | "email" | "phone" | "role"> & { password?: string };
+type RegistrationDraft = Pick<
+  User,
+  "full_name" | "email" | "phone" | "role"
+> & { password?: string };
 
 export type SavedAddress = {
   id: string;
@@ -52,7 +53,12 @@ type State = {
   notifications: Notification[];
   disputes: Dispute[];
   ratings: Rating[];
-  auditLogs: { id: string; action: string; details?: unknown; created_at: string }[];
+  auditLogs: {
+    id: string;
+    action: string;
+    details?: unknown;
+    created_at: string;
+  }[];
   settings: AdminSettings;
   pendingRegistration: RegistrationDraft | null;
   loading: boolean;
@@ -66,13 +72,19 @@ export type AdminSettings = {
     service_fee_percent: number;
     protection_fee: number;
   };
-  trust_caps: { bronze: number; silver: number; gold: number; platinum: number };
+  trust_caps: {
+    bronze: number;
+    silver: number;
+    gold: number;
+    platinum: number;
+  };
   categories: Record<string, boolean>;
 };
 
-type RemoteSnapshot = Partial<Omit<State, "session" | "pendingRegistration" | "loading" | "apiError">>;
+type RemoteSnapshot = Partial<
+  Omit<State, "session" | "pendingRegistration" | "loading" | "apiError">
+>;
 
-let authToken: string | null = null;
 let remoteSaveTimer: ReturnType<typeof setTimeout> | null = null;
 let storeVersion = 0;
 let hydrationPromise: Promise<void> | null = null;
@@ -80,24 +92,15 @@ let hydrationPromise: Promise<void> | null = null;
 // Session/token persistence lives in one place: @/lib/authStorage. Everything
 // below is a thin wrapper so the rest of this file (and its public API) can
 // keep calling the same names it always has.
-const normalizeRole = (role: unknown): Role => normalizeStoredRole(role) ?? "customer";
+const normalizeRole = (role: unknown): Role =>
+  normalizeStoredRole(role) ?? "customer";
 
 const readStoredUser = (): Partial<User> | null => getAuthStorageUser();
 
-const readStoredSession = (): Session => {
-  const token = getStoredToken();
-  if (!token || !isTokenValid(token)) {
-    clearStoredAuth();
-    return null;
-  }
+const readStoredSession = (): Session => getAuthStorageSession();
 
-  authToken = token;
-  return getAuthStorageSession();
-};
-
-const saveStoredSession = (user: User, token?: string | null) => {
-  if (!token) return;
-  saveStoredAuth(user, token);
+const saveStoredSession = (user: User) => {
+  saveStoredAuth(user);
 };
 
 const clearStoredSession = () => {
@@ -149,33 +152,51 @@ const emptyState = (): State => ({
 const state: State = { ...emptyState(), session: readStoredSession() };
 
 const createId = (prefix = "id") => {
-  if (typeof crypto !== "undefined" && "randomUUID" in crypto) return crypto.randomUUID();
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto)
+    return crypto.randomUUID();
   return genId(prefix);
 };
 
-const levelCap = (level: Courier["trust_level"]) => state.settings.trust_caps[level] ?? 0;
+const levelCap = (level: Courier["trust_level"]) =>
+  state.settings.trust_caps[level] ?? 0;
 
-const activeDeliveryStatuses: DeliveryStatus[] = ["assigned", "picked_up", "in_transit"];
+const activeDeliveryStatuses: DeliveryStatus[] = [
+  "assigned",
+  "picked_up",
+  "in_transit",
+];
 
 const courierCanTakeDelivery = (courier: Courier, delivery: Delivery) => {
   if (courier.verification_status !== "approved")
-    return { ok: false, message: "Your courier verification is not approved yet." };
-  if (!courier.is_online) return { ok: false, message: "Go online before accepting jobs." };
-  if (delivery.status !== "searching") return { ok: false, message: "This job is no longer available." };
-  if (delivery.courier_id) return { ok: false, message: "This job already has a courier." };
+    return {
+      ok: false,
+      message: "Your courier verification is not approved yet.",
+    };
+  if (!courier.is_online)
+    return { ok: false, message: "Go online before accepting jobs." };
+  if (delivery.status !== "searching")
+    return { ok: false, message: "This job is no longer available." };
+  if (delivery.courier_id)
+    return { ok: false, message: "This job already has a courier." };
   if (delivery.item_value > levelCap(courier.trust_level))
     return {
       ok: false,
       message: `Your ${courier.trust_level} level can only accept jobs up to ${levelCap(courier.trust_level)}.`,
     };
   const active = state.deliveries.some(
-    (d) => d.courier_id === courier.id && activeDeliveryStatuses.includes(d.status),
+    (d) =>
+      d.courier_id === courier.id && activeDeliveryStatuses.includes(d.status),
   );
-  if (active) return { ok: false, message: "Complete your active job before accepting another one." };
+  if (active)
+    return {
+      ok: false,
+      message: "Complete your active job before accepting another one.",
+    };
   return { ok: true, message: "OK" };
 };
 
-const courierWallet = (courier: Courier) => state.wallets.find((w) => w.user_id === courier.user_id);
+const courierWallet = (courier: Courier) =>
+  state.wallets.find((w) => w.user_id === courier.user_id);
 
 const ensureCourierWallet = (courier: Courier) => {
   let wallet = courierWallet(courier);
@@ -199,7 +220,8 @@ const emit = () => {
 
 const replaceArray = <T>(target: T[], value: T[]) => {
   const key = Object.keys(state).find(
-    (stateKey) => (state as unknown as Record<string, unknown>)[stateKey] === target,
+    (stateKey) =>
+      (state as unknown as Record<string, unknown>)[stateKey] === target,
   );
   if (key) {
     (state as unknown as Record<string, unknown>)[key] = value;
@@ -211,26 +233,48 @@ const replaceArray = <T>(target: T[], value: T[]) => {
 
 const applySnapshot = (snapshot: RemoteSnapshot) => {
   if (Array.isArray(snapshot.users)) replaceArray(state.users, snapshot.users);
-  if (Array.isArray(snapshot.deliveries)) replaceArray(state.deliveries, snapshot.deliveries);
-  if (Array.isArray(snapshot.couriers)) replaceArray(state.couriers, snapshot.couriers);
-  if (Array.isArray(snapshot.merchants)) replaceArray(state.merchants, snapshot.merchants);
-  if (Array.isArray(snapshot.wallets)) replaceArray(state.wallets, snapshot.wallets);
-  if (Array.isArray(snapshot.walletTx)) replaceArray(state.walletTx, snapshot.walletTx);
-  if (Array.isArray(snapshot.payments)) replaceArray(state.payments, snapshot.payments);
-  if (Array.isArray(snapshot.withdrawals)) replaceArray(state.withdrawals, snapshot.withdrawals);
-  if (Array.isArray(snapshot.tickets)) replaceArray(state.tickets, snapshot.tickets);
-  if (Array.isArray(snapshot.savedAddresses)) replaceArray(state.savedAddresses, snapshot.savedAddresses);
-  if (Array.isArray(snapshot.notifications)) replaceArray(state.notifications, snapshot.notifications);
-  if (Array.isArray(snapshot.disputes)) replaceArray(state.disputes, snapshot.disputes);
-  if (Array.isArray(snapshot.ratings)) replaceArray(state.ratings, snapshot.ratings);
-  if (Array.isArray(snapshot.auditLogs)) replaceArray(state.auditLogs, snapshot.auditLogs);
+  if (Array.isArray(snapshot.deliveries))
+    replaceArray(state.deliveries, snapshot.deliveries);
+  if (Array.isArray(snapshot.couriers))
+    replaceArray(state.couriers, snapshot.couriers);
+  if (Array.isArray(snapshot.merchants))
+    replaceArray(state.merchants, snapshot.merchants);
+  if (Array.isArray(snapshot.wallets))
+    replaceArray(state.wallets, snapshot.wallets);
+  if (Array.isArray(snapshot.walletTx))
+    replaceArray(state.walletTx, snapshot.walletTx);
+  if (Array.isArray(snapshot.payments))
+    replaceArray(state.payments, snapshot.payments);
+  if (Array.isArray(snapshot.withdrawals))
+    replaceArray(state.withdrawals, snapshot.withdrawals);
+  if (Array.isArray(snapshot.tickets))
+    replaceArray(state.tickets, snapshot.tickets);
+  if (Array.isArray(snapshot.savedAddresses))
+    replaceArray(state.savedAddresses, snapshot.savedAddresses);
+  if (Array.isArray(snapshot.notifications))
+    replaceArray(state.notifications, snapshot.notifications);
+  if (Array.isArray(snapshot.disputes))
+    replaceArray(state.disputes, snapshot.disputes);
+  if (Array.isArray(snapshot.ratings))
+    replaceArray(state.ratings, snapshot.ratings);
+  if (Array.isArray(snapshot.auditLogs))
+    replaceArray(state.auditLogs, snapshot.auditLogs);
   if (snapshot.settings && typeof snapshot.settings === "object") {
     state.settings = {
       ...defaultSettings(),
       ...snapshot.settings,
-      pricing: { ...defaultSettings().pricing, ...(snapshot.settings as AdminSettings).pricing },
-      trust_caps: { ...defaultSettings().trust_caps, ...(snapshot.settings as AdminSettings).trust_caps },
-      categories: { ...defaultSettings().categories, ...(snapshot.settings as AdminSettings).categories },
+      pricing: {
+        ...defaultSettings().pricing,
+        ...(snapshot.settings as AdminSettings).pricing,
+      },
+      trust_caps: {
+        ...defaultSettings().trust_caps,
+        ...(snapshot.settings as AdminSettings).trust_caps,
+      },
+      categories: {
+        ...defaultSettings().categories,
+        ...(snapshot.settings as AdminSettings).categories,
+      },
     };
   }
 };
@@ -254,7 +298,10 @@ const remoteSnapshot = (): RemoteSnapshot => ({
 });
 
 const hasStringMessage = (value: unknown): value is { message: string } =>
-  typeof value === "object" && value !== null && "message" in value && typeof value.message === "string";
+  typeof value === "object" &&
+  value !== null &&
+  "message" in value &&
+  typeof value.message === "string";
 
 const hasData = (value: unknown): value is { data: unknown } =>
   typeof value === "object" && value !== null && "data" in value;
@@ -269,7 +316,9 @@ const unwrapApiData = async (response: Response) => {
 
   if (!response.ok) {
     const error = new Error(
-      hasStringMessage(json) ? json.message : `API request failed with status ${response.status}`,
+      hasStringMessage(json)
+        ? json.message
+        : `API request failed with status ${response.status}`,
     ) as Error & { status?: number };
     error.status = response.status;
     throw error;
@@ -288,9 +337,10 @@ const getErrorStatus = (error: unknown) =>
 
 const API_TIMEOUT_MS = 15_000;
 
-const apiFetch = async <T>(path: string, options: RequestInit = {}): Promise<T> => {
-  if (!authToken) readStoredSession();
-
+const apiFetch = async <T>(
+  path: string,
+  options: RequestInit = {},
+): Promise<T> => {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), API_TIMEOUT_MS);
   const upstreamSignal = options.signal;
@@ -307,14 +357,15 @@ const apiFetch = async <T>(path: string, options: RequestInit = {}): Promise<T> 
         "Content-Type": "application/json",
         "Cache-Control": "no-cache",
         Pragma: "no-cache",
-        ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
         ...(options.headers ?? {}),
       },
     });
     return unwrapApiData(response) as Promise<T>;
   } catch (error) {
     if (error instanceof DOMException && error.name === "AbortError") {
-      throw new Error("The MoveDek server took too long to respond. Please retry.");
+      throw new Error(
+        "The MoveDek server took too long to respond. Please retry.",
+      );
     }
     throw error;
   } finally {
@@ -324,33 +375,30 @@ const apiFetch = async <T>(path: string, options: RequestInit = {}): Promise<T> 
 };
 
 const performRemoteStateLoad = async () => {
-  const storedSession = readStoredSession();
-
-  if (!storedSession) {
-    state.session = null;
-    state.loading = false;
-    state.apiError = null;
-    emit();
-    return;
-  }
-
-  state.session = storedSession;
   state.loading = true;
   state.apiError = null;
   emit();
 
   try {
+    // The HttpOnly cookie is the web source of authentication truth. The
+    // browser-stored session is only a UI cache and is rebuilt from /auth/me.
+    const user = await apiFetch<User>("/auth/me");
+    setSessionFromUser(user);
+
     const snapshot = await apiFetch<RemoteSnapshot>("/app-state");
     applySnapshot(snapshot);
     state.apiError = null;
   } catch (error) {
     if (getErrorStatus(error) === 401) {
-      authToken = null;
       state.session = null;
       clearStoredSession();
+      state.apiError = null;
+    } else {
+      state.apiError =
+        error instanceof Error
+          ? error.message
+          : "Could not connect to the MoveDek backend.";
     }
-
-    state.apiError = error instanceof Error ? error.message : "Could not connect to the MoveDek backend.";
   } finally {
     state.loading = false;
     emit();
@@ -394,16 +442,16 @@ const commitRemote = <T = unknown>(path: string, options: RequestInit) => {
   void apiFetch<T>(path, options)
     .then(() => loadRemoteState())
     .catch((error) => {
-      state.apiError = error instanceof Error ? error.message : "Could not save this change.";
+      state.apiError =
+        error instanceof Error ? error.message : "Could not save this change.";
       emit();
       void loadRemoteState();
     });
 };
 
-const setSessionFromUser = (user: User, token?: string | null) => {
-  authToken = token ?? authToken;
+const setSessionFromUser = (user: User) => {
   state.session = { userId: user.id, role: user.role };
-  saveStoredSession(user, authToken);
+  saveStoredSession(user);
 };
 
 export const store = {
@@ -416,11 +464,6 @@ export const store = {
     return state;
   },
 
-  getAuthToken() {
-    if (!authToken) readStoredSession();
-    return authToken;
-  },
-
   getStoredSession() {
     return readStoredSession();
   },
@@ -430,33 +473,12 @@ export const store = {
   },
 
   hydrate() {
-    const storedSession = readStoredSession();
-
-    if (!storedSession) {
-      state.session = null;
-      state.loading = false;
-      state.apiError = null;
-      emit();
-      return Promise.resolve();
-    }
-
-    state.session = storedSession;
+    state.session = readStoredSession();
     emit();
     return loadRemoteState();
   },
 
   refresh() {
-    const storedSession = readStoredSession();
-
-    if (!storedSession) {
-      state.session = null;
-      state.loading = false;
-      state.apiError = null;
-      emit();
-      return Promise.resolve();
-    }
-
-    state.session = storedSession;
     return loadRemoteState();
   },
 
@@ -492,12 +514,16 @@ export const store = {
 
   async loginWithCredentials(email: string, password: string) {
     const normalizedEmail = email.trim().toLowerCase();
-    const result = await apiFetch<{ user: User; token: string; snapshot?: RemoteSnapshot }>("/auth/login", {
+    const result = await apiFetch<{
+      user: User;
+      token: string;
+      snapshot?: RemoteSnapshot;
+    }>("/auth/login", {
       method: "POST",
       body: JSON.stringify({ email: normalizedEmail, password }),
     });
     if (result.snapshot) applySnapshot(result.snapshot);
-    setSessionFromUser(result.user, result.token);
+    setSessionFromUser(result.user);
     state.apiError = null;
     emit();
 
@@ -513,7 +539,6 @@ export const store = {
 
   logout() {
     void apiFetch("/auth/logout", { method: "POST" }).catch(() => undefined);
-    authToken = null;
     state.session = null;
     state.pendingRegistration = null;
     clearStoredSession();
@@ -531,22 +556,23 @@ export const store = {
   },
 
   async registerAccount(input: RegistrationDraft) {
-    const result = await apiFetch<{ user: User; token: string; snapshot?: RemoteSnapshot }>(
-      "/auth/register",
-      {
-        method: "POST",
-        body: JSON.stringify({
-          full_name: input.full_name,
-          email: input.email,
-          phone: input.phone,
-          password: input.password,
-          role: input.role,
-        }),
-      },
-    );
+    const result = await apiFetch<{
+      user: User;
+      token: string;
+      snapshot?: RemoteSnapshot;
+    }>("/auth/register", {
+      method: "POST",
+      body: JSON.stringify({
+        full_name: input.full_name,
+        email: input.email,
+        phone: input.phone,
+        password: input.password,
+        role: input.role,
+      }),
+    });
     if (result.snapshot) applySnapshot(result.snapshot);
     state.pendingRegistration = null;
-    setSessionFromUser(result.user, result.token);
+    setSessionFromUser(result.user);
     state.apiError = null;
     emit();
     await loadRemoteState();
@@ -558,7 +584,10 @@ export const store = {
     return null;
   },
 
-  updateUser(userId: string, patch: Partial<Pick<User, "full_name" | "email" | "phone">>) {
+  updateUser(
+    userId: string,
+    patch: Partial<Pick<User, "full_name" | "email" | "phone">>,
+  ) {
     replaceArray(
       state.users,
       state.users.map((u) => (u.id === userId ? { ...u, ...patch } : u)),
@@ -568,19 +597,34 @@ export const store = {
   },
 
   createDelivery(
-    input: Omit<Delivery, "id" | "pickup_pin" | "dropoff_pin" | "created_at" | "status" | "risk_level"> & {
+    input: Omit<
+      Delivery,
+      | "id"
+      | "pickup_pin"
+      | "dropoff_pin"
+      | "created_at"
+      | "status"
+      | "risk_level"
+    > & {
       status?: DeliveryStatus;
     },
   ) {
     const now = new Date().toISOString();
     let wallet = state.wallets.find((w) => w.user_id === input.customer_id);
     if (!wallet) {
-      wallet = { id: createId("wallet"), user_id: input.customer_id, balance: 0, created_at: now };
+      wallet = {
+        id: createId("wallet"),
+        user_id: input.customer_id,
+        balance: 0,
+        created_at: now,
+      };
       replaceArray(state.wallets, [wallet, ...state.wallets]);
     }
 
     if (wallet.balance < input.price) {
-      throw new Error("Insufficient wallet balance. Top up your wallet before creating this delivery.");
+      throw new Error(
+        "Insufficient wallet balance. Top up your wallet before creating this delivery.",
+      );
     }
 
     const d: Delivery = {
@@ -648,7 +692,9 @@ export const store = {
     if (patch.status === "delivered") {
       replaceArray(
         state.payments,
-        state.payments.map((p) => (p.delivery_id === id ? { ...p, status: "paid" } : p)),
+        state.payments.map((p) =>
+          p.delivery_id === id ? { ...p, status: "paid" } : p,
+        ),
       );
     }
     persist();
@@ -660,26 +706,38 @@ export const store = {
     if (!delivery || delivery.customer_id !== customerId)
       return { ok: false, message: "Delivery not found." };
     if (!["searching", "assigned"].includes(delivery.status)) {
-      return { ok: false, message: "This delivery can only be cancelled before pickup." };
+      return {
+        ok: false,
+        message: "This delivery can only be cancelled before pickup.",
+      };
     }
 
     const cancelledAt = new Date().toISOString();
     replaceArray(
       state.deliveries,
-      state.deliveries.map((d) => (d.id === deliveryId ? { ...d, status: "cancelled" } : d)),
+      state.deliveries.map((d) =>
+        d.id === deliveryId ? { ...d, status: "cancelled" } : d,
+      ),
     );
 
     const payment = state.payments.find((p) => p.delivery_id === deliveryId);
     let wallet = state.wallets.find((w) => w.user_id === customerId);
     if (payment && payment.status !== "refunded") {
       if (!wallet) {
-        wallet = { id: createId("wallet"), user_id: customerId, balance: 0, created_at: cancelledAt };
+        wallet = {
+          id: createId("wallet"),
+          user_id: customerId,
+          balance: 0,
+          created_at: cancelledAt,
+        };
         replaceArray(state.wallets, [wallet, ...state.wallets]);
       }
       wallet.balance += payment.amount;
       replaceArray(
         state.payments,
-        state.payments.map((p) => (p.id === payment.id ? { ...p, status: "refunded" } : p)),
+        state.payments.map((p) =>
+          p.id === payment.id ? { ...p, status: "refunded" } : p,
+        ),
       );
       replaceArray(state.walletTx, [
         {
@@ -712,17 +770,28 @@ export const store = {
     return { ok: true, message: "Delivery cancelled and wallet updated." };
   },
 
-  createCustomerDispute(deliveryId: string, customerId: string, reason: string) {
+  createCustomerDispute(
+    deliveryId: string,
+    customerId: string,
+    reason: string,
+  ) {
     const delivery = state.deliveries.find((d) => d.id === deliveryId);
     if (!delivery || delivery.customer_id !== customerId)
       return { ok: false, message: "Delivery not found." };
     const cleanReason = reason.trim();
-    if (cleanReason.length < 5) return { ok: false, message: "Add a clear dispute reason." };
+    if (cleanReason.length < 5)
+      return { ok: false, message: "Add a clear dispute reason." };
     const existing = state.disputes.find(
       (d) =>
-        d.delivery_id === deliveryId && d.user_id === customerId && ["open", "reviewing"].includes(d.status),
+        d.delivery_id === deliveryId &&
+        d.user_id === customerId &&
+        ["open", "reviewing"].includes(d.status),
     );
-    if (existing) return { ok: false, message: "You already have an open dispute for this delivery." };
+    if (existing)
+      return {
+        ok: false,
+        message: "You already have an open dispute for this delivery.",
+      };
 
     const createdAt = new Date().toISOString();
     const dispute: Dispute = {
@@ -736,26 +805,51 @@ export const store = {
     replaceArray(state.disputes, [dispute, ...state.disputes]);
     replaceArray(
       state.deliveries,
-      state.deliveries.map((d) => (d.id === deliveryId ? { ...d, status: "disputed" } : d)),
+      state.deliveries.map((d) =>
+        d.id === deliveryId ? { ...d, status: "disputed" } : d,
+      ),
     );
-    this.addTicket(customerId, `Dispute for ${delivery.item_name}`, cleanReason);
-    this.addAudit("Customer opened dispute", { deliveryId, customerId, disputeId: dispute.id });
+    this.addTicket(
+      customerId,
+      `Dispute for ${delivery.item_name}`,
+      cleanReason,
+    );
+    this.addAudit("Customer opened dispute", {
+      deliveryId,
+      customerId,
+      disputeId: dispute.id,
+    });
     persist();
     emit();
-    return { ok: true, message: "Dispute opened. Support can now review it.", dispute };
+    return {
+      ok: true,
+      message: "Dispute opened. Support can now review it.",
+      dispute,
+    };
   },
 
-  rateCourierDelivery(deliveryId: string, fromUserId: string, ratingValue: number, comment?: string) {
+  rateCourierDelivery(
+    deliveryId: string,
+    fromUserId: string,
+    ratingValue: number,
+    comment?: string,
+  ) {
     const delivery = state.deliveries.find((d) => d.id === deliveryId);
     if (!delivery || delivery.customer_id !== fromUserId)
       return { ok: false, message: "Delivery not found." };
     if (delivery.status !== "delivered")
-      return { ok: false, message: "You can rate only after delivery is completed." };
+      return {
+        ok: false,
+        message: "You can rate only after delivery is completed.",
+      };
     const courier = state.couriers.find((c) => c.id === delivery.courier_id);
-    if (!courier) return { ok: false, message: "Courier not found for this delivery." };
+    if (!courier)
+      return { ok: false, message: "Courier not found for this delivery." };
     const value = Math.max(1, Math.min(5, Math.round(ratingValue)));
     const createdAt = new Date().toISOString();
-    const existing = state.ratings.find((r) => r.delivery_id === deliveryId && r.from_user_id === fromUserId);
+    const existing = state.ratings.find(
+      (r) => r.delivery_id === deliveryId && r.from_user_id === fromUserId,
+    );
     const rating: Rating = {
       id: existing?.id ?? createId("rating"),
       delivery_id: deliveryId,
@@ -767,21 +861,36 @@ export const store = {
     };
     replaceArray(
       state.ratings,
-      existing ? state.ratings.map((r) => (r.id === existing.id ? rating : r)) : [rating, ...state.ratings],
+      existing
+        ? state.ratings.map((r) => (r.id === existing.id ? rating : r))
+        : [rating, ...state.ratings],
     );
 
-    const courierRatings = state.ratings.filter((r) => r.to_user_id === courier.user_id);
+    const courierRatings = state.ratings.filter(
+      (r) => r.to_user_id === courier.user_id,
+    );
     const average = courierRatings.length
-      ? courierRatings.reduce((sum, r) => sum + r.rating, 0) / courierRatings.length
+      ? courierRatings.reduce((sum, r) => sum + r.rating, 0) /
+        courierRatings.length
       : value;
     replaceArray(
       state.couriers,
-      state.couriers.map((c) => (c.id === courier.id ? { ...c, rating: Number(average.toFixed(1)) } : c)),
+      state.couriers.map((c) =>
+        c.id === courier.id ? { ...c, rating: Number(average.toFixed(1)) } : c,
+      ),
     );
-    this.addAudit("Customer rated courier", { deliveryId, courierId: courier.id, rating: value });
+    this.addAudit("Customer rated courier", {
+      deliveryId,
+      courierId: courier.id,
+      rating: value,
+    });
     commitRemote("/ratings", {
       method: "POST",
-      body: JSON.stringify({ delivery_id: deliveryId, rating: value, comment: comment?.trim() || undefined }),
+      body: JSON.stringify({
+        delivery_id: deliveryId,
+        rating: value,
+        comment: comment?.trim() || undefined,
+      }),
     });
     emit();
     return { ok: true, message: "Rating saved." };
@@ -790,13 +899,16 @@ export const store = {
   acceptCourierJob(deliveryId: string, courierId: string) {
     const courier = state.couriers.find((c) => c.id === courierId);
     const delivery = state.deliveries.find((d) => d.id === deliveryId);
-    if (!courier || !delivery) return { ok: false, message: "Courier or delivery not found." };
+    if (!courier || !delivery)
+      return { ok: false, message: "Courier or delivery not found." };
     const check = courierCanTakeDelivery(courier, delivery);
     if (!check.ok) return check;
     replaceArray(
       state.deliveries,
       state.deliveries.map((d) =>
-        d.id === deliveryId ? { ...d, courier_id: courierId, status: "assigned" } : d,
+        d.id === deliveryId
+          ? { ...d, courier_id: courierId, status: "assigned" }
+          : d,
       ),
     );
     this.addAudit("Courier accepted job", { deliveryId, courierId });
@@ -829,7 +941,11 @@ export const store = {
       state.deliveries,
       state.deliveries.map((d) =>
         d.id === deliveryId
-          ? { ...d, status: "in_transit", transit_started_at: new Date().toISOString() }
+          ? {
+              ...d,
+              status: "in_transit",
+              transit_started_at: new Date().toISOString(),
+            }
           : d,
       ),
     );
@@ -841,10 +957,15 @@ export const store = {
   completeCourierDelivery(deliveryId: string, courierId: string) {
     const delivery = state.deliveries.find((d) => d.id === deliveryId);
     const courier = state.couriers.find((c) => c.id === courierId);
-    if (!delivery || !courier) return { ok: false, message: "Delivery or courier not found." };
+    if (!delivery || !courier)
+      return { ok: false, message: "Delivery or courier not found." };
     if (delivery.courier_id !== courier.id)
-      return { ok: false, message: "This delivery is not assigned to this courier." };
-    if (delivery.status === "delivered") return { ok: true, message: "Delivery already completed." };
+      return {
+        ok: false,
+        message: "This delivery is not assigned to this courier.",
+      };
+    if (delivery.status === "delivered")
+      return { ok: true, message: "Delivery already completed." };
 
     const completedAt = new Date().toISOString();
     replaceArray(
@@ -864,7 +985,9 @@ export const store = {
 
     replaceArray(
       state.payments,
-      state.payments.map((p) => (p.delivery_id === deliveryId ? { ...p, status: "paid" } : p)),
+      state.payments.map((p) =>
+        p.delivery_id === deliveryId ? { ...p, status: "paid" } : p,
+      ),
     );
 
     replaceArray(
@@ -917,7 +1040,11 @@ export const store = {
       ...state.notifications,
     ]);
 
-    this.addAudit("Courier completed delivery", { deliveryId, courierId, payout: delivery.courier_payout });
+    this.addAudit("Courier completed delivery", {
+      deliveryId,
+      courierId,
+      payout: delivery.courier_payout,
+    });
     persist();
     emit();
     return { ok: true, message: "Delivery completed." };
@@ -927,7 +1054,12 @@ export const store = {
     if (!Number.isFinite(amount) || amount <= 0) return null;
     let wallet = state.wallets.find((w) => w.user_id === userId);
     if (!wallet) {
-      wallet = { id: createId("wallet"), user_id: userId, balance: 0, created_at: new Date().toISOString() };
+      wallet = {
+        id: createId("wallet"),
+        user_id: userId,
+        balance: 0,
+        created_at: new Date().toISOString(),
+      };
       replaceArray(state.wallets, [wallet, ...state.wallets]);
     }
     wallet.balance += amount;
@@ -958,10 +1090,13 @@ export const store = {
       !courier.account_number ||
       courier.account_number === "Not added"
     ) {
-      throw new Error("Add your bank details in courier onboarding before requesting withdrawal.");
+      throw new Error(
+        "Add your bank details in courier onboarding before requesting withdrawal.",
+      );
     }
     const wallet = ensureCourierWallet(courier);
-    if (wallet.balance < amount) throw new Error("Insufficient courier wallet balance.");
+    if (wallet.balance < amount)
+      throw new Error("Insufficient courier wallet balance.");
     wallet.balance -= amount;
     const createdAt = new Date().toISOString();
     const withdrawal: Withdrawal = {
@@ -985,7 +1120,10 @@ export const store = {
       ...state.walletTx,
     ]);
     this.addAudit("Courier requested withdrawal", { courierId, amount });
-    commitRemote("/withdrawals", { method: "POST", body: JSON.stringify({ amount }) });
+    commitRemote("/withdrawals", {
+      method: "POST",
+      body: JSON.stringify({ amount }),
+    });
     emit();
     return withdrawal;
   },
@@ -1001,12 +1139,18 @@ export const store = {
     return address;
   },
 
-  updateAddress(id: string, patch: Partial<Pick<SavedAddress, "label" | "address">>) {
+  updateAddress(
+    id: string,
+    patch: Partial<Pick<SavedAddress, "label" | "address">>,
+  ) {
     replaceArray(
       state.savedAddresses,
       state.savedAddresses.map((a) => (a.id === id ? { ...a, ...patch } : a)),
     );
-    commitRemote(`/addresses/${id}`, { method: "PATCH", body: JSON.stringify(patch) });
+    commitRemote(`/addresses/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(patch),
+    });
     emit();
   },
 
@@ -1014,7 +1158,9 @@ export const store = {
     const before = state.savedAddresses.length;
     replaceArray(
       state.savedAddresses,
-      state.savedAddresses.filter((a) => !(a.id === id && a.user_id === userId)),
+      state.savedAddresses.filter(
+        (a) => !(a.id === id && a.user_id === userId),
+      ),
     );
     if (state.savedAddresses.length !== before) {
       commitRemote(`/addresses/${id}`, { method: "DELETE" });
@@ -1034,7 +1180,10 @@ export const store = {
       created_at: new Date().toISOString(),
     };
     replaceArray(state.tickets, [ticket, ...state.tickets]);
-    commitRemote("/support", { method: "POST", body: JSON.stringify({ subject, message }) });
+    commitRemote("/support", {
+      method: "POST",
+      body: JSON.stringify({ subject, message }),
+    });
     emit();
     return ticket;
   },
@@ -1047,9 +1196,14 @@ export const store = {
     }
     replaceArray(
       state.couriers,
-      state.couriers.map((c) => (c.id === courierId ? { ...c, is_online: !c.is_online } : c)),
+      state.couriers.map((c) =>
+        c.id === courierId ? { ...c, is_online: !c.is_online } : c,
+      ),
     );
-    this.addAudit(courier.is_online ? "Courier went offline" : "Courier went online", { courierId });
+    this.addAudit(
+      courier.is_online ? "Courier went offline" : "Courier went online",
+      { courierId },
+    );
     commitRemote(`/couriers/${courierId}`, {
       method: "PATCH",
       body: JSON.stringify({ is_online: !courier.is_online }),
@@ -1068,23 +1222,36 @@ export const store = {
       trust_score: _ignoredTrustScore,
       ...remotePatch
     } = patch;
-    commitRemote(`/couriers/${courierId}`, { method: "PATCH", body: JSON.stringify(remotePatch) });
+    commitRemote(`/couriers/${courierId}`, {
+      method: "PATCH",
+      body: JSON.stringify(remotePatch),
+    });
     emit();
   },
 
   updateMerchant(merchantId: string, patch: Partial<Merchant>) {
     replaceArray(
       state.merchants,
-      state.merchants.map((merchant) => (merchant.id === merchantId ? { ...merchant, ...patch } : merchant)),
+      state.merchants.map((merchant) =>
+        merchant.id === merchantId ? { ...merchant, ...patch } : merchant,
+      ),
     );
     const { status: _ignoredStatus, ...remotePatch } = patch;
-    commitRemote(`/merchants/${merchantId}`, { method: "PATCH", body: JSON.stringify(remotePatch) });
+    commitRemote(`/merchants/${merchantId}`, {
+      method: "PATCH",
+      body: JSON.stringify(remotePatch),
+    });
     emit();
   },
 
   addAudit(action: string, details?: unknown) {
     replaceArray(state.auditLogs, [
-      { id: createId("audit"), action, details, created_at: new Date().toISOString() },
+      {
+        id: createId("audit"),
+        action,
+        details,
+        created_at: new Date().toISOString(),
+      },
       ...state.auditLogs,
     ]);
   },
@@ -1094,8 +1261,14 @@ export const store = {
       state.users,
       state.users.map((u) => (u.id === userId ? { ...u, status } : u)),
     );
-    this.addAudit(`${status === "active" ? "Activated" : "Suspended"} user`, { userId, status });
-    commitRemote(`/users/${userId}`, { method: "PATCH", body: JSON.stringify({ status }) });
+    this.addAudit(`${status === "active" ? "Activated" : "Suspended"} user`, {
+      userId,
+      status,
+    });
+    commitRemote(`/users/${userId}`, {
+      method: "PATCH",
+      body: JSON.stringify({ status }),
+    });
     emit();
   },
 
@@ -1104,24 +1277,38 @@ export const store = {
       state.merchants,
       state.merchants.map((m) => (m.id === merchantId ? { ...m, status } : m)),
     );
-    this.addAudit(`${status === "active" ? "Activated" : "Moved merchant to pending"}`, {
-      merchantId,
-      status,
+    this.addAudit(
+      `${status === "active" ? "Activated" : "Moved merchant to pending"}`,
+      {
+        merchantId,
+        status,
+      },
+    );
+    commitRemote(`/merchants/${merchantId}`, {
+      method: "PATCH",
+      body: JSON.stringify({ status }),
     });
-    commitRemote(`/merchants/${merchantId}`, { method: "PATCH", body: JSON.stringify({ status }) });
     emit();
   },
 
-  setVerification(courierId: string, status: "approved" | "rejected" | "pending") {
+  setVerification(
+    courierId: string,
+    status: "approved" | "rejected" | "pending",
+  ) {
     replaceArray(
       state.couriers,
-      state.couriers.map((c) => (c.id === courierId ? { ...c, verification_status: status } : c)),
+      state.couriers.map((c) =>
+        c.id === courierId ? { ...c, verification_status: status } : c,
+      ),
     );
     this.addAudit(
       `${status === "approved" ? "Approved" : status === "rejected" ? "Rejected" : "Reset"} courier verification`,
       { courierId, status },
     );
-    commitRemote(`/verification/${courierId}`, { method: "PATCH", body: JSON.stringify({ status }) });
+    commitRemote(`/verification/${courierId}`, {
+      method: "PATCH",
+      body: JSON.stringify({ status }),
+    });
     emit();
   },
 
@@ -1136,14 +1323,21 @@ export const store = {
       state.couriers,
       state.couriers.map((c) =>
         c.id === courierId
-          ? { ...c, trust_level, trust_score: Math.max(c.trust_score, scoreByLevel[trust_level]) }
+          ? {
+              ...c,
+              trust_level,
+              trust_score: Math.max(c.trust_score, scoreByLevel[trust_level]),
+            }
           : c,
       ),
     );
     this.addAudit(`Changed courier trust level`, { courierId, trust_level });
     commitRemote(`/couriers/${courierId}`, {
       method: "PATCH",
-      body: JSON.stringify({ trust_level, trust_score: scoreByLevel[trust_level] }),
+      body: JSON.stringify({
+        trust_level,
+        trust_score: scoreByLevel[trust_level],
+      }),
     });
     emit();
   },
@@ -1152,7 +1346,9 @@ export const store = {
     replaceArray(
       state.deliveries,
       state.deliveries.map((d) =>
-        d.id === deliveryId ? { ...d, courier_id: courierId, status: "assigned" } : d,
+        d.id === deliveryId
+          ? { ...d, courier_id: courierId, status: "assigned" }
+          : d,
       ),
     );
     this.addAudit("Assigned courier to delivery", { deliveryId, courierId });
@@ -1171,19 +1367,26 @@ export const store = {
     if (status === "delivered") {
       replaceArray(
         state.payments,
-        state.payments.map((p) => (p.delivery_id === deliveryId ? { ...p, status: "paid" } : p)),
+        state.payments.map((p) =>
+          p.delivery_id === deliveryId ? { ...p, status: "paid" } : p,
+        ),
       );
     }
     if (status === "cancelled") {
       replaceArray(
         state.payments,
         state.payments.map((p) =>
-          p.delivery_id === deliveryId && p.status === "pending" ? { ...p, status: "failed" } : p,
+          p.delivery_id === deliveryId && p.status === "pending"
+            ? { ...p, status: "failed" }
+            : p,
         ),
       );
     }
     this.addAudit(`Set delivery status to ${status}`, { deliveryId, status });
-    commitRemote(`/deliveries/${deliveryId}/status`, { method: "PATCH", body: JSON.stringify({ status }) });
+    commitRemote(`/deliveries/${deliveryId}/status`, {
+      method: "PATCH",
+      body: JSON.stringify({ status }),
+    });
     emit();
   },
 
@@ -1193,7 +1396,10 @@ export const store = {
       state.payments.map((p) => (p.id === paymentId ? { ...p, status } : p)),
     );
     this.addAudit(`Set payment status to ${status}`, { paymentId, status });
-    commitRemote(`/payments/${paymentId}/status`, { method: "PATCH", body: JSON.stringify({ status }) });
+    commitRemote(`/payments/${paymentId}/status`, {
+      method: "PATCH",
+      body: JSON.stringify({ status }),
+    });
     emit();
   },
 
@@ -1236,7 +1442,10 @@ export const store = {
       }
     }
     this.addAudit(`Set withdrawal status to ${status}`, { id, status });
-    commitRemote(`/withdrawals/${id}`, { method: "PATCH", body: JSON.stringify({ status }) });
+    commitRemote(`/withdrawals/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify({ status }),
+    });
     emit();
   },
 
@@ -1246,7 +1455,10 @@ export const store = {
       state.disputes.map((d) => (d.id === id ? { ...d, status } : d)),
     );
     this.addAudit(`Set dispute status to ${status}`, { id, status });
-    commitRemote(`/disputes/${id}`, { method: "PATCH", body: JSON.stringify({ status }) });
+    commitRemote(`/disputes/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify({ status }),
+    });
     emit();
   },
 
@@ -1256,23 +1468,35 @@ export const store = {
       state.tickets.map((t) => (t.id === id ? { ...t, status } : t)),
     );
     this.addAudit(`Set support ticket status to ${status}`, { id, status });
-    commitRemote(`/support/${id}`, { method: "PATCH", body: JSON.stringify({ status }) });
+    commitRemote(`/support/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify({ status }),
+    });
     emit();
   },
 
   savePricingSettings(pricing: AdminSettings["pricing"]) {
     state.settings = { ...state.settings, pricing };
     this.addAudit("Updated pricing settings", pricing);
-    commitRemote("/admin/settings/pricing", { method: "PATCH", body: JSON.stringify(pricing) });
+    commitRemote("/admin/settings/pricing", {
+      method: "PATCH",
+      body: JSON.stringify(pricing),
+    });
     emit();
   },
 
   toggleCategory(category: string) {
     state.settings = {
       ...state.settings,
-      categories: { ...state.settings.categories, [category]: !state.settings.categories[category] },
+      categories: {
+        ...state.settings.categories,
+        [category]: !state.settings.categories[category],
+      },
     };
-    this.addAudit("Updated delivery category", { category, enabled: state.settings.categories[category] });
+    this.addAudit("Updated delivery category", {
+      category,
+      enabled: state.settings.categories[category],
+    });
     commitRemote(`/admin/settings/categories/${encodeURIComponent(category)}`, {
       method: "PATCH",
       body: JSON.stringify({ enabled: state.settings.categories[category] }),
@@ -1283,7 +1507,10 @@ export const store = {
   saveTrustCaps(trust_caps: AdminSettings["trust_caps"]) {
     state.settings = { ...state.settings, trust_caps };
     this.addAudit("Updated trust level limits", trust_caps);
-    commitRemote("/admin/settings/trust-caps", { method: "PATCH", body: JSON.stringify(trust_caps) });
+    commitRemote("/admin/settings/trust-caps", {
+      method: "PATCH",
+      body: JSON.stringify(trust_caps),
+    });
     emit();
   },
 };
@@ -1291,7 +1518,10 @@ export const store = {
 const shallowEqual = (a: unknown, b: unknown) => {
   if (Object.is(a, b)) return true;
   if (Array.isArray(a) && Array.isArray(b)) {
-    return a.length === b.length && a.every((item, index) => Object.is(item, b[index]));
+    return (
+      a.length === b.length &&
+      a.every((item, index) => Object.is(item, b[index]))
+    );
   }
   if (
     a &&
@@ -1306,7 +1536,10 @@ const shallowEqual = (a: unknown, b: unknown) => {
     return (
       aKeys.length === bKeys.length &&
       aKeys.every((key) =>
-        Object.is((a as Record<string, unknown>)[key], (b as Record<string, unknown>)[key]),
+        Object.is(
+          (a as Record<string, unknown>)[key],
+          (b as Record<string, unknown>)[key],
+        ),
       )
     );
   }
@@ -1315,7 +1548,11 @@ const shallowEqual = (a: unknown, b: unknown) => {
 
 const cloneSnapshotValue = <T>(value: T): T => {
   if (Array.isArray(value)) return [...value] as T;
-  if (value && typeof value === "object" && Object.getPrototypeOf(value) === Object.prototype) {
+  if (
+    value &&
+    typeof value === "object" &&
+    Object.getPrototypeOf(value) === Object.prototype
+  ) {
     return { ...(value as Record<string, unknown>) } as T;
   }
   return value;
@@ -1326,7 +1563,10 @@ export function useStore<T>(selector: (s: State) => T): T {
   const versionRef = useRef(-1);
 
   const getSnapshot = useCallback(() => {
-    if (snapshotRef.current !== undefined && versionRef.current === storeVersion) {
+    if (
+      snapshotRef.current !== undefined &&
+      versionRef.current === storeVersion
+    ) {
       return snapshotRef.current;
     }
 
@@ -1336,10 +1576,15 @@ export function useStore<T>(selector: (s: State) => T): T {
     const selectedIsMutable = Boolean(
       selected &&
       typeof selected === "object" &&
-      (Array.isArray(selected) || Object.getPrototypeOf(selected) === Object.prototype),
+      (Array.isArray(selected) ||
+        Object.getPrototypeOf(selected) === Object.prototype),
     );
 
-    if (!selectedIsMutable && snapshotRef.current !== undefined && shallowEqual(snapshotRef.current, next)) {
+    if (
+      !selectedIsMutable &&
+      snapshotRef.current !== undefined &&
+      shallowEqual(snapshotRef.current, next)
+    ) {
       versionRef.current = storeVersion;
       return snapshotRef.current;
     }

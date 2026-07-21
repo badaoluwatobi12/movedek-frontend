@@ -1,7 +1,12 @@
-import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
+import {
+  Link,
+  NavLink,
+  Outlet,
+  useLocation,
+  useNavigate,
+} from "react-router-dom";
 import { useEffect } from "react";
 import { getStoredAuthUser, store, useSession, useStore } from "@/data/store";
-import { getStoredSession as getStorageSession, getStoredToken } from "@/lib/authStorage";
 import type { Role } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -9,49 +14,51 @@ import { useNotificationUnreadCount } from "@/hooks/useNotifications";
 import { Bell, LogOut, Menu, Zap, type LucideIcon } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
-export type NavItem = { to: string; label: string; icon: LucideIcon; end?: boolean };
+export type NavItem = {
+  to: string;
+  label: string;
+  icon: LucideIcon;
+  end?: boolean;
+};
 
-export function DashboardShell({ role, nav, title }: { role: Role; nav: NavItem[]; title: string }) {
+export function DashboardShell({
+  role,
+  nav,
+  title,
+}: {
+  role: Role;
+  nav: NavItem[];
+  title: string;
+}) {
   const session = useSession();
   const navigate = useNavigate();
   const location = useLocation();
-  const token = getStoredToken();
   const storedUser = getStoredAuthUser();
-  const storedSession =
-    session ??
-    store.getStoredSession() ??
-    getStorageSession() ??
-    (token
-      ? {
-          userId: storedUser?.id || "authenticated-user",
-          role,
-        }
-      : null);
-  const storedUserId = storedSession?.userId;
-  const storedRole = storedSession?.role;
+  const storedUserId = session?.userId;
+  const storedRole = session?.role;
 
   useEffect(() => {
-    if (!token || !storedUserId || !storedRole) {
-      const next = `${location.pathname}${location.search || ""}`;
-      navigate(`/auth/login?next=${encodeURIComponent(next)}`, { replace: true });
-      return;
+    if (storedRole && storedRole !== role) {
+      navigate(`/${storedRole === "customer" ? "app" : storedRole}`, {
+        replace: true,
+      });
     }
-
-    if (storedRole !== role) {
-      navigate(`/${storedRole === "customer" ? "app" : storedRole}`, { replace: true });
-    }
-  }, [token, storedUserId, storedRole, role, navigate, location.pathname, location.search]);
+  }, [storedRole, role, navigate]);
 
   const user = useStore((s) =>
-    storedSession ? s.users.find((u) => u.id === storedSession.userId) : undefined,
+    session
+      ? s.users.find((candidate) => candidate.id === session.userId)
+      : undefined,
   );
-  const displayName = user?.full_name || storedUser?.full_name || "MoveDek User";
+  const displayName =
+    user?.full_name || storedUser?.full_name || "MoveDek User";
   const displayEmail = user?.email || storedUser?.email || "";
   const unreadNotifications = useNotificationUnreadCount();
-  const notificationPath = role === "customer" ? "/app/notifications" : `/${role}/notifications`;
+  const notificationPath =
+    role === "customer" ? "/app/notifications" : `/${role}/notifications`;
   const unreadCount = unreadNotifications.data?.unread_count ?? 0;
 
-  if (!storedSession || !token) return null;
+  if (!session || !storedUserId || !storedRole) return null;
 
   const Sidebar = (
     <aside className="flex h-full w-[min(18rem,86vw)] shrink-0 flex-col bg-sidebar text-sidebar-foreground md:w-64">
@@ -60,8 +67,12 @@ export function DashboardShell({ role, nav, title }: { role: Role; nav: NavItem[
           <Zap className="h-5 w-5 text-white" />
         </span>
         <div>
-          <div className="font-display text-lg font-bold leading-none">MoveDek</div>
-          <div className="text-[10px] uppercase tracking-widest text-sidebar-foreground/60">{title}</div>
+          <div className="font-display text-lg font-bold leading-none">
+            MoveDek
+          </div>
+          <div className="text-[10px] uppercase tracking-widest text-sidebar-foreground/60">
+            {title}
+          </div>
         </div>
       </Link>
       <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-2">
@@ -95,7 +106,9 @@ export function DashboardShell({ role, nav, title }: { role: Role; nav: NavItem[
           </div>
           <div className="min-w-0 flex-1">
             <div className="truncate text-sm font-medium">{displayName}</div>
-            <div className="truncate text-xs text-sidebar-foreground/60">{displayEmail}</div>
+            <div className="truncate text-xs text-sidebar-foreground/60">
+              {displayEmail}
+            </div>
           </div>
           <button
             title="Log out"
@@ -128,9 +141,13 @@ export function DashboardShell({ role, nav, title }: { role: Role; nav: NavItem[
                 {Sidebar}
               </SheetContent>
             </Sheet>
-            <span className="font-display font-semibold text-primary">MoveDek</span>
+            <span className="font-display font-semibold text-primary">
+              MoveDek
+            </span>
           </div>
-          <div className="hidden md:block text-sm text-muted-foreground capitalize">{title}</div>
+          <div className="hidden md:block text-sm text-muted-foreground capitalize">
+            {title}
+          </div>
           <div className="flex items-center gap-2">
             <Button asChild variant="ghost" size="icon" className="relative">
               <Link to={notificationPath} aria-label="Open notifications">

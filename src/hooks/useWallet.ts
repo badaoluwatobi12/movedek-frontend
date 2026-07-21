@@ -1,7 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { store } from "@/data/store";
+import { store, useSession } from "@/data/store";
 import { walletService } from "@/services/wallet.service";
-import type { InitializeWalletTopUpPayload, TopUpWalletPayload } from "@/types/wallet";
+import type {
+  InitializeWalletTopUpPayload,
+  TopUpWalletPayload,
+} from "@/types/wallet";
 
 export const walletKeys = {
   all: ["wallet"] as const,
@@ -13,11 +16,11 @@ const syncAppState = () => {
 };
 
 export function useWallet() {
-  const hasToken = Boolean(store.getAuthToken());
+  const session = useSession();
   return useQuery({
     queryKey: walletKeys.mine(),
     queryFn: walletService.getMine,
-    enabled: hasToken,
+    enabled: Boolean(session),
   });
 }
 
@@ -35,7 +38,8 @@ export function useTopUpWallet() {
 
 export function useInitializeWalletTopUp() {
   return useMutation({
-    mutationFn: (input: InitializeWalletTopUpPayload) => walletService.initializeTopUp(input),
+    mutationFn: (input: InitializeWalletTopUpPayload) =>
+      walletService.initializeTopUp(input),
   });
 }
 
