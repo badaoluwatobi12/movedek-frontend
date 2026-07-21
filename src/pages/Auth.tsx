@@ -447,7 +447,7 @@ const roleOptions: {
     role: "customer",
     icon: Package,
     label: "Customer",
-    desc: "Send packages, order food, request pickups.",
+    desc: "Send safely packaged legal items with live tracking.",
   },
   {
     role: "courier",

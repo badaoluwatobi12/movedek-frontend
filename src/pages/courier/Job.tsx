@@ -157,7 +157,7 @@ export function JobDetails() {
       <div className="card-elevated p-6 space-y-4">
         <div className="flex flex-wrap items-center gap-2">
           <span className="chip bg-primary/10 text-primary capitalize">
-            {d.category.replace("_", " ")}
+            {d.item_name}
           </span>
           <RiskBadge risk={d.risk_level} />
           <StatusBadge status={d.status} />

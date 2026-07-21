@@ -30,14 +30,7 @@ export const DELIVERY_RISK_LEVELS = [
 ] as const;
 export type DeliveryRiskLevel = (typeof DELIVERY_RISK_LEVELS)[number];
 
-export const DELIVERY_CATEGORIES = [
-  "food",
-  "groceries",
-  "pharmacy",
-  "parcel",
-  "personal_pickup",
-  "business",
-] as const;
+export const DELIVERY_CATEGORIES = ["general"] as const;
 export type DeliveryCategory = (typeof DELIVERY_CATEGORIES)[number];
 
 export const COURIER_TYPES = [

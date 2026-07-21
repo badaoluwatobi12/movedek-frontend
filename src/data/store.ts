@@ -117,14 +117,7 @@ const defaultSettings = (): AdminSettings => ({
     protection_fee: 300,
   },
   trust_caps: { bronze: 15000, silver: 75000, gold: 250000, platinum: 5000000 },
-  categories: {
-    food: true,
-    groceries: true,
-    pharmacy: true,
-    parcel: true,
-    personal_pickup: true,
-    business: true,
-  },
+  categories: { general: true },
 });
 
 const emptyState = (): State => ({
@@ -1539,7 +1532,7 @@ export const store = {
         [category]: !state.settings.categories[category],
       },
     };
-    this.addAudit("Updated delivery category", {
+    this.addAudit("Updated delivery policy", {
       category,
       enabled: state.settings.categories[category],
     });

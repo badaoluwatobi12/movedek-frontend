@@ -1140,39 +1140,24 @@ export function AdminPricing() {
 }
 
 export function AdminCategories() {
-  const categories = useStore((s) => s.settings.categories);
-  const labels: Record<string, string> = {
-    food: "Food",
-    groceries: "Groceries",
-    pharmacy: "Pharmacy",
-    parcel: "Parcel",
-    personal_pickup: "Personal Pickup",
-    business: "Business",
-  };
   return (
-    <div className="max-w-2xl space-y-4">
-      <h1 className="font-display text-2xl font-bold text-primary">
-        Delivery categories
-      </h1>
-      <div className="card-elevated p-4 space-y-2">
-        {Object.entries(labels).map(([key, label]) => (
-          <div
-            key={key}
-            className="flex items-center justify-between rounded-xl bg-muted/40 p-3"
-          >
-            <div className="font-medium text-primary">{label}</div>
-            <Button
-              variant={categories[key] ? "default" : "outline"}
-              size="sm"
-              onClick={() => {
-                store.toggleCategory(key);
-                toast.success("Category updated");
-              }}
-            >
-              {categories[key] ? "Enabled" : "Disabled"}
-            </Button>
-          </div>
-        ))}
+    <div className="max-w-3xl space-y-4">
+      <div>
+        <h1 className="font-display text-2xl font-bold text-primary">Delivery policy</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          MoveDek accepts safely packaged legal items through one universal delivery flow.
+        </p>
+      </div>
+      <div className="card-elevated space-y-4 p-5">
+        <div>
+          <h2 className="font-semibold text-primary">Allowed deliveries</h2>
+          <p className="mt-1 text-sm text-muted-foreground">Documents, parcels, groceries, legal pharmacy pickups, clothing, gifts, flowers, personal belongings, and business shipments that comply with applicable law.</p>
+        </div>
+        <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4">
+          <h2 className="font-semibold text-destructive">Prohibited deliveries</h2>
+          <p className="mt-1 text-sm text-muted-foreground">Illegal drugs, weapons, explosives, hazardous materials, stolen or counterfeit goods, unsafe live animals, and any restricted item.</p>
+        </div>
+        <p className="text-xs text-muted-foreground">Customers must confirm this policy before submitting every delivery request.</p>
       </div>
     </div>
   );

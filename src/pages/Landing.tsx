@@ -31,13 +31,11 @@ import {
   CheckCircle2,
 } from "lucide-react";
 
-const categories = [
-  { icon: Utensils, name: "Food", desc: "Hot meals delivered warm" },
-  { icon: ShoppingBasket, name: "Groceries", desc: "Market runs, made easy" },
-  { icon: Pill, name: "Pharmacy", desc: "Prescription pickups" },
-  { icon: Package, name: "Parcel", desc: "Send anything, anywhere" },
-  { icon: HandHeart, name: "Personal Pickup", desc: "Grab it for me" },
-  { icon: Building2, name: "Business", desc: "Bulk & merchant logistics" },
+const sendExamples = [
+  { icon: Package, name: "Documents & parcels", desc: "Securely packaged everyday items" },
+  { icon: ShoppingBasket, name: "Groceries & essentials", desc: "Store-to-door delivery" },
+  { icon: Pill, name: "Pharmacy pickups", desc: "Legal, properly packaged medicine" },
+  { icon: HandHeart, name: "Personal items", desc: "Clothes, gifts, flowers and more" },
 ];
 
 const couriers = [
@@ -104,7 +102,7 @@ export default function Landing() {
           >
             {[
               ["#how", "How it works"],
-              ["#categories", "Categories"],
+              ["#categories", "What you can send"],
               ["#couriers", "Couriers"],
               ["#merchants", "For merchants"],
               ["#faq", "FAQ"],
@@ -412,15 +410,15 @@ export default function Landing() {
           <div className="flex items-end justify-between flex-wrap gap-4">
             <div>
               <h2 className="font-display text-3xl md:text-4xl font-bold text-primary">
-                Delivery categories
+                Send almost anything legal
               </h2>
               <p className="mt-2 text-muted-foreground">
-                Everything you already send — under one app.
+                Describe the item, package it safely, and MoveDek handles the delivery.
               </p>
             </div>
           </div>
           <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {categories.map((c) => (
+            {sendExamples.map((c) => (
               <div
                 key={c.name}
                 className="card-elevated p-5 hover:shadow-lg transition"
@@ -631,7 +629,7 @@ export default function Landing() {
                 <a href="#how">How it works</a>
               </li>
               <li>
-                <a href="#categories">Categories</a>
+                <a href="#categories">What you can send</a>
               </li>
               <li>
                 <a href="#faq">FAQ</a>

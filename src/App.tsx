@@ -177,7 +177,7 @@ const adminNav: NavItem[] = [
   { to: "/admin/disputes", label: "Disputes", icon: AlertTriangle },
   { to: "/admin/fraud", label: "Fraud alerts", icon: ShieldAlert },
   { to: "/admin/settings/pricing", label: "Pricing", icon: Tag },
-  { to: "/admin/settings/categories", label: "Categories", icon: Building2 },
+  { to: "/admin/settings/categories", label: "Delivery policy", icon: ShieldAlert },
   { to: "/admin/settings/trust", label: "Trust levels", icon: BadgeCheck },
   { to: "/admin/support", label: "Support", icon: LifeBuoy },
   { to: "/admin/audit", label: "Audit log", icon: FileText },

@@ -425,10 +425,6 @@ export default function Tracking() {
               {delivery.item_name}
             </div>
             <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
-              <Info
-                label="Category"
-                value={delivery.category.replace("_", " ")}
-              />
               <Info label="Value" value={naira(delivery.item_value)} />
               <Info label="Distance" value={`${delivery.distance_km} km`} />
               <Info label="Fee" value={naira(delivery.price)} />

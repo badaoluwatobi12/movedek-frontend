@@ -15,12 +15,7 @@ import { naira, priceEstimate, riskFor } from "@/lib/format";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import {
-  Utensils,
-  ShoppingBasket,
-  Pill,
   Package,
-  HandHeart,
-  Building2,
   Users,
   Bike,
   Car,
@@ -33,49 +28,10 @@ import {
   Wallet,
   type LucideIcon,
 } from "lucide-react";
-import type { DeliveryCategory, CourierType } from "@/lib/types";
+import type { CourierType } from "@/lib/types";
 import type { PackageSize } from "@/types/delivery";
 import { useCreateDelivery } from "@/hooks/useDeliveries";
 import { useInitializePayment } from "@/hooks/usePayments";
-
-const categories: {
-  id: DeliveryCategory;
-  icon: LucideIcon;
-  label: string;
-  desc: string;
-}[] = [
-  { id: "food", icon: Utensils, label: "Food", desc: "Meals, takeout" },
-  {
-    id: "groceries",
-    icon: ShoppingBasket,
-    label: "Groceries",
-    desc: "Market runs",
-  },
-  {
-    id: "pharmacy",
-    icon: Pill,
-    label: "Pharmacy",
-    desc: "Legal pharmacy pickup",
-  },
-  {
-    id: "parcel",
-    icon: Package,
-    label: "Parcel",
-    desc: "Packages and documents",
-  },
-  {
-    id: "personal_pickup",
-    icon: HandHeart,
-    label: "Personal Pickup",
-    desc: "Forgotten items",
-  },
-  {
-    id: "business",
-    icon: Building2,
-    label: "Business Delivery",
-    desc: "Bulk / commercial",
-  },
-];
 
 const courierOptions: {
   id: CourierType;
@@ -111,20 +67,18 @@ const courierOptions: {
 ];
 
 const steps = [
-  "Category",
+  "Item",
   "Pickup",
   "Drop-off",
-  "Package",
   "Courier",
   "Review",
   "Confirm",
 ];
 
 const stepFields: (keyof CreateDeliveryInput)[][] = [
-  ["category"],
+  ["item_name", "item_value", "package_size"],
   ["pickup_address", "pickup_contact", "pickup_phone"],
   ["dropoff_address", "dropoff_contact", "dropoff_phone", "distance_km"],
-  ["item_name", "item_value", "package_size"],
   ["courier_type"],
   [],
   [],
@@ -135,16 +89,13 @@ export default function CreateDelivery() {
   const session = useSession()!;
   const wallets = useStore((s) => s.wallets);
   const savedAddresses = useStore((s) => s.savedAddresses);
-  const settings = useStore((s) => s.settings);
   const wallet = wallets.find((w) => w.user_id === session.userId);
   const myAddresses = savedAddresses.filter(
     (a) => a.user_id === session.userId,
   );
-  const enabledCategories = categories.filter(
-    (c) => settings.categories[c.id] !== false,
-  );
 
   const [step, setStep] = useState(0);
+  const [legalItemConfirmed, setLegalItemConfirmed] = useState(false);
   const [phase, setPhase] = useState<"idle" | "saving" | "created">("idle");
   const createDelivery = useCreateDelivery();
   const initializePayment = useInitializePayment();
@@ -160,7 +111,7 @@ export default function CreateDelivery() {
     resolver: zodResolver(createDeliverySchema),
     mode: "onChange",
     defaultValues: {
-      category: enabledCategories[0]?.id ?? "food",
+      category: "general",
       pickup_address: "",
       pickup_contact: "",
       pickup_phone: "",
@@ -198,6 +149,10 @@ export default function CreateDelivery() {
   const back = () => setStep((s) => Math.max(s - 1, 0));
 
   const goNext = async () => {
+    if (step === 0 && !legalItemConfirmed) {
+      toast.error("Confirm that the item is legal and permitted before continuing.");
+      return;
+    }
     const fields = stepFields[step] ?? [];
     const valid = fields.length === 0 || (await trigger(fields));
     if (!valid) {
@@ -212,7 +167,7 @@ export default function CreateDelivery() {
     try {
       const delivery = await createDelivery.mutateAsync({
         customer_id: session.userId,
-        category: input.category,
+        category: "general",
         pickup_address: input.pickup_address.trim(),
         pickup_contact: input.pickup_contact.trim(),
         pickup_phone: input.pickup_phone.trim(),
@@ -307,41 +262,96 @@ export default function CreateDelivery() {
 
       <div className="card-elevated p-4 sm:p-5 md:p-8">
         {step === 0 && (
-          <div>
+          <div className="space-y-4">
             <h2 className="font-display text-lg font-semibold text-primary">
               What are you sending?
             </h2>
-            {enabledCategories.length === 0 ? (
-              <div className="mt-4 rounded-xl border border-warning/40 bg-warning/10 p-4 text-sm text-warning-foreground">
-                No delivery categories are enabled yet. Ask an admin to enable
-                at least one category.
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label>Describe the item</Label>
+                <Input
+                  {...register("item_name")}
+                  placeholder="For example: documents, clothes, flowers, groceries, laptop"
+                />
+                {errors.item_name && (
+                  <FieldError message={errors.item_name.message} />
+                )}
               </div>
-            ) : (
-              <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {enabledCategories.map((c) => (
+              <div className="space-y-2">
+                <Label>Declared item value (₦)</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  {...register("item_value", { valueAsNumber: true })}
+                />
+                {errors.item_value && (
+                  <FieldError message={errors.item_value.message} />
+                )}
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>Approximate size</Label>
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                {(["small", "medium", "large", "xl"] as const).map((s) => (
                   <button
-                    key={c.id}
+                    key={s}
                     type="button"
                     onClick={() =>
-                      setValue("category", c.id, { shouldValidate: true })
+                      setValue("package_size", s, { shouldValidate: true })
                     }
                     className={cn(
-                      "card-soft p-4 text-left transition hover:border-accent",
-                      data.category === c.id &&
-                        "border-accent ring-2 ring-accent/30",
+                      "rounded-lg border p-2 text-sm capitalize",
+                      data.package_size === s
+                        ? "border-accent bg-accent/10 text-accent"
+                        : "border-border",
                     )}
                   >
-                    <c.icon className="h-6 w-6 text-accent" />
-                    <div className="mt-3 font-medium text-primary">
-                      {c.label}
-                    </div>
-                    <div className="text-xs text-muted-foreground">
-                      {c.desc}
-                    </div>
+                    {s}
                   </button>
                 ))}
               </div>
-            )}
+            </div>
+            <div className="flex items-center justify-between rounded-xl bg-muted/40 p-3">
+              <div>
+                <div className="text-sm font-medium">Fragile</div>
+                <div className="text-xs text-muted-foreground">
+                  Handle with care
+                </div>
+              </div>
+              <Switch
+                checked={data.fragile}
+                onCheckedChange={(v) =>
+                  setValue("fragile", v, { shouldValidate: true })
+                }
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Delivery notes (optional)</Label>
+              <Textarea
+                {...register("delivery_notes")}
+                placeholder="Anything the courier should know"
+              />
+            </div>
+            <div className="flex items-center gap-2 text-sm">
+              <span>Auto risk level:</span> <RiskBadge risk={risk} />
+            </div>
+            <div className="rounded-xl border border-warning/40 bg-warning/10 p-3 text-sm text-warning-foreground flex gap-2">
+              <ShieldAlert className="h-4 w-4 mt-0.5 shrink-0" />
+              <div>
+                <b>Prohibited items:</b> illegal drugs, weapons, explosives, hazardous materials, stolen goods, counterfeit goods, or anything restricted by applicable law.
+              </div>
+            </div>
+            <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-border bg-background p-3 text-sm">
+              <input
+                type="checkbox"
+                className="mt-1 h-4 w-4 accent-emerald-600"
+                checked={legalItemConfirmed}
+                onChange={(event) => setLegalItemConfirmed(event.target.checked)}
+              />
+              <span>
+                I confirm this item is legal, safely packaged, and permitted under MoveDek's delivery policy.
+              </span>
+            </label>
           </div>
         )}
 
@@ -456,90 +466,6 @@ export default function CreateDelivery() {
         {step === 3 && (
           <div className="space-y-4">
             <h2 className="font-display text-lg font-semibold text-primary">
-              Package details
-            </h2>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label>Item name</Label>
-                <Input
-                  {...register("item_name")}
-                  placeholder="Documents, food, medicine…"
-                />
-                {errors.item_name && (
-                  <FieldError message={errors.item_name.message} />
-                )}
-              </div>
-              <div className="space-y-2">
-                <Label>Declared item value (₦)</Label>
-                <Input
-                  type="number"
-                  min={0}
-                  {...register("item_value", { valueAsNumber: true })}
-                />
-                {errors.item_value && (
-                  <FieldError message={errors.item_value.message} />
-                )}
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label>Package size</Label>
-              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-                {(["small", "medium", "large", "xl"] as const).map((s) => (
-                  <button
-                    key={s}
-                    type="button"
-                    onClick={() =>
-                      setValue("package_size", s, { shouldValidate: true })
-                    }
-                    className={cn(
-                      "rounded-lg border p-2 text-sm capitalize",
-                      data.package_size === s
-                        ? "border-accent bg-accent/10 text-accent"
-                        : "border-border",
-                    )}
-                  >
-                    {s}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div className="flex items-center justify-between rounded-xl bg-muted/40 p-3">
-              <div>
-                <div className="text-sm font-medium">Fragile</div>
-                <div className="text-xs text-muted-foreground">
-                  Handle with care
-                </div>
-              </div>
-              <Switch
-                checked={data.fragile}
-                onCheckedChange={(v) =>
-                  setValue("fragile", v, { shouldValidate: true })
-                }
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Delivery notes (optional)</Label>
-              <Textarea
-                {...register("delivery_notes")}
-                placeholder="Anything the courier should know"
-              />
-            </div>
-            <div className="flex items-center gap-2 text-sm">
-              <span>Auto risk level:</span> <RiskBadge risk={risk} />
-            </div>
-            <div className="rounded-xl border border-warning/40 bg-warning/10 p-3 text-sm text-warning-foreground flex gap-2">
-              <ShieldAlert className="h-4 w-4 mt-0.5 shrink-0" />
-              <div>
-                <b>Prohibited items:</b> illegal substances, firearms, hazardous
-                materials, stolen goods, or anything restricted by Nigerian law.
-              </div>
-            </div>
-          </div>
-        )}
-
-        {step === 4 && (
-          <div className="space-y-4">
-            <h2 className="font-display text-lg font-semibold text-primary">
               Choose courier type
             </h2>
             <div className="grid gap-3 sm:grid-cols-2">
@@ -579,13 +505,12 @@ export default function CreateDelivery() {
           </div>
         )}
 
-        {step === 5 && (
+        {step === 4 && (
           <div className="space-y-4">
             <h2 className="font-display text-lg font-semibold text-primary">
               Review your request
             </h2>
             <div className="grid gap-3 sm:grid-cols-2">
-              <Info label="Category" value={data.category.replace("_", " ")} />
               <Info label="Courier" value={data.courier_type} />
               <Info label="Item" value={data.item_name || "—"} />
               <Info label="Value" value={naira(data.item_value)} />
@@ -615,7 +540,7 @@ export default function CreateDelivery() {
           </div>
         )}
 
-        {step === 6 && (
+        {step === 5 && (
           <div className="space-y-4 text-center">
             <h2 className="font-display text-lg font-semibold text-primary">
               Confirm delivery request
@@ -677,7 +602,6 @@ export default function CreateDelivery() {
         </Button>
         {step < steps.length - 1 && (
           <Button
-            disabled={enabledCategories.length === 0}
             onClick={goNext}
             className="accent-gradient text-white shadow-glow"
           >

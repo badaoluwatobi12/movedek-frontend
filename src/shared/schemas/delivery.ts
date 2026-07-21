@@ -10,10 +10,12 @@ import {
 // Mirrors apps/backend/src/modules/deliveries/delivery.validator.ts's
 // createDeliverySchema exactly (flat pickup_*/dropoff_* fields) — the actual
 // enforced backend contract, not the delivery form's UI grouping.
+const prohibitedItemPattern = /\b(?:illegal\s+drugs?|firearms?|guns?|ammunition|explosives?|bombs?|stolen\s+goods?|counterfeit\s+goods?|hazardous\s+chemicals?)\b/i;
+
 export const createDeliverySchema = z.object({
   customer_id: z.string().trim().min(3).max(120).optional(),
   merchant_id: z.string().trim().min(3).max(120).optional(),
-  category: z.enum(DELIVERY_CATEGORIES).default("parcel"),
+  category: z.enum(DELIVERY_CATEGORIES).default("general"),
   pickup_address: z.string().trim().min(3).max(500),
   pickup_contact: z.string().trim().min(2).max(120),
   pickup_phone: z.string().trim().min(7).max(40),
@@ -30,6 +32,17 @@ export const createDeliverySchema = z.object({
   courier_type: z.enum(COURIER_TYPES).default("motorcycle"),
   protection: z.coerce.boolean().default(false),
   distance_km: z.coerce.number().min(0.1).max(10_000),
+}).superRefine((input, context) => {
+  const description = [input.item_name, input.delivery_notes ?? ""]
+    .join(" ")
+    .trim();
+  if (prohibitedItemPattern.test(description)) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["item_name"],
+      message: "This item appears to be prohibited under MoveDek's delivery policy.",
+    });
+  }
 });
 
 export const updateDeliveryStatusSchema = z.object({

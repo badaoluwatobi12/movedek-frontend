@@ -282,7 +282,7 @@ export default function CourierHome() {
                 <div className="min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="chip bg-primary/10 text-primary capitalize">
-                      {delivery.category.replace("_", " ")}
+                      {delivery.item_name}
                     </span>
                     <RiskBadge risk={delivery.risk_level} />
                     <span className="text-xs text-muted-foreground">

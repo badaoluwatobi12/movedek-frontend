@@ -1,7 +1,6 @@
 export type Role = "customer" | "courier" | "merchant" | "admin";
 
-export type DeliveryCategory =
-  "food" | "groceries" | "pharmacy" | "parcel" | "personal_pickup" | "business";
+export type DeliveryCategory = "general";
 
 export type CourierType =
   "everyday" | "motorcycle" | "car" | "van" | "logistics";
