@@ -13,10 +13,17 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 const Login = lazy(() => import("./pages/Login"));
 const Register = lazy(() => import("./pages/Register"));
 const Forgot = lazy(() => import("./pages/ForgotPassword"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const NotificationsPage = lazy(() => import("./pages/Notifications"));
 const ProfilePage = lazy(() => import("./pages/profile/ProfilePage"));
 const Otp = lazy(() =>
   import("./pages/Auth").then((module) => ({ default: module.Otp })),
+);
+const CheckEmail = lazy(() =>
+  import("./pages/Auth").then((module) => ({ default: module.CheckEmail })),
+);
+const VerifyEmail = lazy(() =>
+  import("./pages/Auth").then((module) => ({ default: module.VerifyEmail })),
 );
 
 import {
@@ -51,6 +58,7 @@ import {
   FileText,
   Settings,
   BellRing,
+  MailCheck,
 } from "lucide-react";
 
 const CustomerDashboard = lazy(
@@ -117,6 +125,9 @@ const AdminCategories = lazy(() =>
 const AdminTrust = lazy(() => import("./pages/admin/AdminTrustLevels"));
 const AdminSupport = lazy(() => import("./pages/admin/AdminSupportTickets"));
 const AdminAudit = lazy(() => import("./pages/admin/AdminAuditLogs"));
+const AdminEmailOperations = lazy(
+  () => import("./pages/admin/AdminEmailOperations"),
+);
 
 const customerNav: NavItem[] = [
   { to: "/app", label: "Dashboard", icon: LayoutDashboard, end: true },
@@ -170,6 +181,7 @@ const adminNav: NavItem[] = [
   { to: "/admin/settings/trust", label: "Trust levels", icon: BadgeCheck },
   { to: "/admin/support", label: "Support", icon: LifeBuoy },
   { to: "/admin/audit", label: "Audit log", icon: FileText },
+  { to: "/admin/email", label: "Email", icon: MailCheck },
   { to: "/admin/profile", label: "Profile", icon: User },
 ];
 
@@ -208,7 +220,10 @@ const App = () => {
               <Route path="/auth/login" element={<Login />} />
               <Route path="/auth/register" element={<Register />} />
               <Route path="/auth/otp" element={<Otp />} />
+              <Route path="/auth/check-email" element={<CheckEmail />} />
+              <Route path="/auth/verify-email" element={<VerifyEmail />} />
               <Route path="/auth/forgot" element={<Forgot />} />
+              <Route path="/auth/reset" element={<ResetPassword />} />
 
               <Route element={<RequireAuth />}>
                 <Route
@@ -348,6 +363,10 @@ const App = () => {
                   />
                   <Route path="/admin/support" element={<AdminSupport />} />
                   <Route path="/admin/audit" element={<AdminAudit />} />
+                  <Route
+                    path="/admin/email"
+                    element={<AdminEmailOperations />}
+                  />
                   <Route path="/admin/profile" element={<ProfilePage />} />
                 </Route>
               </Route>

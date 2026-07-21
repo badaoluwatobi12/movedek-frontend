@@ -1,9 +1,19 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { Bell, BellRing, CheckCheck, ExternalLink, Settings2 } from "lucide-react";
+import {
+  Bell,
+  BellRing,
+  CheckCheck,
+  ExternalLink,
+  Settings2,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -25,7 +35,13 @@ const relativeTime = (value: string) => {
   return `${Math.floor(diff / 86_400_000)}d`;
 };
 
-function AlertRow({ item, close }: { item: NotificationRecord; close: () => void }) {
+function AlertRow({
+  item,
+  close,
+}: {
+  item: NotificationRecord;
+  close: () => void;
+}) {
   const markRead = useMarkNotificationRead();
   const unread = !item.read_at;
   const body = (
@@ -38,15 +54,28 @@ function AlertRow({ item, close }: { item: NotificationRecord; close: () => void
       <span
         className={cn(
           "mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full",
-          unread ? "bg-primary shadow-[0_0_0_4px_hsl(var(--primary)/0.12)]" : "bg-muted-foreground/25",
+          unread
+            ? "bg-primary shadow-[0_0_0_4px_hsl(var(--primary)/0.12)]"
+            : "bg-muted-foreground/25",
         )}
       />
       <div className="min-w-0 flex-1">
         <div className="flex items-start justify-between gap-3">
-          <p className={cn("truncate text-sm", unread ? "font-semibold text-foreground" : "font-medium")}>{item.title}</p>
-          <span className="shrink-0 text-[11px] text-muted-foreground">{relativeTime(item.created_at)}</span>
+          <p
+            className={cn(
+              "truncate text-sm",
+              unread ? "font-semibold text-foreground" : "font-medium",
+            )}
+          >
+            {item.title}
+          </p>
+          <span className="shrink-0 text-[11px] text-muted-foreground">
+            {relativeTime(item.created_at)}
+          </span>
         </div>
-        <p className="mt-1 line-clamp-2 text-xs leading-5 text-muted-foreground">{item.message}</p>
+        <p className="mt-1 line-clamp-2 text-xs leading-5 text-muted-foreground">
+          {item.message}
+        </p>
       </div>
     </div>
   );
@@ -77,10 +106,18 @@ function AlertRow({ item, close }: { item: NotificationRecord; close: () => void
   );
 }
 
-export default function NotificationCenter({ notificationPath }: { notificationPath: string }) {
+export default function NotificationCenter({
+  notificationPath,
+}: {
+  notificationPath: string;
+}) {
   const [open, setOpen] = useState(false);
   const unreadQuery = useNotificationUnreadCount();
-  const recentQuery = useNotifications({ read_status: "all", page: 1, limit: 6 });
+  const recentQuery = useNotifications({
+    read_status: "all",
+    page: 1,
+    limit: 6,
+  });
   const markAll = useMarkAllNotificationsRead();
   const previousUnread = useRef<number | null>(null);
   const unread = unreadQuery.data?.unread_count ?? 0;
@@ -93,8 +130,14 @@ export default function NotificationCenter({ notificationPath }: { notificationP
     const newest = recentQuery.data?.items.find((item) => !item.read_at);
     if (newest) toast.info(newest.title, { description: newest.message });
 
-    const browserAlerts = localStorage.getItem(alertPreferenceKey) === "enabled";
-    if (browserAlerts && "Notification" in window && Notification.permission === "granted" && newest) {
+    const browserAlerts =
+      localStorage.getItem(alertPreferenceKey) === "enabled";
+    if (
+      browserAlerts &&
+      "Notification" in window &&
+      Notification.permission === "granted" &&
+      newest
+    ) {
       new Notification(newest.title, { body: newest.message, tag: newest.id });
     }
   }, [recentQuery.data?.items, unread]);
@@ -116,8 +159,17 @@ export default function NotificationCenter({ notificationPath }: { notificationP
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative rounded-xl" aria-label="Open alerts">
-          {unread ? <BellRing className="h-5 w-5" /> : <Bell className="h-5 w-5" />}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="relative rounded-xl"
+          aria-label="Open alerts"
+        >
+          {unread ? (
+            <BellRing className="h-5 w-5" />
+          ) : (
+            <Bell className="h-5 w-5" />
+          )}
           {unread > 0 && (
             <span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground ring-2 ring-card">
               {unread > 99 ? "99+" : unread}
@@ -125,11 +177,18 @@ export default function NotificationCenter({ notificationPath }: { notificationP
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent align="end" className="w-[min(24rem,calc(100vw-1rem))] overflow-hidden p-0 shadow-xl">
+      <PopoverContent
+        align="end"
+        className="w-[min(24rem,calc(100vw-1rem))] overflow-hidden p-0 shadow-xl"
+      >
         <div className="flex items-center justify-between gap-3 p-4">
           <div>
             <div className="font-display font-semibold">Alerts</div>
-            <div className="text-xs text-muted-foreground">{unread ? `${unread} unread update${unread === 1 ? "" : "s"}` : "You are all caught up"}</div>
+            <div className="text-xs text-muted-foreground">
+              {unread
+                ? `${unread} unread update${unread === 1 ? "" : "s"}`
+                : "You are all caught up"}
+            </div>
           </div>
           <Button
             size="sm"
@@ -144,16 +203,26 @@ export default function NotificationCenter({ notificationPath }: { notificationP
         <Separator />
         <ScrollArea className="max-h-[22rem]">
           <div className="space-y-1 p-2">
-            {recentQuery.isLoading && <p className="p-6 text-center text-sm text-muted-foreground">Loading alerts…</p>}
+            {recentQuery.isLoading && (
+              <p className="p-6 text-center text-sm text-muted-foreground">
+                Loading alerts…
+              </p>
+            )}
             {!recentQuery.isLoading && !recentQuery.data?.items.length && (
               <div className="p-8 text-center">
                 <Bell className="mx-auto h-7 w-7 text-muted-foreground/50" />
                 <p className="mt-2 text-sm font-medium">No alerts yet</p>
-                <p className="mt-1 text-xs text-muted-foreground">Delivery and payment updates will appear here.</p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Delivery and payment updates will appear here.
+                </p>
               </div>
             )}
             {recentQuery.data?.items.map((item) => (
-              <AlertRow key={item.id} item={item} close={() => setOpen(false)} />
+              <AlertRow
+                key={item.id}
+                item={item}
+                close={() => setOpen(false)}
+              />
             ))}
           </div>
         </ScrollArea>

@@ -73,6 +73,14 @@ export interface Courier {
   id_uploaded?: boolean;
   license_uploaded?: boolean;
   onboarding_submitted_at?: string;
+  review?: {
+    id: string;
+    decision: "approved" | "rejected";
+    reason: string;
+    reviewed_by: string;
+    reviewed_at: string;
+    previous_status?: VerificationStatus;
+  };
 }
 
 export interface Merchant {
@@ -200,4 +208,33 @@ export interface Notification {
   message: string;
   read: boolean;
   created_at: string;
+}
+
+export type VerificationDocumentType =
+  "selfie" | "government_id" | "driver_license";
+
+export type VerificationDocumentStatus = "uploaded" | "approved" | "rejected";
+
+export interface VerificationDocument {
+  id: string;
+  courierId: string;
+  ownerUserId: string;
+  documentType: VerificationDocumentType;
+  provider: "cloudinary";
+  resourceType: "image" | "raw";
+  format: string;
+  bytes: number;
+  width: number | null;
+  height: number | null;
+  originalName: string;
+  mimeType: string;
+  status: VerificationDocumentStatus;
+  rejectionReason: string | null;
+  uploadedAt: string;
+  reviewedAt: string | null;
+  reviewedBy: string | null;
+  createdAt: string;
+  updatedAt: string;
+  accessUrl: string;
+  downloadUrl: string;
 }

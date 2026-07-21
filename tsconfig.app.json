@@ -27,10 +27,6 @@
 
     "paths": {
       "@/*": ["./src/*"],
-      "@movedek/shared": [
-        "./node_modules/@movedek/shared/src/index.ts",
-        "../packages/shared/src/index.ts"
-      ],
       "zod": ["./node_modules/zod", "../node_modules/zod"]
     }
   },

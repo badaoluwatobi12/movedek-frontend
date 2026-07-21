@@ -319,8 +319,17 @@ const unwrapApiData = async (response: Response) => {
       hasStringMessage(json)
         ? json.message
         : `API request failed with status ${response.status}`,
-    ) as Error & { status?: number };
+    ) as Error & {
+      status?: number;
+      code?: string;
+      details?: unknown;
+    };
     error.status = response.status;
+    if (typeof json === "object" && json !== null) {
+      const record = json as { code?: unknown; details?: unknown };
+      if (typeof record.code === "string") error.code = record.code;
+      error.details = record.details;
+    }
     throw error;
   }
 
@@ -333,6 +342,14 @@ const getErrorStatus = (error: unknown) =>
   "status" in error &&
   typeof (error as { status?: unknown }).status === "number"
     ? (error as { status: number }).status
+    : null;
+
+const getErrorCode = (error: unknown) =>
+  typeof error === "object" &&
+  error !== null &&
+  "code" in error &&
+  typeof (error as { code?: unknown }).code === "string"
+    ? (error as { code: string }).code
     : null;
 
 const API_TIMEOUT_MS = 15_000;
@@ -389,7 +406,10 @@ const performRemoteStateLoad = async () => {
     applySnapshot(snapshot);
     state.apiError = null;
   } catch (error) {
-    if (getErrorStatus(error) === 401) {
+    if (
+      getErrorStatus(error) === 401 ||
+      getErrorCode(error) === "EMAIL_NOT_VERIFIED"
+    ) {
       state.session = null;
       clearStoredSession();
       state.apiError = null;
@@ -558,8 +578,10 @@ export const store = {
   async registerAccount(input: RegistrationDraft) {
     const result = await apiFetch<{
       user: User;
-      token: string;
-      snapshot?: RemoteSnapshot;
+      email: string;
+      verificationRequired: true;
+      emailSent: boolean;
+      expiresAt: string;
     }>("/auth/register", {
       method: "POST",
       body: JSON.stringify({
@@ -570,13 +592,29 @@ export const store = {
         role: input.role,
       }),
     });
-    if (result.snapshot) applySnapshot(result.snapshot);
     state.pendingRegistration = null;
-    setSessionFromUser(result.user);
+    state.session = null;
+    clearStoredSession();
     state.apiError = null;
     emit();
-    await loadRemoteState();
-    return result.user;
+    return result;
+  },
+
+  verifyEmail(token: string) {
+    return apiFetch<{ verified: true; email: string }>("/auth/verify-email", {
+      method: "POST",
+      body: JSON.stringify({ token }),
+    });
+  },
+
+  resendEmailVerification(email: string) {
+    return apiFetch<{ requested: true; emailSent?: boolean }>(
+      "/auth/resend-verification",
+      {
+        method: "POST",
+        body: JSON.stringify({ email: email.trim().toLowerCase() }),
+      },
+    );
   },
 
   completeRegistration() {
@@ -1305,10 +1343,18 @@ export const store = {
       `${status === "approved" ? "Approved" : status === "rejected" ? "Rejected" : "Reset"} courier verification`,
       { courierId, status },
     );
-    commitRemote(`/verification/${courierId}`, {
-      method: "PATCH",
-      body: JSON.stringify({ status }),
-    });
+    if (status !== "pending") {
+      commitRemote(`/admin/couriers/${courierId}/review`, {
+        method: "POST",
+        body: JSON.stringify({
+          decision: status,
+          reason:
+            status === "approved"
+              ? "Required profile and verification documents reviewed."
+              : "Application requires corrected profile information or documents.",
+        }),
+      });
+    }
     emit();
   },
 

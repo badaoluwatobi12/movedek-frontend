@@ -13,11 +13,6 @@ const firstExisting = (...candidates: string[]) => {
   return match;
 };
 
-const sharedSource = firstExisting(
-  path.resolve(__dirname, "../packages/shared/src/index.ts"),
-  path.resolve(__dirname, "node_modules/@movedek/shared/src/index.ts"),
-);
-
 const zodPackage = firstExisting(
   path.resolve(__dirname, "../node_modules/zod"),
   path.resolve(__dirname, "node_modules/zod"),
@@ -35,7 +30,6 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
-      "@movedek/shared": sharedSource,
       zod: zodPackage,
     },
     dedupe: [

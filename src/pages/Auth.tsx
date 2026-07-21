@@ -15,7 +15,7 @@ import {
   registerSchema,
   type LoginInput,
   type RegisterInput,
-} from "@movedek/shared";
+} from "@/shared";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -26,14 +26,17 @@ import {
   ArrowLeft,
   BarChart3,
   Bike,
+  CheckCircle2,
   Eye,
   EyeOff,
   Headphones,
+  LoaderCircle,
   Lock,
   Mail,
   MapPinned,
   Package,
   Phone,
+  RefreshCw,
   Shield,
   ShieldCheck,
   Store,
@@ -324,11 +327,19 @@ export function Login() {
       toast.success("Signed in");
       navigate(redirectPathForRole(user.role, next), { replace: true });
     } catch (error) {
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "Login failed. Check that the backend is running.",
-      );
+      const authError = error as Error & { code?: string };
+      if (authError.code === "EMAIL_NOT_VERIFIED") {
+        navigate(
+          `/auth/check-email?email=${encodeURIComponent(input.email.trim().toLowerCase())}`,
+        );
+        toast.error("Verify your email address before signing in.");
+      } else {
+        toast.error(
+          error instanceof Error
+            ? error.message
+            : "Login failed. Check that the backend is running.",
+        );
+      }
     } finally {
       setLoading(false);
     }
@@ -482,15 +493,21 @@ export function Register() {
   const submit = handleSubmit(async (input) => {
     setLoading(true);
     try {
-      const user = await store.registerAccount({
+      const result = await store.registerAccount({
         full_name: input.full_name,
         email: input.email,
         phone: input.phone,
         password: input.password,
         role,
       });
-      toast.success("Account created");
-      navigate(dashboardPathForRole(user.role), { replace: true });
+      toast.success(
+        result.emailSent
+          ? "Account created. Check your email to verify it."
+          : "Account created. Use resend if the email does not arrive.",
+      );
+      navigate(`/auth/check-email?email=${encodeURIComponent(result.email)}`, {
+        replace: true,
+      });
     } catch (error) {
       toast.error(
         error instanceof Error
@@ -588,7 +605,7 @@ export function Register() {
             <AuthInput
               type={showPassword ? "text" : "password"}
               {...register("password")}
-              placeholder="At least 6 characters"
+              placeholder="At least 12 characters"
               autoComplete="new-password"
               className="pl-14 pr-12"
             />
@@ -648,6 +665,147 @@ export function Register() {
           Sign in
         </Link>
       </p>
+    </AuthLayout>
+  );
+}
+
+export function CheckEmail() {
+  const [searchParams] = useSearchParams();
+  const email = searchParams.get("email")?.trim().toLowerCase() ?? "";
+  const [resending, setResending] = useState(false);
+
+  const resend = async () => {
+    if (!email)
+      return toast.error("Enter your email again from the sign-in page.");
+    setResending(true);
+    try {
+      await store.resendEmailVerification(email);
+      toast.success("A new verification email has been queued.");
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Could not resend email.",
+      );
+    } finally {
+      setResending(false);
+    }
+  };
+
+  return (
+    <AuthLayout
+      title="Check your email"
+      subtitle={
+        email
+          ? `We sent a verification link to ${email}.`
+          : "Open the verification link sent to your email address."
+      }
+    >
+      <div className="rounded-2xl border border-primary/15 bg-primary/5 p-6">
+        <div className="grid h-12 w-12 place-items-center rounded-2xl bg-primary/10 text-primary">
+          <Mail className="h-6 w-6" />
+        </div>
+        <h2 className="mt-5 font-display text-xl font-black text-primary">
+          Verify before signing in
+        </h2>
+        <p className="mt-2 text-sm font-medium leading-6 text-muted-foreground">
+          Click the secure link in the email. The link expires after one hour.
+          Check your spam folder if it does not appear within a few minutes.
+        </p>
+        <Button
+          type="button"
+          variant="outline"
+          disabled={!email || resending}
+          onClick={resend}
+          className="mt-6 h-12 w-full rounded-xl font-bold"
+        >
+          {resending ? (
+            <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            <RefreshCw className="mr-2 h-4 w-4" />
+          )}
+          Resend verification email
+        </Button>
+      </div>
+      <p className="mt-8 text-center text-base font-medium text-muted-foreground">
+        Already verified?{" "}
+        <Link
+          to="/auth/login"
+          className="font-bold text-accent hover:underline"
+        >
+          Sign in
+        </Link>
+      </p>
+    </AuthLayout>
+  );
+}
+
+export function VerifyEmail() {
+  const [searchParams] = useSearchParams();
+  const token = searchParams.get("token") ?? "";
+  const [status, setStatus] = useState<"verifying" | "verified" | "error">(
+    "verifying",
+  );
+  const [message, setMessage] = useState("Verifying your email address…");
+
+  useEffect(() => {
+    let active = true;
+    if (!token) {
+      setStatus("error");
+      setMessage("This verification link is incomplete.");
+      return;
+    }
+
+    void store
+      .verifyEmail(token)
+      .then(() => {
+        if (!active) return;
+        setStatus("verified");
+        setMessage("Your email is verified. You can now sign in.");
+      })
+      .catch((error) => {
+        if (!active) return;
+        setStatus("error");
+        setMessage(
+          error instanceof Error
+            ? error.message
+            : "This verification link is invalid or expired.",
+        );
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [token]);
+
+  return (
+    <AuthLayout title="Email verification" subtitle={message}>
+      <div className="rounded-2xl border border-primary/15 bg-card p-8 text-center">
+        {status === "verifying" && (
+          <LoaderCircle className="mx-auto h-12 w-12 animate-spin text-primary" />
+        )}
+        {status === "verified" && (
+          <CheckCircle2 className="mx-auto h-12 w-12 text-accent" />
+        )}
+        {status === "error" && (
+          <Mail className="mx-auto h-12 w-12 text-destructive" />
+        )}
+        <p className="mt-5 text-sm font-medium leading-6 text-muted-foreground">
+          {message}
+        </p>
+        {status === "verified" && (
+          <Button asChild className="mt-6 h-12 w-full rounded-xl font-bold">
+            <Link to="/auth/login">Continue to sign in</Link>
+          </Button>
+        )}
+        {status === "error" && (
+          <Button
+            asChild
+            variant="outline"
+            className="mt-6 h-12 w-full rounded-xl font-bold"
+          >
+            <Link to="/auth/login">Return to sign in</Link>
+          </Button>
+        )}
+      </div>
     </AuthLayout>
   );
 }
