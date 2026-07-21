@@ -6,9 +6,20 @@ import ErrorState from "@/components/common/ErrorState";
 import LoadingState from "@/components/common/LoadingState";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { useStore } from "@/data/store";
-import { useAssignCourier, useDeliveries, useUpdateDeliveryStatus } from "@/hooks/useDeliveries";
+import {
+  useAssignCourier,
+  useDeliveries,
+  useUpdateDeliveryStatus,
+} from "@/hooks/useDeliveries";
 import { naira } from "@/lib/format";
 import type { DeliveryStatus } from "@/types/delivery";
 import { deliveryStatuses } from "@/types/delivery";
@@ -41,7 +52,9 @@ export default function AdminDeliveries() {
   const assignCourier = useAssignCourier();
   const updateStatus = useUpdateDeliveryStatus();
   const deliveries = query.data?.items ?? [];
-  const availableCouriers = couriers.filter((courier) => courier.verification_status === "approved");
+  const availableCouriers = couriers.filter(
+    (courier) => courier.verification_status === "approved",
+  );
 
   const courierName = (courierId: string | null) => {
     if (!courierId) return "Unassigned";
@@ -53,19 +66,34 @@ export default function AdminDeliveries() {
   const assign = async (deliveryId: string, courierId: string) => {
     if (!courierId) return;
     try {
-      await assignCourier.mutateAsync({ id: deliveryId, input: { courier_id: courierId } });
+      await assignCourier.mutateAsync({
+        id: deliveryId,
+        input: { courier_id: courierId },
+      });
       toast.success("Courier assigned.");
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Could not assign courier.");
+      toast.error(
+        error instanceof Error ? error.message : "Could not assign courier.",
+      );
     }
   };
 
-  const setDeliveryStatus = async (deliveryId: string, nextStatus: DeliveryStatus) => {
+  const setDeliveryStatus = async (
+    deliveryId: string,
+    nextStatus: DeliveryStatus,
+  ) => {
     try {
-      await updateStatus.mutateAsync({ id: deliveryId, input: { status: nextStatus } });
+      await updateStatus.mutateAsync({
+        id: deliveryId,
+        input: { status: nextStatus },
+      });
       toast.success("Delivery status updated.");
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Could not update delivery status.");
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Could not update delivery status.",
+      );
     }
   };
 
@@ -73,13 +101,22 @@ export default function AdminDeliveries() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="font-display text-2xl font-bold text-primary">Deliveries</h1>
+          <h1 className="font-display text-2xl font-bold text-primary">
+            Deliveries
+          </h1>
           <p className="text-sm text-muted-foreground">
             Assign couriers and update live backend delivery records.
           </p>
         </div>
-        <Button variant="outline" onClick={() => query.refetch()} disabled={query.isFetching}>
-          <RefreshCcw className={`mr-2 h-4 w-4 ${query.isFetching ? "animate-spin" : ""}`} /> Refresh
+        <Button
+          variant="outline"
+          onClick={() => query.refetch()}
+          disabled={query.isFetching}
+        >
+          <RefreshCcw
+            className={`mr-2 h-4 w-4 ${query.isFetching ? "animate-spin" : ""}`}
+          />{" "}
+          Refresh
         </Button>
       </div>
 
@@ -114,7 +151,11 @@ export default function AdminDeliveries() {
         <LoadingState label="Loading backend deliveries…" />
       ) : query.isError ? (
         <ErrorState
-          message={query.error instanceof Error ? query.error.message : "Could not load deliveries."}
+          message={
+            query.error instanceof Error
+              ? query.error.message
+              : "Could not load deliveries."
+          }
         />
       ) : deliveries.length === 0 ? (
         <div className="card-soft flex flex-col items-center justify-center gap-3 p-6 text-center sm:p-10">
@@ -122,8 +163,12 @@ export default function AdminDeliveries() {
             <Truck className="h-6 w-6" />
           </div>
           <div>
-            <h3 className="font-display text-lg font-semibold">No deliveries found</h3>
-            <p className="mt-1 text-sm text-muted-foreground">Try another status or search term.</p>
+            <h3 className="font-display text-lg font-semibold">
+              No deliveries found
+            </h3>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Try another status or search term.
+            </p>
           </div>
         </div>
       ) : (
@@ -143,10 +188,14 @@ export default function AdminDeliveries() {
             </TableHeader>
             <TableBody>
               {deliveries.map((delivery) => {
-                const isDelivered = ["delivered", "completed"].includes(delivery.status);
+                const isDelivered = ["delivered", "completed"].includes(
+                  delivery.status,
+                );
                 const isCancelled = delivery.status === "cancelled";
                 const isClosed = isDelivered || isCancelled;
-                const customer = users.find((user) => user.id === delivery.customer_id);
+                const customer = users.find(
+                  (user) => user.id === delivery.customer_id,
+                );
 
                 return (
                   <TableRow key={delivery.id}>
@@ -165,7 +214,9 @@ export default function AdminDeliveries() {
                         <select
                           value={delivery.courier_id ?? ""}
                           disabled={isClosed || assignCourier.isPending}
-                          onChange={(event) => assign(delivery.id, event.target.value)}
+                          onChange={(event) =>
+                            assign(delivery.id, event.target.value)
+                          }
                           className="h-9 min-w-40 rounded-md border border-input bg-background px-3 py-1 text-sm disabled:cursor-not-allowed disabled:opacity-60"
                         >
                           <option value="">Unassigned</option>
@@ -193,7 +244,10 @@ export default function AdminDeliveries() {
                           value={delivery.status}
                           disabled={updateStatus.isPending}
                           onChange={(event) =>
-                            setDeliveryStatus(delivery.id, event.target.value as DeliveryStatus)
+                            setDeliveryStatus(
+                              delivery.id,
+                              event.target.value as DeliveryStatus,
+                            )
                           }
                           className="h-9 min-w-36 rounded-md border border-input bg-background px-3 py-1 text-sm disabled:cursor-not-allowed disabled:opacity-60"
                         >
@@ -211,14 +265,20 @@ export default function AdminDeliveries() {
                           size="sm"
                           variant="outline"
                           disabled={isClosed || updateStatus.isPending}
-                          onClick={() => setDeliveryStatus(delivery.id, "cancelled")}
+                          onClick={() =>
+                            setDeliveryStatus(delivery.id, "cancelled")
+                          }
                         >
                           Cancel
                         </Button>
                         <Button
                           size="sm"
-                          disabled={isDelivered || isCancelled || updateStatus.isPending}
-                          onClick={() => setDeliveryStatus(delivery.id, "delivered")}
+                          disabled={
+                            isDelivered || isCancelled || updateStatus.isPending
+                          }
+                          onClick={() =>
+                            setDeliveryStatus(delivery.id, "delivered")
+                          }
                         >
                           {isDelivered ? "Completed" : "Complete"}
                         </Button>

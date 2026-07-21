@@ -1,6 +1,2 @@
-export * from "./constants/roles.js";
-export * from "./schemas/auth.js";
-export * from "./schemas/delivery.js";
-export * from "./schemas/verification.js";
-export * from "./types/core.js";
-export * from "./utils/currency.js";
+// Compatibility barrel. New code should import directly from @movedek/shared.
+export * from "@movedek/shared";

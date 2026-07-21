@@ -453,118 +453,165 @@ export default function ProfilePage() {
 
         <TabsContent value="security">
           <div className="space-y-4">
-          <Card className="max-w-2xl">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <KeyRound className="h-5 w-5" />
-                Change password
-              </CardTitle>
-              <CardDescription>
-                Use at least 12 characters with uppercase, lowercase, number,
-                and symbol.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label htmlFor="current-password">Current password</Label>
-                <Input
-                  id="current-password"
-                  type="password"
-                  className="mt-2"
-                  value={currentPassword}
-                  onChange={(event) => setCurrentPassword(event.target.value)}
-                />
-              </div>
-              <div>
-                <Label htmlFor="new-password">New password</Label>
-                <Input
-                  id="new-password"
-                  type="password"
-                  className="mt-2"
-                  value={newPassword}
-                  onChange={(event) => setNewPassword(event.target.value)}
-                />
-              </div>
-              <div>
-                <Label htmlFor="confirm-password">Confirm new password</Label>
-                <Input
-                  id="confirm-password"
-                  type="password"
-                  className="mt-2"
-                  value={confirmPassword}
-                  onChange={(event) => setConfirmPassword(event.target.value)}
-                />
-              </div>
-              <Button
-                onClick={changePassword}
-                disabled={
-                  changingPassword ||
-                  !currentPassword ||
-                  !newPassword ||
-                  !confirmPassword
-                }
-              >
-                {changingPassword && (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                )}
-                Update password
-              </Button>
-            </CardContent>
-          </Card>
+            <Card className="max-w-2xl">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <KeyRound className="h-5 w-5" />
+                  Change password
+                </CardTitle>
+                <CardDescription>
+                  Use at least 12 characters with uppercase, lowercase, number,
+                  and symbol.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <Label htmlFor="current-password">Current password</Label>
+                  <Input
+                    id="current-password"
+                    type="password"
+                    className="mt-2"
+                    value={currentPassword}
+                    onChange={(event) => setCurrentPassword(event.target.value)}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="new-password">New password</Label>
+                  <Input
+                    id="new-password"
+                    type="password"
+                    className="mt-2"
+                    value={newPassword}
+                    onChange={(event) => setNewPassword(event.target.value)}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="confirm-password">Confirm new password</Label>
+                  <Input
+                    id="confirm-password"
+                    type="password"
+                    className="mt-2"
+                    value={confirmPassword}
+                    onChange={(event) => setConfirmPassword(event.target.value)}
+                  />
+                </div>
+                <Button
+                  onClick={changePassword}
+                  disabled={
+                    changingPassword ||
+                    !currentPassword ||
+                    !newPassword ||
+                    !confirmPassword
+                  }
+                >
+                  {changingPassword && (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  )}
+                  Update password
+                </Button>
+              </CardContent>
+            </Card>
 
-          <Card className="max-w-2xl border-destructive/35">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-destructive">
-                <AlertTriangle className="h-5 w-5" />
-                Danger zone
-              </CardTitle>
-              <CardDescription>
-                Account deletion permanently disables access and removes your personal profile information. Active deliveries and wallet balances must be resolved first.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button variant="destructive" className="gap-2">
-                    <Trash2 className="h-4 w-4" /> Delete account
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Delete your MoveDek account?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      This action cannot be undone. Your profile will be anonymized, your credentials removed, and every active session revoked.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <div className="space-y-4 py-2">
-                    <div>
-                      <Label htmlFor="delete-password">Current password</Label>
-                      <Input id="delete-password" type="password" className="mt-2" value={deletePassword} onChange={(event) => setDeletePassword(event.target.value)} />
+            <Card className="max-w-2xl border-destructive/35">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-destructive">
+                  <AlertTriangle className="h-5 w-5" />
+                  Danger zone
+                </CardTitle>
+                <CardDescription>
+                  Account deletion permanently disables access and removes your
+                  personal profile information. Active deliveries and wallet
+                  balances must be resolved first.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="destructive" className="gap-2">
+                      <Trash2 className="h-4 w-4" /> Delete account
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>
+                        Delete your MoveDek account?
+                      </AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This action cannot be undone. Your profile will be
+                        anonymized, your credentials removed, and every active
+                        session revoked.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <div className="space-y-4 py-2">
+                      <div>
+                        <Label htmlFor="delete-password">
+                          Current password
+                        </Label>
+                        <Input
+                          id="delete-password"
+                          type="password"
+                          className="mt-2"
+                          value={deletePassword}
+                          onChange={(event) =>
+                            setDeletePassword(event.target.value)
+                          }
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="delete-confirmation">
+                          Type DELETE to confirm
+                        </Label>
+                        <Input
+                          id="delete-confirmation"
+                          className="mt-2"
+                          autoComplete="off"
+                          value={deleteConfirmation}
+                          onChange={(event) =>
+                            setDeleteConfirmation(event.target.value)
+                          }
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="delete-reason">
+                          Reason for leaving (optional)
+                        </Label>
+                        <Textarea
+                          id="delete-reason"
+                          className="mt-2"
+                          maxLength={500}
+                          value={deleteReason}
+                          onChange={(event) =>
+                            setDeleteReason(event.target.value)
+                          }
+                        />
+                      </div>
                     </div>
-                    <div>
-                      <Label htmlFor="delete-confirmation">Type DELETE to confirm</Label>
-                      <Input id="delete-confirmation" className="mt-2" autoComplete="off" value={deleteConfirmation} onChange={(event) => setDeleteConfirmation(event.target.value)} />
-                    </div>
-                    <div>
-                      <Label htmlFor="delete-reason">Reason for leaving (optional)</Label>
-                      <Textarea id="delete-reason" className="mt-2" maxLength={500} value={deleteReason} onChange={(event) => setDeleteReason(event.target.value)} />
-                    </div>
-                  </div>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel disabled={deleting}>Keep account</AlertDialogCancel>
-                    <AlertDialogAction
-                      onClick={(event) => { event.preventDefault(); void deleteAccount(); }}
-                      disabled={deleting || !deletePassword || deleteConfirmation !== "DELETE"}
-                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                    >
-                      {deleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                      Permanently delete account
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            </CardContent>
-          </Card>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel disabled={deleting}>
+                        Keep account
+                      </AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={(event) => {
+                          event.preventDefault();
+                          void deleteAccount();
+                        }}
+                        disabled={
+                          deleting ||
+                          !deletePassword ||
+                          deleteConfirmation !== "DELETE"
+                        }
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      >
+                        {deleting && (
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        )}
+                        Permanently delete account
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </CardContent>
+            </Card>
           </div>
         </TabsContent>
       </Tabs>

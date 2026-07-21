@@ -5,7 +5,7 @@ import {
   DELIVERY_RISK_LEVELS,
   DELIVERY_STATUSES,
   PACKAGE_SIZES,
-} from "../constants/roles.js";
+} from "../constants/roles";
 
 // Mirrors apps/backend/src/modules/deliveries/delivery.validator.ts's
 // createDeliverySchema exactly (flat pickup_*/dropoff_* fields) — the actual

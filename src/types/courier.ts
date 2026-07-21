@@ -1,1 +1,6 @@
-export type { Courier, CourierType, TrustLevel, VerificationStatus } from "@/lib/types";
+export type {
+  Courier,
+  CourierType,
+  TrustLevel,
+  VerificationStatus,
+} from "@/lib/types";

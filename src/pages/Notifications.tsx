@@ -15,7 +15,11 @@ import {
   useNotifications,
 } from "@/hooks/useNotifications";
 import { cn } from "@/lib/utils";
-import type { NotificationCategory, NotificationReadStatus, NotificationRecord } from "@/types/notification";
+import type {
+  NotificationCategory,
+  NotificationReadStatus,
+  NotificationRecord,
+} from "@/types/notification";
 
 const filters: { label: string; value: NotificationReadStatus }[] = [
   { label: "All", value: "all" },
@@ -46,7 +50,11 @@ function timeAgo(input: string) {
   return `${Math.floor(diff / day)}d ago`;
 }
 
-function NotificationItem({ notification }: { notification: NotificationRecord }) {
+function NotificationItem({
+  notification,
+}: {
+  notification: NotificationRecord;
+}) {
   const markRead = useMarkNotificationRead();
   const isUnread = !notification.read_at;
 
@@ -61,20 +69,36 @@ function NotificationItem({ notification }: { notification: NotificationRecord }
         <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
           <div className="min-w-0 space-y-2">
             <div className="flex flex-wrap items-center gap-2">
-              <Badge variant="outline" className={cn("capitalize", categoryTone[notification.category])}>
+              <Badge
+                variant="outline"
+                className={cn(
+                  "capitalize",
+                  categoryTone[notification.category],
+                )}
+              >
                 {notification.category}
               </Badge>
               {isUnread && <span className="h-2 w-2 rounded-full bg-primary" />}
-              <span className="text-xs text-muted-foreground">{timeAgo(notification.created_at)}</span>
+              <span className="text-xs text-muted-foreground">
+                {timeAgo(notification.created_at)}
+              </span>
             </div>
             <div>
-              <h3 className="font-display text-base font-semibold text-primary">{notification.title}</h3>
-              <p className="mt-1 text-sm leading-6 text-muted-foreground">{notification.message}</p>
+              <h3 className="font-display text-base font-semibold text-primary">
+                {notification.title}
+              </h3>
+              <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                {notification.message}
+              </p>
             </div>
           </div>
           <div className="flex shrink-0 items-center gap-2">
             {notification.action_url && (
-              <Button asChild size="sm" variant={isUnread ? "default" : "outline"}>
+              <Button
+                asChild
+                size="sm"
+                variant={isUnread ? "default" : "outline"}
+              >
                 <Link to={notification.action_url}>Open</Link>
               </Button>
             )}
@@ -102,7 +126,12 @@ export default function NotificationsPage() {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const params = useMemo(
-    () => ({ read_status: readStatus, search: search.trim() || undefined, page, limit: 20 }),
+    () => ({
+      read_status: readStatus,
+      search: search.trim() || undefined,
+      page,
+      limit: 20,
+    }),
     [page, readStatus, search],
   );
 
@@ -127,7 +156,11 @@ export default function NotificationsPage() {
             <CheckCheck className="mr-2 h-4 w-4" />
             Mark all read
           </Button>
-          <Button variant="outline" disabled={clearRead.isPending} onClick={() => clearRead.mutate()}>
+          <Button
+            variant="outline"
+            disabled={clearRead.isPending}
+            onClick={() => clearRead.mutate()}
+          >
             <Trash2 className="mr-2 h-4 w-4" />
             Clear read
           </Button>
@@ -167,11 +200,15 @@ export default function NotificationsPage() {
       <div className="grid gap-3 md:grid-cols-3">
         <div className="stat-card">
           <span className="text-sm text-muted-foreground">Total results</span>
-          <div className="font-display text-2xl font-bold text-primary">{data?.pagination.total ?? 0}</div>
+          <div className="font-display text-2xl font-bold text-primary">
+            {data?.pagination.total ?? 0}
+          </div>
         </div>
         <div className="stat-card">
           <span className="text-sm text-muted-foreground">Unread</span>
-          <div className="font-display text-2xl font-bold text-primary">{data?.unread_count ?? 0}</div>
+          <div className="font-display text-2xl font-bold text-primary">
+            {data?.unread_count ?? 0}
+          </div>
         </div>
         <div className="stat-card">
           <span className="text-sm text-muted-foreground">Current page</span>
@@ -181,7 +218,9 @@ export default function NotificationsPage() {
         </div>
       </div>
 
-      {notifications.isLoading && <LoadingState label="Loading notifications…" />}
+      {notifications.isLoading && (
+        <LoadingState label="Loading notifications…" />
+      )}
 
       {notifications.isError && (
         <EmptyState
@@ -206,7 +245,10 @@ export default function NotificationsPage() {
       {data && data.items.length > 0 && (
         <div className="space-y-3">
           {data.items.map((notification) => (
-            <NotificationItem key={notification.id} notification={notification} />
+            <NotificationItem
+              key={notification.id}
+              notification={notification}
+            />
           ))}
         </div>
       )}

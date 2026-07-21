@@ -1,7 +1,8 @@
 export type DeliveryCategory =
   "food" | "groceries" | "pharmacy" | "parcel" | "personal_pickup" | "business";
 
-export type CourierType = "everyday" | "motorcycle" | "car" | "van" | "logistics";
+export type CourierType =
+  "everyday" | "motorcycle" | "car" | "van" | "logistics";
 
 export type DeliveryStatus =
   | "pending"

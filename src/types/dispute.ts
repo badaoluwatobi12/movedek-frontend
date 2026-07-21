@@ -48,4 +48,9 @@ export interface UpdateDisputePayload {
   refund_amount?: number;
 }
 
-export const disputeStatuses: DisputeStatus[] = ["open", "reviewing", "resolved", "rejected"];
+export const disputeStatuses: DisputeStatus[] = [
+  "open",
+  "reviewing",
+  "resolved",
+  "rejected",
+];

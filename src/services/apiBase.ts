@@ -19,7 +19,8 @@ export function resolveApiBaseUrl(envUrl?: string, hostname?: string) {
 
 export function getApiBaseUrl() {
   const envUrl = import.meta.env.VITE_API_URL as string | undefined;
-  const hostname = typeof window !== "undefined" ? window.location.hostname : undefined;
+  const hostname =
+    typeof window !== "undefined" ? window.location.hostname : undefined;
   return resolveApiBaseUrl(envUrl, hostname);
 }
 

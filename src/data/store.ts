@@ -1559,7 +1559,7 @@ const cloneSnapshotValue = <T>(value: T): T => {
 };
 
 export function useStore<T>(selector: (s: State) => T): T {
-  const snapshotRef = useRef<T>();
+  const snapshotRef = useRef<T | undefined>(undefined);
   const versionRef = useRef(-1);
 
   const getSnapshot = useCallback(() => {

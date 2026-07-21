@@ -3,9 +3,13 @@ import type { Payment } from "@/lib/types";
 export type PaymentProvider = "wallet" | "paystack";
 export type PaymentStatus = "pending" | "paid" | "failed" | "refunded";
 export type EscrowStatus = "not_started" | "held" | "released" | "refunded";
-export type RefundStatus = "pending" | "pending_gateway" | "processed" | "rejected" | "failed";
+export type RefundStatus =
+  "pending" | "pending_gateway" | "processed" | "rejected" | "failed";
 
-export interface PaymentRecord extends Omit<Payment, "provider" | "status" | "escrow_status"> {
+export interface PaymentRecord extends Omit<
+  Payment,
+  "provider" | "status" | "escrow_status"
+> {
   provider: PaymentProvider;
   status: PaymentStatus;
   escrow_status: EscrowStatus;

@@ -2,11 +2,31 @@ import { Link, useParams } from "react-router-dom";
 import { useMemo, useState } from "react";
 import { StatCard, EmptyState } from "@/components/common";
 import { LiveCourierMap } from "@/components/admin/LiveCourierMap";
-import { StatusBadge, VerificationBadge, TrustBadge, PaymentBadge, RiskBadge } from "@/components/badges";
+import {
+  StatusBadge,
+  VerificationBadge,
+  TrustBadge,
+  PaymentBadge,
+  RiskBadge,
+} from "@/components/badges";
 import { naira, shortDate } from "@/lib/format";
 import { store, useStore } from "@/data/store";
-import type { DeliveryStatus, Dispute, Payment, Ticket, TrustLevel, Withdrawal } from "@/lib/types";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import type {
+  DeliveryStatus,
+  Dispute,
+  Payment,
+  Ticket,
+  TrustLevel,
+  Withdrawal,
+} from "@/lib/types";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -39,9 +59,24 @@ const deliveryStatuses: DeliveryStatus[] = [
   "cancelled",
   "disputed",
 ];
-const paymentStatuses: Payment["status"][] = ["pending", "paid", "failed", "refunded"];
-const withdrawalStatuses: Withdrawal["status"][] = ["pending", "approved", "paid", "failed"];
-const disputeStatuses: Dispute["status"][] = ["open", "reviewing", "resolved", "rejected"];
+const paymentStatuses: Payment["status"][] = [
+  "pending",
+  "paid",
+  "failed",
+  "refunded",
+];
+const withdrawalStatuses: Withdrawal["status"][] = [
+  "pending",
+  "approved",
+  "paid",
+  "failed",
+];
+const disputeStatuses: Dispute["status"][] = [
+  "open",
+  "reviewing",
+  "resolved",
+  "rejected",
+];
 const ticketStatuses: Ticket["status"][] = ["open", "pending", "closed"];
 const trustLevels: TrustLevel[] = ["bronze", "silver", "gold", "platinum"];
 
@@ -97,12 +132,23 @@ function RefreshButton() {
   );
 }
 
-function EmptyAdmin({ icon = Package, title, desc }: { icon?: LucideIcon; title: string; desc?: string }) {
+function EmptyAdmin({
+  icon = Package,
+  title,
+  desc,
+}: {
+  icon?: LucideIcon;
+  title: string;
+  desc?: string;
+}) {
   return (
     <EmptyState
       icon={icon}
       title={title}
-      desc={desc ?? "Create real records from the app. They will appear here after PostgreSQL saves them."}
+      desc={
+        desc ??
+        "Create real records from the app. They will appear here after PostgreSQL saves them."
+      }
     />
   );
 }
@@ -116,32 +162,68 @@ export function AdminOverview() {
   const disputes = useStore((s) => s.disputes);
   const tickets = useStore((s) => s.tickets);
   const payments = useStore((s) => s.payments);
-  const active = all.filter((d) => ["searching", "assigned", "picked_up", "in_transit"].includes(d.status));
+  const active = all.filter((d) =>
+    ["searching", "assigned", "picked_up", "in_transit"].includes(d.status),
+  );
   const done = all.filter((d) => d.status === "delivered");
   const pendingMoney = withdrawals
     .filter((w) => w.status === "pending")
     .reduce((sum, w) => sum + w.amount, 0);
-  const paidRevenue = payments.filter((p) => p.status === "paid").reduce((sum, p) => sum + p.amount, 0);
+  const paidRevenue = payments
+    .filter((p) => p.status === "paid")
+    .reduce((sum, p) => sum + p.amount, 0);
 
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="font-display text-2xl font-bold text-primary">Admin overview</h1>
-          <p className="text-sm text-muted-foreground">Live MoveDek control center connected to PostgreSQL.</p>
+          <h1 className="font-display text-2xl font-bold text-primary">
+            Admin overview
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Live MoveDek control center connected to PostgreSQL.
+          </p>
         </div>
         <RefreshButton />
       </div>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Users" value={String(users.length)} icon={Users} />
-        <StatCard label="Couriers" value={String(couriers.length)} icon={Bike} tone="accent" />
-        <StatCard label="Merchants" value={String(merchants.length)} icon={Store} />
-        <StatCard label="Active deliveries" value={String(active.length)} icon={Package} tone="warning" />
-        <StatCard label="Completed" value={String(done.length)} icon={CheckCircle2} tone="success" />
-        <StatCard label="Pending withdrawals" value={naira(pendingMoney)} icon={Wallet} tone="warning" />
+        <StatCard
+          label="Couriers"
+          value={String(couriers.length)}
+          icon={Bike}
+          tone="accent"
+        />
+        <StatCard
+          label="Merchants"
+          value={String(merchants.length)}
+          icon={Store}
+        />
+        <StatCard
+          label="Active deliveries"
+          value={String(active.length)}
+          icon={Package}
+          tone="warning"
+        />
+        <StatCard
+          label="Completed"
+          value={String(done.length)}
+          icon={CheckCircle2}
+          tone="success"
+        />
+        <StatCard
+          label="Pending withdrawals"
+          value={naira(pendingMoney)}
+          icon={Wallet}
+          tone="warning"
+        />
         <StatCard
           label="Open disputes"
-          value={String(disputes.filter((d) => d.status !== "resolved" && d.status !== "rejected").length)}
+          value={String(
+            disputes.filter(
+              (d) => d.status !== "resolved" && d.status !== "rejected",
+            ).length,
+          )}
           icon={AlertTriangle}
         />
         <StatCard
@@ -154,12 +236,16 @@ export function AdminOverview() {
         <div className="card-elevated p-5 lg:col-span-2">
           <div className="mb-3 flex items-center justify-between">
             <div>
-              <h2 className="font-display text-lg font-bold text-primary">Current operations</h2>
+              <h2 className="font-display text-lg font-bold text-primary">
+                Current operations
+              </h2>
               <p className="text-sm text-muted-foreground">
                 Active deliveries are updated from real app data.
               </p>
             </div>
-            <span className="chip bg-success/15 text-success">Revenue {naira(paidRevenue)}</span>
+            <span className="chip bg-success/15 text-success">
+              Revenue {naira(paidRevenue)}
+            </span>
           </div>
           {active.length === 0 ? (
             <EmptyAdmin title="No active deliveries" />
@@ -200,7 +286,9 @@ export function AdminUsers() {
   const users = useStore((s) => s.users);
   const [q, setQ] = useState("");
   const list = users.filter((u) =>
-    `${u.full_name} ${u.email} ${u.phone} ${u.role}`.toLowerCase().includes(q.toLowerCase()),
+    `${u.full_name} ${u.email} ${u.phone} ${u.role}`
+      .toLowerCase()
+      .includes(q.toLowerCase()),
   );
   const toggle = (id: string, status: "active" | "suspended") => {
     store.setUserStatus(id, status);
@@ -211,8 +299,12 @@ export function AdminUsers() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="font-display text-2xl font-bold text-primary">Users</h1>
-          <p className="text-sm text-muted-foreground">Suspend or reactivate real registered users.</p>
+          <h1 className="font-display text-2xl font-bold text-primary">
+            Users
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Suspend or reactivate real registered users.
+          </p>
         </div>
         <RefreshButton />
       </div>
@@ -254,7 +346,11 @@ export function AdminUsers() {
                   <TableCell>{shortDate(u.created_at)}</TableCell>
                   <TableCell className="text-right">
                     {u.status === "active" ? (
-                      <Button variant="outline" size="sm" onClick={() => toggle(u.id, "suspended")}>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => toggle(u.id, "suspended")}
+                      >
                         Suspend
                       </Button>
                     ) : (
@@ -277,12 +373,17 @@ export function AdminCouriers() {
   const couriers = useStore((s) => s.couriers);
   const users = useStore((s) => s.users);
   const [filter, setFilter] = useState("all");
-  const list = filter === "all" ? couriers : couriers.filter((c) => c.verification_status === filter);
+  const list =
+    filter === "all"
+      ? couriers
+      : couriers.filter((c) => c.verification_status === filter);
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="font-display text-2xl font-bold text-primary">Couriers</h1>
+          <h1 className="font-display text-2xl font-bold text-primary">
+            Couriers
+          </h1>
           <p className="text-sm text-muted-foreground">
             Approve verification and control courier trust level.
           </p>
@@ -321,8 +422,12 @@ export function AdminCouriers() {
                 const u = users.find((user) => user.id === c.user_id);
                 return (
                   <TableRow key={c.id}>
-                    <TableCell className="font-medium">{u?.full_name ?? "Unknown courier"}</TableCell>
-                    <TableCell className="capitalize">{c.courier_type}</TableCell>
+                    <TableCell className="font-medium">
+                      {u?.full_name ?? "Unknown courier"}
+                    </TableCell>
+                    <TableCell className="capitalize">
+                      {c.courier_type}
+                    </TableCell>
                     <TableCell>
                       <NativeSelect
                         value={c.trust_level}
@@ -354,7 +459,9 @@ export function AdminCouriers() {
                             toast.success("Courier approved and saved");
                           }}
                         >
-                          {c.verification_status === "approved" ? "Approved" : "Approve"}
+                          {c.verification_status === "approved"
+                            ? "Approved"
+                            : "Approve"}
                         </Button>
                         <Button
                           size="sm"
@@ -365,7 +472,9 @@ export function AdminCouriers() {
                             toast.error("Courier rejected and saved");
                           }}
                         >
-                          {c.verification_status === "rejected" ? "Rejected" : "Reject"}
+                          {c.verification_status === "rejected"
+                            ? "Rejected"
+                            : "Reject"}
                         </Button>
                         <Link to={`/admin/couriers/${c.id}`}>
                           <Button variant="ghost" size="sm">
@@ -393,7 +502,10 @@ export function AdminCourierDetail() {
   const u = users.find((user) => user.id === c.user_id);
   return (
     <div className="max-w-3xl space-y-6">
-      <Link to="/admin/couriers" className="inline-flex items-center gap-1 text-sm text-muted-foreground">
+      <Link
+        to="/admin/couriers"
+        className="inline-flex items-center gap-1 text-sm text-muted-foreground"
+      >
         <ArrowLeft className="h-4 w-4" /> Back
       </Link>
       <div className="card-elevated p-6">
@@ -416,12 +528,17 @@ export function AdminCourierDetail() {
         </div>
         <div className="mt-6 grid gap-4 sm:grid-cols-2">
           <Field label="Vehicle" value={c.vehicle_type || "Not added"} />
-          <Field label="Bank" value={`${c.bank_name || "Not added"} · ${c.account_number || "Not added"}`} />
+          <Field
+            label="Bank"
+            value={`${c.bank_name || "Not added"} · ${c.account_number || "Not added"}`}
+          />
           <Field label="Trust score" value={`${c.trust_score}/100`} />
           <Field label="Completed" value={`${c.completed}`} />
         </div>
         <div className="mt-6 space-y-2">
-          <div className="text-sm font-medium text-primary">Verification documents</div>
+          <div className="text-sm font-medium text-primary">
+            Verification documents
+          </div>
           <div className="grid gap-2 sm:grid-cols-3">
             {["Selfie", "Government ID", "Driver's license"].map((d) => (
               <div
@@ -501,14 +618,20 @@ export function AdminDeliveries() {
   const users = useStore((s) => s.users);
   const couriers = useStore((s) => s.couriers);
   const list = f === "all" ? all : all.filter((d) => d.status === f);
-  const availableCouriers = couriers.filter((c) => c.verification_status === "approved");
+  const availableCouriers = couriers.filter(
+    (c) => c.verification_status === "approved",
+  );
 
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="font-display text-2xl font-bold text-primary">Deliveries</h1>
-          <p className="text-sm text-muted-foreground">Assign couriers and update delivery status.</p>
+          <h1 className="font-display text-2xl font-bold text-primary">
+            Deliveries
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Assign couriers and update delivery status.
+          </p>
         </div>
         <RefreshButton />
       </div>
@@ -547,14 +670,19 @@ export function AdminDeliveries() {
                 const isClosed = isDelivered || isCancelled;
                 return (
                   <TableRow key={d.id}>
-                    <TableCell className="font-mono text-xs">#{d.id.slice(0, 6).toUpperCase()}</TableCell>
+                    <TableCell className="font-mono text-xs">
+                      #{d.id.slice(0, 6).toUpperCase()}
+                    </TableCell>
                     <TableCell>
                       <div className="font-medium">{d.item_name}</div>
                       <div className="text-xs text-muted-foreground">
                         {d.pickup_address} → {d.dropoff_address}
                       </div>
                     </TableCell>
-                    <TableCell>{users.find((u) => u.id === d.customer_id)?.full_name ?? "—"}</TableCell>
+                    <TableCell>
+                      {users.find((u) => u.id === d.customer_id)?.full_name ??
+                        "—"}
+                    </TableCell>
                     <TableCell>
                       <select
                         value={d.courier_id ?? ""}
@@ -570,7 +698,8 @@ export function AdminDeliveries() {
                         <option value="">Unassigned</option>
                         {availableCouriers.map((c) => (
                           <option key={c.id} value={c.id}>
-                            {users.find((u) => u.id === c.user_id)?.full_name ?? c.courier_type}
+                            {users.find((u) => u.id === c.user_id)?.full_name ??
+                              c.courier_type}
                           </option>
                         ))}
                       </select>
@@ -627,12 +756,16 @@ export function AdminDeliveries() {
 
 export function AdminMap() {
   const deliveries = useStore((s) =>
-    s.deliveries.filter((d) => ["assigned", "picked_up", "in_transit", "searching"].includes(d.status)),
+    s.deliveries.filter((d) =>
+      ["assigned", "picked_up", "in_transit", "searching"].includes(d.status),
+    ),
   );
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="font-display text-2xl font-bold text-primary">Live operations map</h1>
+        <h1 className="font-display text-2xl font-bold text-primary">
+          Live operations map
+        </h1>
         <RefreshButton />
       </div>
       <LiveCourierMap className="h-[420px]" />
@@ -675,8 +808,12 @@ export function AdminPayments() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="font-display text-2xl font-bold text-primary">Payments</h1>
-          <p className="text-sm text-muted-foreground">Update payment status and refunds.</p>
+          <h1 className="font-display text-2xl font-bold text-primary">
+            Payments
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Update payment status and refunds.
+          </p>
         </div>
         <RefreshButton />
       </div>
@@ -699,11 +836,16 @@ export function AdminPayments() {
             <TableBody>
               {payments.map((p) => (
                 <TableRow key={p.id}>
-                  <TableCell className="font-mono text-xs">{p.reference}</TableCell>
+                  <TableCell className="font-mono text-xs">
+                    {p.reference}
+                  </TableCell>
                   <TableCell className="font-mono text-xs">
                     #{p.delivery_id.slice(0, 6).toUpperCase()}
                   </TableCell>
-                  <TableCell>{users.find((u) => u.id === p.customer_id)?.full_name ?? "—"}</TableCell>
+                  <TableCell>
+                    {users.find((u) => u.id === p.customer_id)?.full_name ??
+                      "—"}
+                  </TableCell>
                   <TableCell>{naira(p.amount)}</TableCell>
                   <TableCell>{p.provider}</TableCell>
                   <TableCell>
@@ -741,8 +883,12 @@ export function AdminWithdrawals() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="font-display text-2xl font-bold text-primary">Withdrawals</h1>
-          <p className="text-sm text-muted-foreground">Approve, pay, or fail courier withdrawal requests.</p>
+          <h1 className="font-display text-2xl font-bold text-primary">
+            Withdrawals
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Approve, pay, or fail courier withdrawal requests.
+          </p>
         </div>
         <RefreshButton />
       </div>
@@ -766,20 +912,32 @@ export function AdminWithdrawals() {
                 return (
                   <TableRow key={w.id}>
                     <TableCell>{shortDate(w.created_at)}</TableCell>
-                    <TableCell>{c && users.find((u) => u.id === c.user_id)?.full_name}</TableCell>
+                    <TableCell>
+                      {c && users.find((u) => u.id === c.user_id)?.full_name}
+                    </TableCell>
                     <TableCell>{naira(w.amount)}</TableCell>
                     <TableCell>
-                      <span className="chip bg-muted capitalize">{w.status}</span>
+                      <span className="chip bg-muted capitalize">
+                        {w.status}
+                      </span>
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex flex-wrap justify-end gap-2">
-                        <Button size="sm" variant="outline" onClick={() => act(w.id, "approved")}>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => act(w.id, "approved")}
+                        >
                           Approve
                         </Button>
                         <Button size="sm" onClick={() => act(w.id, "paid")}>
                           Mark paid
                         </Button>
-                        <Button size="sm" variant="outline" onClick={() => act(w.id, "failed")}>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => act(w.id, "failed")}
+                        >
                           Fail
                         </Button>
                       </div>
@@ -802,8 +960,12 @@ export function AdminDisputes() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="font-display text-2xl font-bold text-primary">Disputes</h1>
-          <p className="text-sm text-muted-foreground">Review open disputes and update case status.</p>
+          <h1 className="font-display text-2xl font-bold text-primary">
+            Disputes
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Review open disputes and update case status.
+          </p>
         </div>
         <RefreshButton />
       </div>
@@ -829,10 +991,14 @@ export function AdminDisputes() {
                   <TableCell className="font-mono text-xs">
                     #{d.delivery_id.slice(0, 6).toUpperCase()}
                   </TableCell>
-                  <TableCell>{users.find((u) => u.id === d.user_id)?.full_name ?? "—"}</TableCell>
+                  <TableCell>
+                    {users.find((u) => u.id === d.user_id)?.full_name ?? "—"}
+                  </TableCell>
                   <TableCell>{d.reason}</TableCell>
                   <TableCell>
-                    <span className="chip bg-warning/15 text-warning-foreground capitalize">{d.status}</span>
+                    <span className="chip bg-warning/15 text-warning-foreground capitalize">
+                      {d.status}
+                    </span>
                   </TableCell>
                   <TableCell className="text-right">
                     <NativeSelect
@@ -858,14 +1024,21 @@ export function AdminFraud() {
   const deliveries = useStore((s) => s.deliveries);
   const users = useStore((s) => s.users);
   const alerts = deliveries.filter(
-    (d) => d.risk_level === "high" || d.status === "disputed" || d.item_value >= 100000,
+    (d) =>
+      d.risk_level === "high" ||
+      d.status === "disputed" ||
+      d.item_value >= 100000,
   );
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="font-display text-2xl font-bold text-primary">Fraud alerts</h1>
-          <p className="text-sm text-muted-foreground">Computed from real risky deliveries and disputes.</p>
+          <h1 className="font-display text-2xl font-bold text-primary">
+            Fraud alerts
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Computed from real risky deliveries and disputes.
+          </p>
         </div>
         <RefreshButton />
       </div>
@@ -883,8 +1056,10 @@ export function AdminFraud() {
                 <div>
                   <div className="font-medium text-primary">{d.item_name}</div>
                   <div className="text-sm text-muted-foreground">
-                    Customer: {users.find((u) => u.id === d.customer_id)?.full_name ?? "Unknown"} · Value{" "}
-                    {naira(d.item_value)}
+                    Customer:{" "}
+                    {users.find((u) => u.id === d.customer_id)?.full_name ??
+                      "Unknown"}{" "}
+                    · Value {naira(d.item_value)}
                   </div>
                 </div>
                 <div className="flex gap-2">
@@ -904,10 +1079,15 @@ export function AdminPricing() {
   const pricing = useStore((s) => s.settings.pricing);
   const [form, setForm] = useState(pricing);
   const update = (key: keyof typeof form, value: number) =>
-    setForm((current) => ({ ...current, [key]: Number.isFinite(value) ? value : 0 }));
+    setForm((current) => ({
+      ...current,
+      [key]: Number.isFinite(value) ? value : 0,
+    }));
   return (
     <div className="max-w-2xl space-y-4">
-      <h1 className="font-display text-2xl font-bold text-primary">Pricing settings</h1>
+      <h1 className="font-display text-2xl font-bold text-primary">
+        Pricing settings
+      </h1>
       <form
         className="card-elevated p-5 space-y-4"
         onSubmit={(e) => {
@@ -937,7 +1117,9 @@ export function AdminPricing() {
           <Input
             type="number"
             value={form.service_fee_percent}
-            onChange={(e) => update("service_fee_percent", Number(e.target.value))}
+            onChange={(e) =>
+              update("service_fee_percent", Number(e.target.value))
+            }
           />
         </div>
         <div className="grid grid-cols-2 gap-2 items-center">
@@ -969,10 +1151,15 @@ export function AdminCategories() {
   };
   return (
     <div className="max-w-2xl space-y-4">
-      <h1 className="font-display text-2xl font-bold text-primary">Delivery categories</h1>
+      <h1 className="font-display text-2xl font-bold text-primary">
+        Delivery categories
+      </h1>
       <div className="card-elevated p-4 space-y-2">
         {Object.entries(labels).map(([key, label]) => (
-          <div key={key} className="flex items-center justify-between rounded-xl bg-muted/40 p-3">
+          <div
+            key={key}
+            className="flex items-center justify-between rounded-xl bg-muted/40 p-3"
+          >
             <div className="font-medium text-primary">{label}</div>
             <Button
               variant={categories[key] ? "default" : "outline"}
@@ -998,17 +1185,26 @@ export function AdminTrust() {
     setForm((current) => ({ ...current, [level]: value }));
   return (
     <div className="max-w-2xl space-y-4">
-      <h1 className="font-display text-2xl font-bold text-primary">Trust levels</h1>
+      <h1 className="font-display text-2xl font-bold text-primary">
+        Trust levels
+      </h1>
       <div className="grid gap-3">
         {trustLevels.map((level) => (
-          <div key={level} className="card-elevated p-4 grid gap-3 sm:grid-cols-[1fr_180px]">
+          <div
+            key={level}
+            className="card-elevated p-4 grid gap-3 sm:grid-cols-[1fr_180px]"
+          >
             <div>
               <TrustBadge level={level} />
               <div className="mt-1 text-sm text-muted-foreground">
                 Maximum item value this courier level can handle.
               </div>
             </div>
-            <Input type="number" value={form[level]} onChange={(e) => set(level, Number(e.target.value))} />
+            <Input
+              type="number"
+              value={form[level]}
+              onChange={(e) => set(level, Number(e.target.value))}
+            />
           </div>
         ))}
       </div>
@@ -1032,8 +1228,12 @@ export function AdminSupport() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="font-display text-2xl font-bold text-primary">Support tickets</h1>
-          <p className="text-sm text-muted-foreground">Update support ticket progress.</p>
+          <h1 className="font-display text-2xl font-bold text-primary">
+            Support tickets
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Update support ticket progress.
+          </p>
         </div>
         <RefreshButton />
       </div>
@@ -1056,11 +1256,17 @@ export function AdminSupport() {
               {tickets.map((t) => (
                 <TableRow key={t.id}>
                   <TableCell>{shortDate(t.created_at)}</TableCell>
-                  <TableCell>{users.find((u) => u.id === t.user_id)?.full_name ?? "—"}</TableCell>
-                  <TableCell>{t.subject}</TableCell>
-                  <TableCell className="max-w-sm truncate">{t.message}</TableCell>
                   <TableCell>
-                    <span className="chip bg-warning/15 text-warning-foreground capitalize">{t.status}</span>
+                    {users.find((u) => u.id === t.user_id)?.full_name ?? "—"}
+                  </TableCell>
+                  <TableCell>{t.subject}</TableCell>
+                  <TableCell className="max-w-sm truncate">
+                    {t.message}
+                  </TableCell>
+                  <TableCell>
+                    <span className="chip bg-warning/15 text-warning-foreground capitalize">
+                      {t.status}
+                    </span>
                   </TableCell>
                   <TableCell className="text-right">
                     <NativeSelect
@@ -1087,7 +1293,9 @@ export function AdminAudit() {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="font-display text-2xl font-bold text-primary">Audit log</h1>
+        <h1 className="font-display text-2xl font-bold text-primary">
+          Audit log
+        </h1>
         <RefreshButton />
       </div>
       {logs.length === 0 ? (
@@ -1099,10 +1307,17 @@ export function AdminAudit() {
       ) : (
         <div className="card-elevated divide-y">
           {logs.map((log) => (
-            <div key={log.id} className="grid gap-2 p-4 md:grid-cols-[130px_1fr]">
-              <div className="text-xs text-muted-foreground">{shortDate(log.created_at)}</div>
+            <div
+              key={log.id}
+              className="grid gap-2 p-4 md:grid-cols-[130px_1fr]"
+            >
+              <div className="text-xs text-muted-foreground">
+                {shortDate(log.created_at)}
+              </div>
               <div>
-                <div className="text-sm font-medium text-primary">{log.action}</div>
+                <div className="text-sm font-medium text-primary">
+                  {log.action}
+                </div>
                 {log.details ? (
                   <pre className="mt-1 overflow-x-auto rounded-lg bg-muted p-2 text-xs text-muted-foreground">
                     {JSON.stringify(log.details, null, 2)}

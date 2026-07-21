@@ -3,7 +3,13 @@ import { MapPin, Navigation, type LucideIcon } from "lucide-react";
 
 export { DeliveryRouteMap } from "./common/DeliveryRouteMap";
 
-export const MapPlaceholder = ({ className, label = "Live map" }: { className?: string; label?: string }) => (
+export const MapPlaceholder = ({
+  className,
+  label = "Live map",
+}: {
+  className?: string;
+  label?: string;
+}) => (
   <div
     className={cn(
       "relative overflow-hidden rounded-2xl border border-border/60 bg-gradient-to-br from-primary/5 via-accent/10 to-primary/10 h-64 md:h-80",
@@ -85,13 +91,21 @@ export const StatCard = ({
           </span>
         )}
       </div>
-      <div className="font-display text-2xl font-bold text-primary">{value}</div>
+      <div className="font-display text-2xl font-bold text-primary">
+        {value}
+      </div>
       {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
     </div>
   );
 };
 
-export const Stepper = ({ steps, current }: { steps: string[]; current: number }) => (
+export const Stepper = ({
+  steps,
+  current,
+}: {
+  steps: string[];
+  current: number;
+}) => (
   <ol className="flex items-center gap-2 overflow-x-auto pb-2">
     {steps.map((s, i) => {
       const done = i < current,
@@ -110,7 +124,12 @@ export const Stepper = ({ steps, current }: { steps: string[]; current: number }
           >
             {i + 1}
           </span>
-          <span className={cn("text-sm", active ? "font-medium text-foreground" : "text-muted-foreground")}>
+          <span
+            className={cn(
+              "text-sm",
+              active ? "font-medium text-foreground" : "text-muted-foreground",
+            )}
+          >
             {s}
           </span>
           {i < steps.length - 1 && <span className="mx-1 h-px w-6 bg-border" />}
@@ -143,7 +162,8 @@ export const PinInput = ({
           const arr = value.split("");
           arr[i] = e.target.value.replace(/\D/g, "");
           onChange(arr.join("").slice(0, length));
-          const next = e.target.parentElement?.children[i + 1] as HTMLInputElement | undefined;
+          const next = e.target.parentElement?.children[i + 1] as
+            HTMLInputElement | undefined;
           if (e.target.value && next) next.focus();
         }}
         className="h-12 min-w-0 w-full rounded-xl border border-border bg-card text-center font-display text-xl font-bold text-primary outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 sm:h-14 sm:text-2xl"
@@ -152,11 +172,19 @@ export const PinInput = ({
   </div>
 );
 
-export const UploadPlaceholder = ({ label, done }: { label: string; done?: boolean }) => (
+export const UploadPlaceholder = ({
+  label,
+  done,
+}: {
+  label: string;
+  done?: boolean;
+}) => (
   <label
     className={cn(
       "flex cursor-pointer items-center justify-between rounded-xl border border-dashed p-4 text-sm",
-      done ? "border-success/50 bg-success/5 text-success" : "border-border bg-muted/40 hover:bg-muted",
+      done
+        ? "border-success/50 bg-success/5 text-success"
+        : "border-border bg-muted/40 hover:bg-muted",
     )}
   >
     <span>{label}</span>

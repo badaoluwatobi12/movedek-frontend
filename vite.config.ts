@@ -1,6 +1,27 @@
-import { defineConfig } from "vite";
+import fs from "node:fs";
+import path from "node:path";
 import react from "@vitejs/plugin-react";
-import path from "path";
+import { defineConfig } from "vite";
+
+const firstExisting = (...candidates: string[]) => {
+  const match = candidates.find((candidate) => fs.existsSync(candidate));
+  if (!match) {
+    throw new Error(
+      `Unable to resolve dependency path: ${candidates.join(", ")}`,
+    );
+  }
+  return match;
+};
+
+const sharedSource = firstExisting(
+  path.resolve(__dirname, "../packages/shared/src/index.ts"),
+  path.resolve(__dirname, "node_modules/@movedek/shared/src/index.ts"),
+);
+
+const zodPackage = firstExisting(
+  path.resolve(__dirname, "../node_modules/zod"),
+  path.resolve(__dirname, "node_modules/zod"),
+);
 
 export default defineConfig({
   server: {
@@ -14,7 +35,8 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
-   
+      "@movedek/shared": sharedSource,
+      zod: zodPackage,
     },
     dedupe: [
       "react",
@@ -23,6 +45,7 @@ export default defineConfig({
       "react/jsx-dev-runtime",
       "@tanstack/react-query",
       "@tanstack/query-core",
+      "zod",
     ],
   },
 });

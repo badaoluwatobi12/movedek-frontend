@@ -3,7 +3,7 @@ import type {
   DeliveryRiskLevel,
   DeliveryStatus,
   UserRole,
-} from "../constants/roles.js";
+} from "../constants/roles";
 
 export interface UserDTO {
   id: string;

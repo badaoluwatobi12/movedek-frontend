@@ -1,9 +1,16 @@
 import { useEffect, useState } from "react";
-import { MapContainer, TileLayer, Marker, Polyline, useMap } from "react-leaflet";
+import {
+  MapContainer,
+  TileLayer,
+  Marker,
+  Polyline,
+  useMap,
+} from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
-delete (L.Icon.Default.prototype as unknown as { _getIconUrl?: unknown })._getIconUrl;
+delete (L.Icon.Default.prototype as unknown as { _getIconUrl?: unknown })
+  ._getIconUrl;
 
 const pickupIcon = L.divIcon({
   className: "",
@@ -27,9 +34,14 @@ async function geocode(address: string): Promise<[number, number] | null> {
     const response = await fetch(
       `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(`${address}, Lagos, Nigeria`)}`,
     );
-    const results = (await response.json()) as Array<{ lat: string; lon: string }>;
+    const results = (await response.json()) as Array<{
+      lat: string;
+      lon: string;
+    }>;
     const first = results[0];
-    const point: [number, number] | null = first ? [Number(first.lat), Number(first.lon)] : null;
+    const point: [number, number] | null = first
+      ? [Number(first.lat), Number(first.lon)]
+      : null;
     geocodeCache.set(address, point);
     return point;
   } catch {
@@ -61,8 +73,12 @@ export function DeliveryRouteMap({
   dropoffAddress: string;
   className?: string;
 }) {
-  const [pickup, setPickup] = useState<[number, number] | null | undefined>(undefined);
-  const [dropoff, setDropoff] = useState<[number, number] | null | undefined>(undefined);
+  const [pickup, setPickup] = useState<[number, number] | null | undefined>(
+    undefined,
+  );
+  const [dropoff, setDropoff] = useState<[number, number] | null | undefined>(
+    undefined,
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -76,7 +92,9 @@ export function DeliveryRouteMap({
   }, [pickupAddress, dropoffAddress]);
 
   const loading = pickup === undefined || dropoff === undefined;
-  const points = [pickup, dropoff].filter((p): p is [number, number] => Boolean(p));
+  const points = [pickup, dropoff].filter((p): p is [number, number] =>
+    Boolean(p),
+  );
 
   if (!loading && points.length === 0) {
     return (
@@ -84,14 +102,23 @@ export function DeliveryRouteMap({
         className={`flex flex-col items-center justify-center gap-1 rounded-2xl border border-border bg-muted/20 text-center text-sm text-muted-foreground ${className ?? ""}`}
       >
         <p>Couldn't locate these addresses on the map.</p>
-        <p className="text-xs">{pickupAddress} → {dropoffAddress}</p>
+        <p className="text-xs">
+          {pickupAddress} → {dropoffAddress}
+        </p>
       </div>
     );
   }
 
   return (
-    <div className={`relative overflow-hidden rounded-2xl border border-border ${className ?? ""}`}>
-      <MapContainer center={LAGOS_CENTER} zoom={12} scrollWheelZoom={false} style={{ height: "100%", width: "100%" }}>
+    <div
+      className={`relative overflow-hidden rounded-2xl border border-border ${className ?? ""}`}
+    >
+      <MapContainer
+        center={LAGOS_CENTER}
+        zoom={12}
+        scrollWheelZoom={false}
+        style={{ height: "100%", width: "100%" }}
+      >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -100,7 +127,10 @@ export function DeliveryRouteMap({
         {pickup && <Marker position={pickup} icon={pickupIcon} />}
         {dropoff && <Marker position={dropoff} icon={dropoffIcon} />}
         {pickup && dropoff && (
-          <Polyline positions={[pickup, dropoff]} pathOptions={{ color: "#0298E3", dashArray: "6 8", weight: 3 }} />
+          <Polyline
+            positions={[pickup, dropoff]}
+            pathOptions={{ color: "#0298E3", dashArray: "6 8", weight: 3 }}
+          />
         )}
       </MapContainer>
       {loading && (

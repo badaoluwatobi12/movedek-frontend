@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { USER_ROLES } from "../constants/roles.js";
+import { USER_ROLES } from "../constants/roles";
 
 export const emailSchema = z.string().trim().toLowerCase().email();
 

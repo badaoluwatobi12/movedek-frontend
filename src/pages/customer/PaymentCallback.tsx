@@ -8,7 +8,10 @@ export default function PaymentCallback() {
   const [params] = useSearchParams();
   const navigate = useNavigate();
   const verifyPayment = useVerifyPayment();
-  const reference = useMemo(() => params.get("reference") ?? params.get("trxref") ?? "", [params]);
+  const reference = useMemo(
+    () => params.get("reference") ?? params.get("trxref") ?? "",
+    [params],
+  );
   const deliveryId = params.get("delivery_id");
 
   useEffect(() => {
@@ -16,7 +19,10 @@ export default function PaymentCallback() {
 
     verifyPayment.mutate(reference, {
       onSuccess: (payment) => {
-        window.setTimeout(() => navigate(`/app/track/${deliveryId ?? payment.delivery_id}`), 900);
+        window.setTimeout(
+          () => navigate(`/app/track/${deliveryId ?? payment.delivery_id}`),
+          900,
+        );
       },
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -26,8 +32,12 @@ export default function PaymentCallback() {
     return (
       <div className="mx-auto max-w-lg card-elevated p-5 sm:p-6 md:p-8 text-center">
         <XCircle className="mx-auto h-14 w-14 text-destructive" />
-        <h1 className="mt-4 font-display text-2xl font-bold text-primary">Missing payment reference</h1>
-        <p className="mt-2 text-sm text-muted-foreground">We could not verify this payment callback.</p>
+        <h1 className="mt-4 font-display text-2xl font-bold text-primary">
+          Missing payment reference
+        </h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          We could not verify this payment callback.
+        </p>
         <Link to="/app/history">
           <Button className="mt-6">Go to history</Button>
         </Link>
@@ -39,9 +49,13 @@ export default function PaymentCallback() {
     return (
       <div className="mx-auto max-w-lg card-elevated p-5 sm:p-6 md:p-8 text-center">
         <XCircle className="mx-auto h-14 w-14 text-destructive" />
-        <h1 className="mt-4 font-display text-2xl font-bold text-primary">Payment verification failed</h1>
+        <h1 className="mt-4 font-display text-2xl font-bold text-primary">
+          Payment verification failed
+        </h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          {verifyPayment.error instanceof Error ? verifyPayment.error.message : "Could not verify payment."}
+          {verifyPayment.error instanceof Error
+            ? verifyPayment.error.message
+            : "Could not verify payment."}
         </p>
         <Link to="/app/history">
           <Button className="mt-6">Review delivery</Button>
@@ -54,7 +68,9 @@ export default function PaymentCallback() {
     return (
       <div className="mx-auto max-w-lg card-elevated p-5 sm:p-6 md:p-8 text-center">
         <CheckCircle2 className="mx-auto h-14 w-14 text-success" />
-        <h1 className="mt-4 font-display text-2xl font-bold text-primary">Payment verified</h1>
+        <h1 className="mt-4 font-display text-2xl font-bold text-primary">
+          Payment verified
+        </h1>
         <p className="mt-2 text-sm text-muted-foreground">
           Your payment is held in escrow. Redirecting you to tracking.
         </p>
@@ -65,7 +81,9 @@ export default function PaymentCallback() {
   return (
     <div className="mx-auto max-w-lg card-elevated p-5 sm:p-6 md:p-8 text-center">
       <Loader2 className="mx-auto h-14 w-14 animate-spin text-accent" />
-      <h1 className="mt-4 font-display text-2xl font-bold text-primary">Verifying payment</h1>
+      <h1 className="mt-4 font-display text-2xl font-bold text-primary">
+        Verifying payment
+      </h1>
       <p className="mt-2 text-sm text-muted-foreground">
         Please keep this page open while we confirm escrow.
       </p>

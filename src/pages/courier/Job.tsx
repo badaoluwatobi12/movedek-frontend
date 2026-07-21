@@ -1,10 +1,20 @@
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useMemo, useState } from "react";
-import { useDelivery, useAssignCourier, useUpdateDeliveryStatus } from "@/hooks/useDeliveries";
+import {
+  useDelivery,
+  useAssignCourier,
+  useUpdateDeliveryStatus,
+} from "@/hooks/useDeliveries";
 import { useStore, store, useSession } from "@/data/store";
 import { Button } from "@/components/ui/button";
 import { StatusBadge, RiskBadge, TrustBadge } from "@/components/badges";
-import { PinInput, UploadPlaceholder, Stepper, DeliveryRouteMap, EmptyState } from "@/components/common";
+import {
+  PinInput,
+  UploadPlaceholder,
+  Stepper,
+  DeliveryRouteMap,
+  EmptyState,
+} from "@/components/common";
 import { naira, trustCap, shortDate } from "@/lib/format";
 import {
   ArrowLeft,
@@ -31,13 +41,17 @@ const Info = ({
   note?: string | null;
 }) => (
   <div className="card-soft p-4">
-    <div className="text-xs uppercase tracking-widest text-muted-foreground">{title}</div>
+    <div className="text-xs uppercase tracking-widest text-muted-foreground">
+      {title}
+    </div>
     <div className="mt-1 flex gap-2">
       <MapPin className="h-4 w-4 mt-0.5 text-accent" />
       <div>
         <div className="font-medium text-primary">{address}</div>
         <div className="text-xs text-muted-foreground">{contact}</div>
-        {note && <div className="text-xs text-muted-foreground mt-1">Note: {note}</div>}
+        {note && (
+          <div className="text-xs text-muted-foreground mt-1">Note: {note}</div>
+        )}
       </div>
     </div>
   </div>
@@ -57,7 +71,13 @@ export function JobDetails() {
   const me = couriers.find((c) => c.user_id === session.userId);
 
   if (deliveryQuery.isLoading) {
-    return <EmptyState icon={RefreshCcw} title="Loading job" desc="Fetching delivery details." />;
+    return (
+      <EmptyState
+        icon={RefreshCcw}
+        title="Loading job"
+        desc="Fetching delivery details."
+      />
+    );
   }
 
   if (deliveryQuery.error) {
@@ -66,7 +86,9 @@ export function JobDetails() {
         icon={Package}
         title="Could not load job"
         desc={getErrorMessage(deliveryQuery.error)}
-        action={<Button onClick={() => void deliveryQuery.refetch()}>Retry</Button>}
+        action={
+          <Button onClick={() => void deliveryQuery.refetch()}>Retry</Button>
+        }
       />
     );
   }
@@ -110,34 +132,50 @@ export function JobDetails() {
 
   const accept = async () => {
     try {
-      const delivery = await assignCourier.mutateAsync({ id: d.id, input: { courier_id: me.id } });
+      const delivery = await assignCourier.mutateAsync({
+        id: d.id,
+        input: { courier_id: me.id },
+      });
       toast.success("Job accepted");
       void store.refresh();
       nav(`/courier/active/${delivery.id}`);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Could not accept this job");
+      toast.error(
+        error instanceof Error ? error.message : "Could not accept this job",
+      );
     }
   };
 
   return (
     <div className="max-w-3xl mx-auto space-y-4">
-      <Link to="/courier" className="inline-flex items-center gap-1 text-sm text-muted-foreground">
+      <Link
+        to="/courier"
+        className="inline-flex items-center gap-1 text-sm text-muted-foreground"
+      >
         <ArrowLeft className="h-4 w-4" /> Back to jobs
       </Link>
       <div className="card-elevated p-6 space-y-4">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="chip bg-primary/10 text-primary capitalize">{d.category.replace("_", " ")}</span>
+          <span className="chip bg-primary/10 text-primary capitalize">
+            {d.category.replace("_", " ")}
+          </span>
           <RiskBadge risk={d.risk_level} />
           <StatusBadge status={d.status} />
         </div>
         <div>
-          <h1 className="font-display text-2xl font-bold text-primary">{d.item_name}</h1>
+          <h1 className="font-display text-2xl font-bold text-primary">
+            {d.item_name}
+          </h1>
           <div className="text-sm text-muted-foreground">
-            Declared value {naira(d.item_value)} · {d.package_size} · {d.distance_km} km · Created{" "}
-            {shortDate(d.created_at)}
+            Declared value {naira(d.item_value)} · {d.package_size} ·{" "}
+            {d.distance_km} km · Created {shortDate(d.created_at)}
           </div>
         </div>
-        <DeliveryRouteMap pickupAddress={d.pickup_address} dropoffAddress={d.dropoff_address} className="h-56" />
+        <DeliveryRouteMap
+          pickupAddress={d.pickup_address}
+          dropoffAddress={d.dropoff_address}
+          className="h-56"
+        />
         <div className="grid gap-3 sm:grid-cols-2">
           <Info
             title="Pickup"
@@ -154,13 +192,19 @@ export function JobDetails() {
         </div>
         <div className="flex items-center justify-between rounded-xl bg-muted/40 p-4">
           <div>
-            <div className="text-xs text-muted-foreground">Estimated payout</div>
-            <div className="font-display text-2xl font-bold text-primary">{naira(d.courier_payout)}</div>
+            <div className="text-xs text-muted-foreground">
+              Estimated payout
+            </div>
+            <div className="font-display text-2xl font-bold text-primary">
+              {naira(d.courier_payout)}
+            </div>
           </div>
           <div className="text-right">
             <div className="text-xs text-muted-foreground">Your level</div>
             <TrustBadge level={me.trust_level} />
-            <div className="text-xs text-muted-foreground mt-1">Cap: {naira(cap)}</div>
+            <div className="text-xs text-muted-foreground mt-1">
+              Cap: {naira(cap)}
+            </div>
           </div>
         </div>
         {!allowed && reason && (
@@ -169,7 +213,11 @@ export function JobDetails() {
           </div>
         )}
         <div className="flex gap-2">
-          <Button variant="outline" className="flex-1" onClick={() => nav("/courier")}>
+          <Button
+            variant="outline"
+            className="flex-1"
+            onClick={() => nav("/courier")}
+          >
             Reject / Back
           </Button>
           <Button
@@ -217,11 +265,18 @@ export function ActiveJob() {
   const [dropoffPin, setDropoffPin] = useState("");
   const [uploads, setUploads] = useState({ pickup: false, delivery: false });
 
-  const currentStep = useMemo(() => Math.max(manualStep, d ? stepFromStatus(d.status) : 0), [manualStep, d]);
+  const currentStep = useMemo(
+    () => Math.max(manualStep, d ? stepFromStatus(d.status) : 0),
+    [manualStep, d],
+  );
 
   if (deliveryQuery.isLoading) {
     return (
-      <EmptyState icon={RefreshCcw} title="Loading active job" desc="Fetching your assigned delivery." />
+      <EmptyState
+        icon={RefreshCcw}
+        title="Loading active job"
+        desc="Fetching your assigned delivery."
+      />
     );
   }
 
@@ -231,7 +286,9 @@ export function ActiveJob() {
         icon={Package}
         title="Could not load active job"
         desc={getErrorMessage(deliveryQuery.error)}
-        action={<Button onClick={() => void deliveryQuery.refetch()}>Retry</Button>}
+        action={
+          <Button onClick={() => void deliveryQuery.refetch()}>Retry</Button>
+        }
       />
     );
   }
@@ -249,7 +306,10 @@ export function ActiveJob() {
   }
 
   const updateJobStatus = async (status: DeliveryStatus, pin?: string) => {
-    await updateStatus.mutateAsync({ id: d.id, input: { status, ...(pin ? { pin } : {}) } });
+    await updateStatus.mutateAsync({
+      id: d.id,
+      input: { status, ...(pin ? { pin } : {}) },
+    });
     void store.refresh();
   };
 
@@ -266,13 +326,15 @@ export function ActiveJob() {
       }
 
       if (currentStep === 1) {
-        if (!/^\d{4,6}$/.test(pickupPin)) return toast.error("Enter the 4-digit pickup PIN");
+        if (!/^\d{4,6}$/.test(pickupPin))
+          return toast.error("Enter the 4-digit pickup PIN");
         setManualStep(2);
         return;
       }
 
       if (currentStep === 2) {
-        if (!uploads.pickup) return toast.error("Upload pickup proof to continue");
+        if (!uploads.pickup)
+          return toast.error("Upload pickup proof to continue");
         // The server compares pickupPin against the stored pickup_pin and
         // rejects the transition if it does not match.
         await updateJobStatus("picked_up", pickupPin);
@@ -289,23 +351,31 @@ export function ActiveJob() {
       }
 
       if (currentStep === 4) {
-        if (!/^\d{4,6}$/.test(dropoffPin)) return toast.error("Enter the 4-digit drop-off PIN");
+        if (!/^\d{4,6}$/.test(dropoffPin))
+          return toast.error("Enter the 4-digit drop-off PIN");
         setManualStep(5);
         return;
       }
 
       if (currentStep === 5) {
-        if (!uploads.delivery) return toast.error("Upload delivery proof to continue");
+        if (!uploads.delivery)
+          return toast.error("Upload delivery proof to continue");
         setManualStep(6);
         return;
       }
 
       // Escrow releases only if the server accepts this PIN.
       await updateJobStatus("delivered", dropoffPin);
-      toast.success("Delivery completed. Payout has been released for processing.");
+      toast.success(
+        "Delivery completed. Payout has been released for processing.",
+      );
       nav("/courier/earnings");
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Could not update delivery status");
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Could not update delivery status",
+      );
     }
   };
 
@@ -321,7 +391,10 @@ export function ActiveJob() {
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
-        <Link to="/courier" className="inline-flex items-center gap-1 text-sm text-muted-foreground">
+        <Link
+          to="/courier"
+          className="inline-flex items-center gap-1 text-sm text-muted-foreground"
+        >
           <ArrowLeft className="h-4 w-4" /> Jobs
         </Link>
         <StatusBadge status={d.status} />
@@ -330,7 +403,9 @@ export function ActiveJob() {
       <div className="card-elevated p-6 space-y-5">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <h1 className="font-display text-xl font-bold text-primary">{d.item_name}</h1>
+            <h1 className="font-display text-xl font-bold text-primary">
+              {d.item_name}
+            </h1>
             <div className="text-sm text-muted-foreground">
               Payout {naira(d.courier_payout)} · {d.distance_km} km
             </div>
@@ -350,21 +425,34 @@ export function ActiveJob() {
           <div className="space-y-3">
             <div className="rounded-xl bg-accent/10 p-4 text-sm">
               <Truck className="mr-2 inline h-4 w-4" />
-              Head to <b>{d.pickup_address}</b>. Contact {d.pickup_contact} · {d.pickup_phone}.
+              Head to <b>{d.pickup_address}</b>. Contact {d.pickup_contact} ·{" "}
+              {d.pickup_phone}.
             </div>
-            <DeliveryRouteMap pickupAddress={d.pickup_address} dropoffAddress={d.dropoff_address} className="h-56" />
+            <DeliveryRouteMap
+              pickupAddress={d.pickup_address}
+              dropoffAddress={d.dropoff_address}
+              className="h-56"
+            />
           </div>
         )}
         {currentStep === 1 && (
           <div className="space-y-3">
-            <div className="text-sm text-muted-foreground">Enter the 4-digit pickup PIN from the sender.</div>
+            <div className="text-sm text-muted-foreground">
+              Enter the 4-digit pickup PIN from the sender.
+            </div>
             <PinInput value={pickupPin} onChange={setPickupPin} />
           </div>
         )}
         {currentStep === 2 && (
           <div className="space-y-3">
-            <UploadPlaceholder label="Photo of item at pickup" done={uploads.pickup} />
-            <Button variant="outline" onClick={() => setUploads({ ...uploads, pickup: true })}>
+            <UploadPlaceholder
+              label="Photo of item at pickup"
+              done={uploads.pickup}
+            />
+            <Button
+              variant="outline"
+              onClick={() => setUploads({ ...uploads, pickup: true })}
+            >
               <Camera className="mr-2 h-4 w-4" />
               Mark pickup proof uploaded
             </Button>
@@ -374,9 +462,14 @@ export function ActiveJob() {
           <div className="space-y-3">
             <div className="rounded-xl bg-accent/10 p-4 text-sm">
               <Truck className="mr-2 inline h-4 w-4" />
-              Deliver to <b>{d.dropoff_address}</b>. Receiver: {d.dropoff_contact} · {d.dropoff_phone}.
+              Deliver to <b>{d.dropoff_address}</b>. Receiver:{" "}
+              {d.dropoff_contact} · {d.dropoff_phone}.
             </div>
-            <DeliveryRouteMap pickupAddress={d.pickup_address} dropoffAddress={d.dropoff_address} className="h-56" />
+            <DeliveryRouteMap
+              pickupAddress={d.pickup_address}
+              dropoffAddress={d.dropoff_address}
+              className="h-56"
+            />
           </div>
         )}
         {currentStep === 4 && (
@@ -389,8 +482,14 @@ export function ActiveJob() {
         )}
         {currentStep === 5 && (
           <div className="space-y-3">
-            <UploadPlaceholder label="Photo proof of delivery" done={uploads.delivery} />
-            <Button variant="outline" onClick={() => setUploads({ ...uploads, delivery: true })}>
+            <UploadPlaceholder
+              label="Photo proof of delivery"
+              done={uploads.delivery}
+            />
+            <Button
+              variant="outline"
+              onClick={() => setUploads({ ...uploads, delivery: true })}
+            >
               <Camera className="mr-2 h-4 w-4" />
               Mark delivery proof uploaded
             </Button>
@@ -399,7 +498,8 @@ export function ActiveJob() {
         {currentStep === 6 && (
           <div className="rounded-xl bg-success/10 p-4 text-success text-sm flex items-start gap-2">
             <CheckCircle2 className="mt-0.5 h-4 w-4" />
-            All checks complete. Tap complete to close this delivery and release the payout workflow.
+            All checks complete. Tap complete to close this delivery and release
+            the payout workflow.
           </div>
         )}
 

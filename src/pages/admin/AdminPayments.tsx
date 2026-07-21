@@ -6,7 +6,14 @@ import ErrorState from "@/components/common/ErrorState";
 import LoadingState from "@/components/common/LoadingState";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { useStore } from "@/data/store";
 import { usePayments, useRefundPayment } from "@/hooks/usePayments";
 import { naira, shortDate } from "@/lib/format";
@@ -19,7 +26,9 @@ function EscrowBadge({ status }: { status: PaymentRecord["escrow_status"] }) {
     released: "bg-success/15 text-success",
     refunded: "bg-muted text-muted-foreground",
   }[status];
-  return <span className={`chip capitalize ${cls}`}>{status.replace("_", " ")}</span>;
+  return (
+    <span className={`chip capitalize ${cls}`}>{status.replace("_", " ")}</span>
+  );
 }
 
 export default function AdminPayments() {
@@ -47,7 +56,9 @@ export default function AdminPayments() {
           : "Wallet escrow refunded to customer.",
       );
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Could not process refund.");
+      toast.error(
+        error instanceof Error ? error.message : "Could not process refund.",
+      );
     }
   };
 
@@ -55,13 +66,22 @@ export default function AdminPayments() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="font-display text-2xl font-bold text-primary">Payments & escrow</h1>
+          <h1 className="font-display text-2xl font-bold text-primary">
+            Payments & escrow
+          </h1>
           <p className="text-sm text-muted-foreground">
-            Review paid deliveries, escrow status, wallet refunds, and Paystack refund actions.
+            Review paid deliveries, escrow status, wallet refunds, and Paystack
+            refund actions.
           </p>
         </div>
-        <Button variant="outline" onClick={() => paymentsQuery.refetch()} disabled={paymentsQuery.isFetching}>
-          <RefreshCcw className={`mr-2 h-4 w-4 ${paymentsQuery.isFetching ? "animate-spin" : ""}`} />
+        <Button
+          variant="outline"
+          onClick={() => paymentsQuery.refetch()}
+          disabled={paymentsQuery.isFetching}
+        >
+          <RefreshCcw
+            className={`mr-2 h-4 w-4 ${paymentsQuery.isFetching ? "animate-spin" : ""}`}
+          />
           Refresh
         </Button>
       </div>
@@ -81,7 +101,9 @@ export default function AdminPayments() {
       ) : paymentsQuery.isError ? (
         <ErrorState
           message={
-            paymentsQuery.error instanceof Error ? paymentsQuery.error.message : "Could not load payments."
+            paymentsQuery.error instanceof Error
+              ? paymentsQuery.error.message
+              : "Could not load payments."
           }
         />
       ) : filtered.length === 0 ? (
@@ -90,8 +112,12 @@ export default function AdminPayments() {
             <CreditCard className="h-6 w-6" />
           </div>
           <div>
-            <h3 className="font-display text-lg font-semibold">No payments found</h3>
-            <p className="mt-1 text-sm text-muted-foreground">Verified delivery payments will appear here.</p>
+            <h3 className="font-display text-lg font-semibold">
+              No payments found
+            </h3>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Verified delivery payments will appear here.
+            </p>
           </div>
         </div>
       ) : (
@@ -112,19 +138,27 @@ export default function AdminPayments() {
             </TableHeader>
             <TableBody>
               {filtered.map((payment) => {
-                const customer = users.find((user) => user.id === payment.customer_id);
-                const canRefund = payment.status === "paid" && payment.escrow_status === "held";
-                const pendingGatewayRefund = payment.metadata?.refund_review_status === "pending_gateway";
+                const customer = users.find(
+                  (user) => user.id === payment.customer_id,
+                );
+                const canRefund =
+                  payment.status === "paid" && payment.escrow_status === "held";
+                const pendingGatewayRefund =
+                  payment.metadata?.refund_review_status === "pending_gateway";
 
                 return (
                   <TableRow key={payment.id}>
-                    <TableCell className="font-mono text-xs">{payment.reference}</TableCell>
+                    <TableCell className="font-mono text-xs">
+                      {payment.reference}
+                    </TableCell>
                     <TableCell className="font-mono text-xs">
                       #{payment.delivery_id.slice(0, 8).toUpperCase()}
                     </TableCell>
                     <TableCell>{customer?.full_name ?? "—"}</TableCell>
                     <TableCell>{naira(payment.amount)}</TableCell>
-                    <TableCell className="capitalize">{payment.provider}</TableCell>
+                    <TableCell className="capitalize">
+                      {payment.provider}
+                    </TableCell>
                     <TableCell>
                       <PaymentBadge status={payment.status} />
                     </TableCell>
@@ -132,7 +166,9 @@ export default function AdminPayments() {
                       <div className="space-y-1">
                         <EscrowBadge status={payment.escrow_status} />
                         {pendingGatewayRefund ? (
-                          <div className="text-xs text-warning-foreground">Paystack refund pending</div>
+                          <div className="text-xs text-warning-foreground">
+                            Paystack refund pending
+                          </div>
                         ) : null}
                       </div>
                     </TableCell>

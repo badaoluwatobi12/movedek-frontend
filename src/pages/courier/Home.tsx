@@ -3,11 +3,25 @@ import { useDeliveries } from "@/hooks/useDeliveries";
 import { useWallet } from "@/hooks/useWallet";
 import { useSession, useStore, store } from "@/data/store";
 import { StatCard, EmptyState } from "@/components/common";
-import { StatusBadge, TrustBadge, RiskBadge, VerificationBadge } from "@/components/badges";
+import {
+  StatusBadge,
+  TrustBadge,
+  RiskBadge,
+  VerificationBadge,
+} from "@/components/badges";
 import { naira, timeAgo, trustCap } from "@/lib/format";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
-import { Coins, Package, ShieldCheck, Star, MapPin, ArrowRight, RefreshCcw, Wallet } from "lucide-react";
+import {
+  Coins,
+  Package,
+  ShieldCheck,
+  Star,
+  MapPin,
+  ArrowRight,
+  RefreshCcw,
+  Wallet,
+} from "lucide-react";
 import { toast } from "sonner";
 
 const getErrorMessage = (error: unknown) =>
@@ -32,9 +46,12 @@ export default function CourierHome() {
   const availableJobs = availableJobsQuery.data?.items ?? [];
   const myTrustLevel = me?.trust_level;
   const eligibleJobs = myTrustLevel
-    ? availableJobs.filter((delivery) => delivery.item_value <= (trustCap[myTrustLevel] ?? 0))
+    ? availableJobs.filter(
+        (delivery) => delivery.item_value <= (trustCap[myTrustLevel] ?? 0),
+      )
     : [];
-  const deliveriesLoading = activeJobsQuery.isLoading || availableJobsQuery.isLoading;
+  const deliveriesLoading =
+    activeJobsQuery.isLoading || availableJobsQuery.isLoading;
   const deliveriesError = activeJobsQuery.error ?? availableJobsQuery.error;
 
   const refreshCourierWorkspace = () => {
@@ -47,10 +64,16 @@ export default function CourierHome() {
     if (!me) return;
     try {
       store.toggleOnline(me.id);
-      toast.success(me.is_online ? "You are now offline" : "You are now online");
+      toast.success(
+        me.is_online ? "You are now offline" : "You are now online",
+      );
       refreshCourierWorkspace();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Could not update online status");
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Could not update online status",
+      );
     }
   };
 
@@ -81,10 +104,12 @@ export default function CourierHome() {
         <div className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-warning/15 text-warning-foreground">
           <ShieldCheck className="h-7 w-7" />
         </div>
-        <h2 className="mt-4 font-display text-xl font-bold text-primary">Courier profile not found</h2>
+        <h2 className="mt-4 font-display text-xl font-bold text-primary">
+          Courier profile not found
+        </h2>
         <p className="mt-2 text-sm text-muted-foreground">
-          This account is not registered as a courier. Create/login with a courier account to access courier
-          jobs.
+          This account is not registered as a courier. Create/login with a
+          courier account to access courier jobs.
         </p>
       </div>
     );
@@ -97,7 +122,9 @@ export default function CourierHome() {
           <ShieldCheck className="h-7 w-7" />
         </div>
         <h2 className="mt-4 font-display text-xl font-bold text-primary">
-          {me.verification_status === "rejected" ? "Verification rejected" : "Verification pending"}
+          {me.verification_status === "rejected"
+            ? "Verification rejected"
+            : "Verification pending"}
         </h2>
         <p className="mt-2 text-sm text-muted-foreground">
           {me.verification_status === "rejected"
@@ -109,7 +136,9 @@ export default function CourierHome() {
           <TrustBadge level={me.trust_level} />
         </div>
         <Link to="/courier/onboarding">
-          <Button className="mt-5 accent-gradient text-white shadow-glow">Continue onboarding</Button>
+          <Button className="mt-5 accent-gradient text-white shadow-glow">
+            Continue onboarding
+          </Button>
         </Link>
       </div>
     );
@@ -129,9 +158,13 @@ export default function CourierHome() {
         </div>
         <div className="card-elevated flex items-center gap-3 px-4 py-3">
           <div>
-            <div className="text-sm font-medium">{me.is_online ? "You're online" : "You're offline"}</div>
+            <div className="text-sm font-medium">
+              {me.is_online ? "You're online" : "You're offline"}
+            </div>
             <div className="text-xs text-muted-foreground">
-              {me.is_online ? "Available for eligible jobs" : "Go online to accept jobs"}
+              {me.is_online
+                ? "Available for eligible jobs"
+                : "Go online to accept jobs"}
             </div>
           </div>
           <Switch checked={me.is_online} onCheckedChange={toggleOnline} />
@@ -139,15 +172,36 @@ export default function CourierHome() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Wallet balance" value={naira(wallet?.balance ?? 0)} icon={Wallet} tone="success" />
-        <StatCard label="Completed deliveries" value={String(me.completed)} icon={Package} />
-        <StatCard label="Trust score" value={`${me.trust_score}/100`} icon={ShieldCheck} tone="accent" />
-        <StatCard label="Rating" value={`${me.rating.toFixed(1)}★`} icon={Star} tone="warning" />
+        <StatCard
+          label="Wallet balance"
+          value={naira(wallet?.balance ?? 0)}
+          icon={Wallet}
+          tone="success"
+        />
+        <StatCard
+          label="Completed deliveries"
+          value={String(me.completed)}
+          icon={Package}
+        />
+        <StatCard
+          label="Trust score"
+          value={`${me.trust_score}/100`}
+          icon={ShieldCheck}
+          tone="accent"
+        />
+        <StatCard
+          label="Rating"
+          value={`${me.rating.toFixed(1)}★`}
+          icon={Star}
+          tone="warning"
+        />
       </div>
 
       {activeJobs.length > 0 && (
         <div className="space-y-3">
-          <h2 className="font-display text-lg font-semibold text-primary">Active job</h2>
+          <h2 className="font-display text-lg font-semibold text-primary">
+            Active job
+          </h2>
           {activeJobs.map((delivery) => (
             <Link
               key={delivery.id}
@@ -156,9 +210,12 @@ export default function CourierHome() {
             >
               <div className="flex items-center justify-between gap-3">
                 <div className="min-w-0">
-                  <div className="font-medium text-primary">{delivery.item_name}</div>
+                  <div className="font-medium text-primary">
+                    {delivery.item_name}
+                  </div>
                   <div className="text-xs text-muted-foreground flex items-center gap-1">
-                    <MapPin className="h-3 w-3" /> {shortAddress(delivery.pickup_address)} →{" "}
+                    <MapPin className="h-3 w-3" />{" "}
+                    {shortAddress(delivery.pickup_address)} →{" "}
                     {shortAddress(delivery.dropoff_address)}
                   </div>
                 </div>
@@ -171,7 +228,9 @@ export default function CourierHome() {
 
       <div className="space-y-3">
         <div className="flex items-center justify-between gap-3">
-          <h2 className="font-display text-lg font-semibold text-primary">Available jobs</h2>
+          <h2 className="font-display text-lg font-semibold text-primary">
+            Available jobs
+          </h2>
           <Button variant="outline" size="sm" onClick={refreshCourierWorkspace}>
             <RefreshCcw className="mr-2 h-4 w-4" />
             Refresh
@@ -226,16 +285,21 @@ export default function CourierHome() {
                       {delivery.category.replace("_", " ")}
                     </span>
                     <RiskBadge risk={delivery.risk_level} />
-                    <span className="text-xs text-muted-foreground">{timeAgo(delivery.created_at)}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {timeAgo(delivery.created_at)}
+                    </span>
                   </div>
-                  <div className="mt-2 font-display font-semibold text-primary">{delivery.item_name}</div>
+                  <div className="mt-2 font-display font-semibold text-primary">
+                    {delivery.item_name}
+                  </div>
                   <div className="mt-1 text-sm text-muted-foreground flex items-center gap-1">
-                    <MapPin className="h-3 w-3" /> {shortAddress(delivery.pickup_address)} →{" "}
+                    <MapPin className="h-3 w-3" />{" "}
+                    {shortAddress(delivery.pickup_address)} →{" "}
                     {shortAddress(delivery.dropoff_address)}
                   </div>
                   <div className="mt-2 text-xs text-muted-foreground">
-                    {delivery.distance_km} km · {delivery.package_size} · {naira(delivery.item_value)}{" "}
-                    declared
+                    {delivery.distance_km} km · {delivery.package_size} ·{" "}
+                    {naira(delivery.item_value)} declared
                   </div>
                 </div>
                 <div className="text-right">

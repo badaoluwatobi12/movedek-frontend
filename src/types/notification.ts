@@ -1,7 +1,15 @@
 export type NotificationCategory =
-  "delivery" | "payment" | "refund" | "dispute" | "wallet" | "security" | "admin" | "system";
+  | "delivery"
+  | "payment"
+  | "refund"
+  | "dispute"
+  | "wallet"
+  | "security"
+  | "admin"
+  | "system";
 
-export type NotificationKind = "info" | "success" | "warning" | "danger" | "action";
+export type NotificationKind =
+  "info" | "success" | "warning" | "danger" | "action";
 export type NotificationReadStatus = "all" | "unread" | "read";
 
 export interface NotificationRecord {

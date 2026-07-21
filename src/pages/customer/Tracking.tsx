@@ -75,13 +75,16 @@ export default function Tracking() {
     return statusCopy[delivery.status] ?? "Delivery created.";
   }, [delivery]);
 
-  if (deliveryQuery.isLoading) return <LoadingState label="Loading delivery tracking…" />;
+  if (deliveryQuery.isLoading)
+    return <LoadingState label="Loading delivery tracking…" />;
 
   if (deliveryQuery.isError) {
     return (
       <ErrorState
         message={
-          deliveryQuery.error instanceof Error ? deliveryQuery.error.message : "Could not load delivery."
+          deliveryQuery.error instanceof Error
+            ? deliveryQuery.error.message
+            : "Could not load delivery."
         }
       />
     );
@@ -105,7 +108,9 @@ export default function Tracking() {
     0,
     timeline.findIndex((item) => item.key === delivery.status),
   );
-  const canCancel = ["pending", "searching", "assigned", "accepted"].includes(delivery.status);
+  const canCancel = ["pending", "searching", "assigned", "accepted"].includes(
+    delivery.status,
+  );
   const activeDispute = disputes.find(
     (item) =>
       item.delivery_id === delivery.id &&
@@ -113,10 +118,16 @@ export default function Tracking() {
       ["open", "reviewing"].includes(item.status),
   );
   const existingRating = ratings.find(
-    (item) => item.delivery_id === delivery.id && item.from_user_id === session.userId,
+    (item) =>
+      item.delivery_id === delivery.id && item.from_user_id === session.userId,
   );
-  const canDispute = !activeDispute && !["cancelled", "pending", "searching"].includes(delivery.status);
-  const canRate = ["delivered", "completed"].includes(delivery.status) && courier && !existingRating;
+  const canDispute =
+    !activeDispute &&
+    !["cancelled", "pending", "searching"].includes(delivery.status);
+  const canRate =
+    ["delivered", "completed"].includes(delivery.status) &&
+    courier &&
+    !existingRating;
 
   const copyPin = async (pin: string) => {
     try {
@@ -132,7 +143,9 @@ export default function Tracking() {
       await cancelMutation.mutateAsync(delivery.id);
       toast.success("Delivery cancelled.");
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Could not cancel delivery.");
+      toast.error(
+        error instanceof Error ? error.message : "Could not cancel delivery.",
+      );
     }
   };
 
@@ -142,16 +155,26 @@ export default function Tracking() {
       return;
     }
     try {
-      await createDispute.mutateAsync({ delivery_id: delivery.id, reason: disputeReason.trim() });
+      await createDispute.mutateAsync({
+        delivery_id: delivery.id,
+        reason: disputeReason.trim(),
+      });
       setDisputeReason("");
       toast.success("Dispute opened. Support can now review it.");
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Could not open dispute.");
+      toast.error(
+        error instanceof Error ? error.message : "Could not open dispute.",
+      );
     }
   };
 
   const saveRating = () => {
-    const result = store.rateCourierDelivery(delivery.id, session.userId, ratingValue, ratingComment);
+    const result = store.rateCourierDelivery(
+      delivery.id,
+      session.userId,
+      ratingValue,
+      ratingComment,
+    );
     if (result.ok) {
       setRatingComment("");
       toast.success(result.message);
@@ -176,7 +199,9 @@ export default function Tracking() {
             onClick={() => deliveryQuery.refetch()}
             disabled={deliveryQuery.isFetching}
           >
-            <RefreshCcw className={`mr-2 h-4 w-4 ${deliveryQuery.isFetching ? "animate-spin" : ""}`} />{" "}
+            <RefreshCcw
+              className={`mr-2 h-4 w-4 ${deliveryQuery.isFetching ? "animate-spin" : ""}`}
+            />{" "}
             Refresh
           </Button>
           {payment && <PaymentBadge status={payment.status} />}
@@ -198,11 +223,19 @@ export default function Tracking() {
                 <div className="text-xs text-muted-foreground">
                   Delivery #{delivery.id.slice(0, 8).toUpperCase()}
                 </div>
-                <h1 className="mt-1 font-display text-2xl font-bold text-primary">{delivery.item_name}</h1>
-                <p className="mt-1 text-sm text-muted-foreground">{statusText}</p>
+                <h1 className="mt-1 font-display text-2xl font-bold text-primary">
+                  {delivery.item_name}
+                </h1>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {statusText}
+                </p>
               </div>
               {canCancel && (
-                <Button variant="outline" onClick={cancelDelivery} disabled={cancelMutation.isPending}>
+                <Button
+                  variant="outline"
+                  onClick={cancelDelivery}
+                  disabled={cancelMutation.isPending}
+                >
                   <XCircle className="mr-2 h-4 w-4" />
                   {cancelMutation.isPending ? "Cancelling…" : "Cancel delivery"}
                 </Button>
@@ -220,8 +253,12 @@ export default function Tracking() {
                     .join("")}
                 </div>
                 <div className="flex-1">
-                  <div className="font-display text-lg font-semibold text-primary">{cUser.full_name}</div>
-                  <div className="text-sm text-muted-foreground">{courier.vehicle_type}</div>
+                  <div className="font-display text-lg font-semibold text-primary">
+                    {cUser.full_name}
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    {courier.vehicle_type}
+                  </div>
                   <div className="mt-1 flex flex-wrap items-center gap-2 text-xs">
                     <span className="chip bg-gold/15 text-gold capitalize">
                       <Star className="h-3 w-3 fill-gold text-gold" />
@@ -247,12 +284,15 @@ export default function Tracking() {
             </div>
           ) : (
             <div className="card-elevated p-5 text-sm text-muted-foreground">
-              No courier has accepted this delivery yet. Couriers will see it under available jobs.
+              No courier has accepted this delivery yet. Couriers will see it
+              under available jobs.
             </div>
           )}
 
           <div className="card-elevated p-5">
-            <h3 className="mb-4 font-display font-semibold text-primary">Timeline</h3>
+            <h3 className="mb-4 font-display font-semibold text-primary">
+              Timeline
+            </h3>
             <ol className="space-y-4">
               {timeline.map((item, index) => {
                 const done = ["cancelled", "disputed"].includes(delivery.status)
@@ -263,18 +303,26 @@ export default function Tracking() {
                     <span
                       className={cn(
                         "mt-0.5 h-3 w-3 rounded-full ring-4",
-                        done ? "bg-success ring-success/30" : "bg-muted ring-muted",
+                        done
+                          ? "bg-success ring-success/30"
+                          : "bg-muted ring-muted",
                       )}
                     />
                     <div>
                       <div
-                        className={cn("text-sm font-medium", done ? "text-primary" : "text-muted-foreground")}
+                        className={cn(
+                          "text-sm font-medium",
+                          done ? "text-primary" : "text-muted-foreground",
+                        )}
                       >
                         {item.label}
                       </div>
-                      {index === currentIdx && !["cancelled", "disputed"].includes(delivery.status) && (
-                        <div className="text-xs text-accent">In progress</div>
-                      )}
+                      {index === currentIdx &&
+                        !["cancelled", "disputed"].includes(
+                          delivery.status,
+                        ) && (
+                          <div className="text-xs text-accent">In progress</div>
+                        )}
                     </div>
                   </li>
                 );
@@ -284,7 +332,9 @@ export default function Tracking() {
 
           {canRate && (
             <div className="card-elevated space-y-3 p-5">
-              <h3 className="font-display font-semibold text-primary">Rate courier</h3>
+              <h3 className="font-display font-semibold text-primary">
+                Rate courier
+              </h3>
               <div className="grid gap-3 sm:grid-cols-[160px_1fr]">
                 <div className="space-y-2">
                   <Label>Rating</Label>
@@ -293,7 +343,9 @@ export default function Tracking() {
                     min={1}
                     max={5}
                     value={ratingValue}
-                    onChange={(event) => setRatingValue(Number(event.target.value))}
+                    onChange={(event) =>
+                      setRatingValue(Number(event.target.value))
+                    }
                   />
                 </div>
                 <div className="space-y-2">
@@ -305,7 +357,10 @@ export default function Tracking() {
                   />
                 </div>
               </div>
-              <Button onClick={saveRating} className="accent-gradient text-white shadow-glow">
+              <Button
+                onClick={saveRating}
+                className="accent-gradient text-white shadow-glow"
+              >
                 Save rating
               </Button>
             </div>
@@ -313,9 +368,12 @@ export default function Tracking() {
 
           {existingRating && (
             <div className="card-elevated p-5">
-              <h3 className="font-display font-semibold text-primary">Your rating</h3>
+              <h3 className="font-display font-semibold text-primary">
+                Your rating
+              </h3>
               <div className="mt-2 text-sm text-muted-foreground">
-                {existingRating.rating}/5 {existingRating.comment ? `· ${existingRating.comment}` : ""}
+                {existingRating.rating}/5{" "}
+                {existingRating.comment ? `· ${existingRating.comment}` : ""}
               </div>
             </div>
           )}
@@ -326,14 +384,19 @@ export default function Tracking() {
                 <AlertTriangle className="h-4 w-4 text-warning" /> Open dispute
               </h3>
               <p className="text-sm text-muted-foreground">
-                Use this only if there is a serious problem with pickup, delivery, payment, or the item.
+                Use this only if there is a serious problem with pickup,
+                delivery, payment, or the item.
               </p>
               <Textarea
                 value={disputeReason}
                 onChange={(event) => setDisputeReason(event.target.value)}
                 placeholder="Explain the issue clearly"
               />
-              <Button variant="outline" onClick={openDispute} disabled={createDispute.isPending}>
+              <Button
+                variant="outline"
+                onClick={openDispute}
+                disabled={createDispute.isPending}
+              >
                 {createDispute.isPending ? "Submitting…" : "Submit dispute"}
               </Button>
             </div>
@@ -341,10 +404,15 @@ export default function Tracking() {
 
           {activeDispute && (
             <div className="card-elevated border-warning/40 p-5">
-              <h3 className="font-display font-semibold text-primary">Open dispute</h3>
-              <p className="mt-1 text-sm text-muted-foreground">{activeDispute.reason}</p>
+              <h3 className="font-display font-semibold text-primary">
+                Open dispute
+              </h3>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {activeDispute.reason}
+              </p>
               <div className="mt-2 text-xs text-muted-foreground">
-                Status: {activeDispute.status} · {shortDate(activeDispute.created_at)}
+                Status: {activeDispute.status} ·{" "}
+                {shortDate(activeDispute.created_at)}
               </div>
             </div>
           )}
@@ -353,9 +421,14 @@ export default function Tracking() {
         <div className="space-y-4">
           <div className="card-elevated p-5">
             <div className="text-xs text-muted-foreground">Package</div>
-            <div className="mt-1 font-display font-semibold text-primary">{delivery.item_name}</div>
+            <div className="mt-1 font-display font-semibold text-primary">
+              {delivery.item_name}
+            </div>
             <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
-              <Info label="Category" value={delivery.category.replace("_", " ")} />
+              <Info
+                label="Category"
+                value={delivery.category.replace("_", " ")}
+              />
               <Info label="Value" value={naira(delivery.item_value)} />
               <Info label="Distance" value={`${delivery.distance_km} km`} />
               <Info label="Fee" value={naira(delivery.price)} />
@@ -363,7 +436,9 @@ export default function Tracking() {
           </div>
 
           <div className="card-elevated p-5">
-            <h3 className="font-display font-semibold text-primary">Verification PINs</h3>
+            <h3 className="font-display font-semibold text-primary">
+              Verification PINs
+            </h3>
             <p className="mt-1 text-xs text-muted-foreground">
               Share only with your courier at the correct step.
             </p>
@@ -387,23 +462,31 @@ export default function Tracking() {
               <MapPin className="mt-0.5 h-4 w-4 text-accent" />
               <div>
                 <div className="font-medium">Pickup</div>
-                <div className="text-muted-foreground">{delivery.pickup_address}</div>
+                <div className="text-muted-foreground">
+                  {delivery.pickup_address}
+                </div>
               </div>
             </div>
             <div className="flex gap-2">
               <MapPin className="mt-0.5 h-4 w-4 text-success" />
               <div>
                 <div className="font-medium">Drop-off</div>
-                <div className="text-muted-foreground">{delivery.dropoff_address}</div>
+                <div className="text-muted-foreground">
+                  {delivery.dropoff_address}
+                </div>
               </div>
             </div>
           </div>
 
           <div className="card-elevated space-y-2 p-5 text-sm">
-            <div className="font-display font-semibold text-primary">Payment</div>
+            <div className="font-display font-semibold text-primary">
+              Payment
+            </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Reference</span>
-              <span className="font-mono text-xs">{payment?.reference ?? "Pending"}</span>
+              <span className="font-mono text-xs">
+                {payment?.reference ?? "Pending"}
+              </span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Provider</span>
@@ -428,12 +511,22 @@ export default function Tracking() {
 
 const Info = ({ label, value }: { label: string; value: string }) => (
   <div className="rounded-lg bg-muted/40 p-2">
-    <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</div>
+    <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+      {label}
+    </div>
     <div className="font-medium capitalize text-primary">{value}</div>
   </div>
 );
 
-const Pin = ({ label, value, onCopy }: { label: string; value: string; onCopy: () => void }) => (
+const Pin = ({
+  label,
+  value,
+  onCopy,
+}: {
+  label: string;
+  value: string;
+  onCopy: () => void;
+}) => (
   <button
     type="button"
     onClick={onCopy}
@@ -442,6 +535,8 @@ const Pin = ({ label, value, onCopy }: { label: string; value: string; onCopy: (
     <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
       {label} <Copy className="h-3 w-3" />
     </div>
-    <div className="font-display text-2xl font-bold tracking-widest text-primary">{value}</div>
+    <div className="font-display text-2xl font-bold tracking-widest text-primary">
+      {value}
+    </div>
   </button>
 );

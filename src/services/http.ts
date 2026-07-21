@@ -42,6 +42,9 @@ export async function http<T>(
   if (isJsonBody(options.body)) headers.set("Content-Type", "application/json");
   headers.set("Cache-Control", "no-cache");
   headers.set("Pragma", "no-cache");
+  if (!headers.has("X-Request-ID")) {
+    headers.set("X-Request-ID", crypto.randomUUID());
+  }
 
   const response = await fetch(`${API_BASE_URL}${path}`, {
     cache: "no-store",

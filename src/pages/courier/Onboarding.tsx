@@ -9,8 +9,23 @@ import { store, useSession, useStore } from "@/data/store";
 import { ShieldCheck, UserCheck } from "lucide-react";
 import type { CourierType } from "@/lib/types";
 
-const steps = ["Profile", "Selfie", "Gov ID", "Vehicle", "License", "Bank", "Emergency", "Review"];
-const vehicleTypes: CourierType[] = ["everyday", "motorcycle", "car", "van", "logistics"];
+const steps = [
+  "Profile",
+  "Selfie",
+  "Gov ID",
+  "Vehicle",
+  "License",
+  "Bank",
+  "Emergency",
+  "Review",
+];
+const vehicleTypes: CourierType[] = [
+  "everyday",
+  "motorcycle",
+  "car",
+  "van",
+  "logistics",
+];
 
 export default function Onboarding() {
   const nav = useNavigate();
@@ -29,13 +44,17 @@ export default function Onboarding() {
   const [profile, setProfile] = useState({
     fullName: user?.full_name ?? "",
     address: me?.home_address ?? "",
-    zones: Array.isArray(me?.service_zones) ? me.service_zones.join(", ") : (me?.service_zones ?? ""),
+    zones: Array.isArray(me?.service_zones)
+      ? me.service_zones.join(", ")
+      : (me?.service_zones ?? ""),
     vehicleType: me?.courier_type ?? "motorcycle",
-    vehicleModel: me?.vehicle_type === "Not added yet" ? "" : (me?.vehicle_type ?? ""),
+    vehicleModel:
+      me?.vehicle_type === "Not added yet" ? "" : (me?.vehicle_type ?? ""),
     plate: me?.plate_number ?? "",
     colour: me?.vehicle_colour ?? "",
     bankName: me?.bank_name === "Not added" ? "" : (me?.bank_name ?? ""),
-    accountNumber: me?.account_number === "Not added" ? "" : (me?.account_number ?? ""),
+    accountNumber:
+      me?.account_number === "Not added" ? "" : (me?.account_number ?? ""),
     accountName: me?.account_name ?? user?.full_name ?? "",
     emergencyName: me?.emergency_contact_name ?? "",
     emergencyRelationship: me?.emergency_contact_relationship ?? "",
@@ -53,22 +72,37 @@ export default function Onboarding() {
   }
 
   const validateStep = () => {
-    if (step === 0 && (!profile.fullName.trim() || !profile.address.trim() || !profile.zones.trim()))
+    if (
+      step === 0 &&
+      (!profile.fullName.trim() ||
+        !profile.address.trim() ||
+        !profile.zones.trim())
+    )
       return "Complete your name, home address and preferred zones.";
-    if (step === 1 && !uploads.selfie) return "Upload or mark your selfie as uploaded.";
-    if (step === 2 && !uploads.id) return "Upload or mark your government ID as uploaded.";
-    if (step === 3 && (!profile.vehicleType.trim() || !profile.vehicleModel.trim()))
+    if (step === 1 && !uploads.selfie)
+      return "Upload or mark your selfie as uploaded.";
+    if (step === 2 && !uploads.id)
+      return "Upload or mark your government ID as uploaded.";
+    if (
+      step === 3 &&
+      (!profile.vehicleType.trim() || !profile.vehicleModel.trim())
+    )
       return "Add your vehicle type and model.";
     if (step === 4 && profile.vehicleType !== "everyday" && !uploads.license)
       return "Upload or mark your driver license as uploaded.";
     if (
       step === 5 &&
-      (!profile.bankName.trim() || !profile.accountNumber.trim() || !profile.accountName.trim())
+      (!profile.bankName.trim() ||
+        !profile.accountNumber.trim() ||
+        !profile.accountName.trim())
     )
       return "Complete your bank details.";
     if (step === 5 && !/^\d{10}$/.test(profile.accountNumber.trim()))
       return "Enter a valid 10-digit account number.";
-    if (step === 6 && (!profile.emergencyName.trim() || !profile.emergencyPhone.trim()))
+    if (
+      step === 6 &&
+      (!profile.emergencyName.trim() || !profile.emergencyPhone.trim())
+    )
       return "Add emergency contact name and phone.";
     return "";
   };
@@ -106,7 +140,9 @@ export default function Onboarding() {
       onboarding_submitted_at: new Date().toISOString(),
     });
     store.updateUser(session.userId, { full_name: profile.fullName });
-    toast.success("Verification details saved. Your account is now pending admin review.");
+    toast.success(
+      "Verification details saved. Your account is now pending admin review.",
+    );
     nav("/courier");
   };
 
@@ -114,24 +150,32 @@ export default function Onboarding() {
     <div className="mx-auto max-w-3xl space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="font-display text-2xl font-bold text-primary">Courier onboarding</h1>
+          <h1 className="font-display text-2xl font-bold text-primary">
+            Courier onboarding
+          </h1>
           <p className="text-sm text-muted-foreground">
             Complete this form so admin can verify your courier account.
           </p>
         </div>
-        <span className="chip bg-muted capitalize">{me.verification_status}</span>
+        <span className="chip bg-muted capitalize">
+          {me.verification_status}
+        </span>
       </div>
       <Stepper steps={steps} current={step} />
       <div className="card-elevated p-6 space-y-4">
         {step === 0 && (
           <>
-            <h2 className="font-display font-semibold text-primary">Basic profile</h2>
+            <h2 className="font-display font-semibold text-primary">
+              Basic profile
+            </h2>
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label>Full name</Label>
                 <Input
                   value={profile.fullName}
-                  onChange={(e) => setProfile({ ...profile, fullName: e.target.value })}
+                  onChange={(e) =>
+                    setProfile({ ...profile, fullName: e.target.value })
+                  }
                 />
               </div>
               <div className="space-y-2">
@@ -142,7 +186,9 @@ export default function Onboarding() {
                 <Label>Home address</Label>
                 <Input
                   value={profile.address}
-                  onChange={(e) => setProfile({ ...profile, address: e.target.value })}
+                  onChange={(e) =>
+                    setProfile({ ...profile, address: e.target.value })
+                  }
                   placeholder="Yaba, Lagos"
                 />
               </div>
@@ -150,7 +196,9 @@ export default function Onboarding() {
                 <Label>Preferred work zones</Label>
                 <Input
                   value={profile.zones}
-                  onChange={(e) => setProfile({ ...profile, zones: e.target.value })}
+                  onChange={(e) =>
+                    setProfile({ ...profile, zones: e.target.value })
+                  }
                   placeholder="Yaba, VI, Ikeja"
                 />
               </div>
@@ -159,36 +207,55 @@ export default function Onboarding() {
         )}
         {step === 1 && (
           <>
-            <h2 className="font-display font-semibold text-primary">Selfie verification</h2>
-            <p className="text-sm text-muted-foreground">Upload a clear face photo for identity matching.</p>
+            <h2 className="font-display font-semibold text-primary">
+              Selfie verification
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Upload a clear face photo for identity matching.
+            </p>
             <UploadPlaceholder label="Upload selfie" done={uploads.selfie} />
-            <Button variant="outline" onClick={() => setUploads({ ...uploads, selfie: true })}>
+            <Button
+              variant="outline"
+              onClick={() => setUploads({ ...uploads, selfie: true })}
+            >
               Mark selfie uploaded
             </Button>
           </>
         )}
         {step === 2 && (
           <>
-            <h2 className="font-display font-semibold text-primary">Government ID</h2>
+            <h2 className="font-display font-semibold text-primary">
+              Government ID
+            </h2>
             <p className="text-sm text-muted-foreground">
               Use NIN slip, passport, voter card or driver's license.
             </p>
             <UploadPlaceholder label="Upload government ID" done={uploads.id} />
-            <Button variant="outline" onClick={() => setUploads({ ...uploads, id: true })}>
+            <Button
+              variant="outline"
+              onClick={() => setUploads({ ...uploads, id: true })}
+            >
               Mark ID uploaded
             </Button>
           </>
         )}
         {step === 3 && (
           <>
-            <h2 className="font-display font-semibold text-primary">Vehicle details</h2>
+            <h2 className="font-display font-semibold text-primary">
+              Vehicle details
+            </h2>
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label>Courier type</Label>
                 <select
                   className="h-10 rounded-md border border-input bg-background px-3 text-sm"
                   value={profile.vehicleType}
-                  onChange={(e) => setProfile({ ...profile, vehicleType: e.target.value as CourierType })}
+                  onChange={(e) =>
+                    setProfile({
+                      ...profile,
+                      vehicleType: e.target.value as CourierType,
+                    })
+                  }
                 >
                   {vehicleTypes.map((type) => (
                     <option key={type} value={type}>
@@ -201,7 +268,9 @@ export default function Onboarding() {
                 <Label>Vehicle / movement type</Label>
                 <Input
                   value={profile.vehicleModel}
-                  onChange={(e) => setProfile({ ...profile, vehicleModel: e.target.value })}
+                  onChange={(e) =>
+                    setProfile({ ...profile, vehicleModel: e.target.value })
+                  }
                   placeholder="Bajaj Boxer 125 / Walking / Toyota Corolla"
                 />
               </div>
@@ -209,7 +278,9 @@ export default function Onboarding() {
                 <Label>Plate number</Label>
                 <Input
                   value={profile.plate}
-                  onChange={(e) => setProfile({ ...profile, plate: e.target.value })}
+                  onChange={(e) =>
+                    setProfile({ ...profile, plate: e.target.value })
+                  }
                   placeholder="LAG-123-XY"
                 />
               </div>
@@ -217,7 +288,9 @@ export default function Onboarding() {
                 <Label>Colour</Label>
                 <Input
                   value={profile.colour}
-                  onChange={(e) => setProfile({ ...profile, colour: e.target.value })}
+                  onChange={(e) =>
+                    setProfile({ ...profile, colour: e.target.value })
+                  }
                   placeholder="Red"
                 />
               </div>
@@ -226,26 +299,38 @@ export default function Onboarding() {
         )}
         {step === 4 && (
           <>
-            <h2 className="font-display font-semibold text-primary">Driver's license</h2>
+            <h2 className="font-display font-semibold text-primary">
+              Driver's license
+            </h2>
             <p className="text-sm text-muted-foreground">
-              Required for motorcycle, car, van and logistics couriers. Everyday walking couriers can continue
-              without it.
+              Required for motorcycle, car, van and logistics couriers. Everyday
+              walking couriers can continue without it.
             </p>
-            <UploadPlaceholder label="Upload driver's license" done={uploads.license} />
-            <Button variant="outline" onClick={() => setUploads({ ...uploads, license: true })}>
+            <UploadPlaceholder
+              label="Upload driver's license"
+              done={uploads.license}
+            />
+            <Button
+              variant="outline"
+              onClick={() => setUploads({ ...uploads, license: true })}
+            >
               Mark license uploaded
             </Button>
           </>
         )}
         {step === 5 && (
           <>
-            <h2 className="font-display font-semibold text-primary">Bank details</h2>
+            <h2 className="font-display font-semibold text-primary">
+              Bank details
+            </h2>
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label>Bank name</Label>
                 <Input
                   value={profile.bankName}
-                  onChange={(e) => setProfile({ ...profile, bankName: e.target.value })}
+                  onChange={(e) =>
+                    setProfile({ ...profile, bankName: e.target.value })
+                  }
                   placeholder="GTBank"
                 />
               </div>
@@ -258,7 +343,9 @@ export default function Onboarding() {
                   onChange={(e) =>
                     setProfile({
                       ...profile,
-                      accountNumber: e.target.value.replace(/\D/g, "").slice(0, 10),
+                      accountNumber: e.target.value
+                        .replace(/\D/g, "")
+                        .slice(0, 10),
                     })
                   }
                   placeholder="0123456789"
@@ -268,7 +355,9 @@ export default function Onboarding() {
                 <Label>Account name</Label>
                 <Input
                   value={profile.accountName}
-                  onChange={(e) => setProfile({ ...profile, accountName: e.target.value })}
+                  onChange={(e) =>
+                    setProfile({ ...profile, accountName: e.target.value })
+                  }
                   placeholder="Account name"
                 />
               </div>
@@ -277,27 +366,38 @@ export default function Onboarding() {
         )}
         {step === 6 && (
           <>
-            <h2 className="font-display font-semibold text-primary">Emergency contact</h2>
+            <h2 className="font-display font-semibold text-primary">
+              Emergency contact
+            </h2>
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label>Contact name</Label>
                 <Input
                   value={profile.emergencyName}
-                  onChange={(e) => setProfile({ ...profile, emergencyName: e.target.value })}
+                  onChange={(e) =>
+                    setProfile({ ...profile, emergencyName: e.target.value })
+                  }
                 />
               </div>
               <div className="space-y-2">
                 <Label>Relationship</Label>
                 <Input
                   value={profile.emergencyRelationship}
-                  onChange={(e) => setProfile({ ...profile, emergencyRelationship: e.target.value })}
+                  onChange={(e) =>
+                    setProfile({
+                      ...profile,
+                      emergencyRelationship: e.target.value,
+                    })
+                  }
                 />
               </div>
               <div className="space-y-2">
                 <Label>Phone</Label>
                 <Input
                   value={profile.emergencyPhone}
-                  onChange={(e) => setProfile({ ...profile, emergencyPhone: e.target.value })}
+                  onChange={(e) =>
+                    setProfile({ ...profile, emergencyPhone: e.target.value })
+                  }
                 />
               </div>
             </div>
@@ -305,7 +405,9 @@ export default function Onboarding() {
         )}
         {step === 7 && (
           <div className="space-y-3">
-            <h2 className="font-display font-semibold text-primary">Review & submit</h2>
+            <h2 className="font-display font-semibold text-primary">
+              Review & submit
+            </h2>
             <p className="text-sm text-muted-foreground">
               Submitting places your courier account in pending admin review.
             </p>
@@ -317,7 +419,8 @@ export default function Onboarding() {
                 ✓ Bank: {profile.bankName} · {profile.accountNumber}
               </div>
               <div>
-                ✓ Documents: selfie {uploads.selfie ? "yes" : "no"}, ID {uploads.id ? "yes" : "no"}, license{" "}
+                ✓ Documents: selfie {uploads.selfie ? "yes" : "no"}, ID{" "}
+                {uploads.id ? "yes" : "no"}, license{" "}
                 {uploads.license ? "yes" : "no"}
               </div>
             </div>
@@ -325,15 +428,25 @@ export default function Onboarding() {
         )}
       </div>
       <div className="flex justify-between">
-        <Button variant="ghost" onClick={() => setStep(Math.max(0, step - 1))} disabled={step === 0}>
+        <Button
+          variant="ghost"
+          onClick={() => setStep(Math.max(0, step - 1))}
+          disabled={step === 0}
+        >
           Back
         </Button>
         {step < steps.length - 1 ? (
-          <Button className="accent-gradient text-white shadow-glow" onClick={next}>
+          <Button
+            className="accent-gradient text-white shadow-glow"
+            onClick={next}
+          >
             Continue
           </Button>
         ) : (
-          <Button className="accent-gradient text-white shadow-glow" onClick={submit}>
+          <Button
+            className="accent-gradient text-white shadow-glow"
+            onClick={submit}
+          >
             <UserCheck className="mr-2 h-4 w-4" />
             Submit for review
           </Button>

@@ -1,8 +1,16 @@
 export const naira = (n: number) =>
-  new Intl.NumberFormat("en-NG", { style: "currency", currency: "NGN", maximumFractionDigits: 0 }).format(n);
+  new Intl.NumberFormat("en-NG", {
+    style: "currency",
+    currency: "NGN",
+    maximumFractionDigits: 0,
+  }).format(n);
 
 export const shortDate = (iso: string) =>
-  new Date(iso).toLocaleDateString("en-NG", { day: "2-digit", month: "short", year: "numeric" });
+  new Date(iso).toLocaleDateString("en-NG", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
 
 export const timeAgo = (iso: string) => {
   const s = (Date.now() - new Date(iso).getTime()) / 1000;
@@ -13,9 +21,14 @@ export const timeAgo = (iso: string) => {
 };
 
 export const genPin = () => String(Math.floor(1000 + Math.random() * 9000));
-export const genId = (p = "id") => `${p}_${Math.random().toString(36).slice(2, 9)}`;
+export const genId = (p = "id") =>
+  `${p}_${Math.random().toString(36).slice(2, 9)}`;
 
-export const priceEstimate = (distanceKm: number, protection: boolean, courierType: string) => {
+export const priceEstimate = (
+  distanceKm: number,
+  protection: boolean,
+  courierType: string,
+) => {
   const base: Record<string, number> = {
     everyday: 700,
     motorcycle: 900,

@@ -5,7 +5,14 @@ import ErrorState from "@/components/common/ErrorState";
 import LoadingState from "@/components/common/LoadingState";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { useStore } from "@/data/store";
 import { useDisputes, useUpdateDispute } from "@/hooks/useDisputes";
 import { naira, shortDate } from "@/lib/format";
@@ -49,12 +56,17 @@ export default function AdminDisputes() {
         id,
         input: {
           status: nextStatus,
-          resolution: nextStatus === "resolved" ? "Admin marked this case resolved." : undefined,
+          resolution:
+            nextStatus === "resolved"
+              ? "Admin marked this case resolved."
+              : undefined,
         },
       });
       toast.success("Dispute updated.");
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Could not update dispute.");
+      toast.error(
+        error instanceof Error ? error.message : "Could not update dispute.",
+      );
     }
   };
 
@@ -62,13 +74,22 @@ export default function AdminDisputes() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="font-display text-2xl font-bold text-primary">Disputes</h1>
+          <h1 className="font-display text-2xl font-bold text-primary">
+            Disputes
+          </h1>
           <p className="text-sm text-muted-foreground">
-            Review disputed deliveries, set case progress, and prepare refund decisions.
+            Review disputed deliveries, set case progress, and prepare refund
+            decisions.
           </p>
         </div>
-        <Button variant="outline" onClick={() => disputesQuery.refetch()} disabled={disputesQuery.isFetching}>
-          <RefreshCcw className={`mr-2 h-4 w-4 ${disputesQuery.isFetching ? "animate-spin" : ""}`} />
+        <Button
+          variant="outline"
+          onClick={() => disputesQuery.refetch()}
+          disabled={disputesQuery.isFetching}
+        >
+          <RefreshCcw
+            className={`mr-2 h-4 w-4 ${disputesQuery.isFetching ? "animate-spin" : ""}`}
+          />
           Refresh
         </Button>
       </div>
@@ -105,7 +126,9 @@ export default function AdminDisputes() {
       ) : disputesQuery.isError ? (
         <ErrorState
           message={
-            disputesQuery.error instanceof Error ? disputesQuery.error.message : "Could not load disputes."
+            disputesQuery.error instanceof Error
+              ? disputesQuery.error.message
+              : "Could not load disputes."
           }
         />
       ) : disputes.length === 0 ? (
@@ -114,8 +137,12 @@ export default function AdminDisputes() {
             <AlertTriangle className="h-6 w-6" />
           </div>
           <div>
-            <h3 className="font-display text-lg font-semibold">No disputes found</h3>
-            <p className="mt-1 text-sm text-muted-foreground">Customer/courier disputes will appear here.</p>
+            <h3 className="font-display text-lg font-semibold">
+              No disputes found
+            </h3>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Customer/courier disputes will appear here.
+            </p>
           </div>
         </div>
       ) : (
@@ -134,7 +161,9 @@ export default function AdminDisputes() {
             </TableHeader>
             <TableBody>
               {disputes.map((dispute) => {
-                const user = users.find((item) => item.id === dispute.opened_by);
+                const user = users.find(
+                  (item) => item.id === dispute.opened_by,
+                );
                 return (
                   <TableRow key={dispute.id}>
                     <TableCell>{shortDate(dispute.created_at)}</TableCell>
@@ -145,10 +174,16 @@ export default function AdminDisputes() {
                     <TableCell className="min-w-72">
                       <div className="font-medium">{dispute.reason}</div>
                       {dispute.details ? (
-                        <div className="text-xs text-muted-foreground">{dispute.details}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {dispute.details}
+                        </div>
                       ) : null}
                     </TableCell>
-                    <TableCell>{dispute.refund_amount ? naira(dispute.refund_amount) : "—"}</TableCell>
+                    <TableCell>
+                      {dispute.refund_amount
+                        ? naira(dispute.refund_amount)
+                        : "—"}
+                    </TableCell>
                     <TableCell>
                       <DisputeBadge status={dispute.status} />
                     </TableCell>
@@ -157,7 +192,10 @@ export default function AdminDisputes() {
                         value={dispute.status}
                         disabled={updateDispute.isPending}
                         onChange={(event) =>
-                          setDisputeStatus(dispute.id, event.target.value as DisputeStatus)
+                          setDisputeStatus(
+                            dispute.id,
+                            event.target.value as DisputeStatus,
+                          )
                         }
                         className="h-9 min-w-36 rounded-md border border-input bg-background px-3 py-1 text-sm disabled:cursor-not-allowed disabled:opacity-60"
                       >
