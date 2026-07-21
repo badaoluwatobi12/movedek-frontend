@@ -2,7 +2,10 @@ import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { createDeliverySchema, type CreateDeliveryInput } from "@movedek/shared";
+import {
+  createDeliverySchema,
+  type CreateDeliveryInput,
+} from "@/shared";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

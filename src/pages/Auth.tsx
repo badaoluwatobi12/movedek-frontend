@@ -15,7 +15,7 @@ import {
   registerSchema,
   type LoginInput,
   type RegisterInput,
-} from "@movedek/shared";
+} from "@/shared";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

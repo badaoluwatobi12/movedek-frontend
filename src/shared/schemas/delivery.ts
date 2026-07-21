@@ -5,7 +5,7 @@ import {
   DELIVERY_RISK_LEVELS,
   DELIVERY_STATUSES,
   PACKAGE_SIZES,
-} from "../constants/roles";
+} from "../constants/roles.js";
 
 // Mirrors apps/backend/src/modules/deliveries/delivery.validator.ts's
 // createDeliverySchema exactly (flat pickup_*/dropoff_* fields) — the actual
@@ -39,4 +39,6 @@ export const updateDeliveryStatusSchema = z.object({
 export const riskLevelSchema = z.enum(DELIVERY_RISK_LEVELS);
 
 export type CreateDeliveryInput = z.infer<typeof createDeliverySchema>;
-export type UpdateDeliveryStatusInput = z.infer<typeof updateDeliveryStatusSchema>;
+export type UpdateDeliveryStatusInput = z.infer<
+  typeof updateDeliveryStatusSchema
+>;

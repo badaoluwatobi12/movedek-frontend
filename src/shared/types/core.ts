@@ -1,4 +1,9 @@
-import type { CourierTrustLevel, DeliveryRiskLevel, DeliveryStatus, UserRole } from "../constants/roles";
+import type {
+  CourierTrustLevel,
+  DeliveryRiskLevel,
+  DeliveryStatus,
+  UserRole,
+} from "../constants/roles.js";
 
 export interface UserDTO {
   id: string;
