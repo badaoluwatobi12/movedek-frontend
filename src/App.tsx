@@ -4,9 +4,10 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { lazy, Suspense, useEffect } from "react";
-import { store } from "@/data/store";
+import { store, useSession, useStore } from "@/data/store";
 import { queryClient } from "@/services/queryClient";
 import RequireAuth from "@/routes/RequireAuth";
+import { getCourierOnboardingMode } from "@/lib/courierOnboarding";
 
 const Landing = lazy(() => import("./pages/Landing"));
 const NotFound = lazy(() => import("./pages/NotFound"));
@@ -152,6 +153,51 @@ const courierNav: NavItem[] = [
   { to: "/courier/profile", label: "Profile", icon: User },
 ];
 
+function CourierShell() {
+  const session = useSession();
+  const couriers = useStore((state) => state.couriers);
+  const courier = couriers.find(
+    (candidate) => candidate.user_id === session?.userId,
+  );
+  const onboardingMode = courier
+    ? getCourierOnboardingMode(courier)
+    : "draft";
+  const nav =
+    onboardingMode === "approved"
+      ? courierNav.filter((item) => item.to !== "/courier/onboarding")
+      : courierNav.map((item) =>
+          item.to === "/courier/onboarding" &&
+          onboardingMode === "under_review"
+            ? { ...item, label: "Verification status" }
+            : item,
+        );
+
+  return <DashboardShell role="courier" nav={nav} title="Courier" />;
+}
+
+function CourierOnboardingGate() {
+  const session = useSession();
+  const loading = useStore((state) => state.loading);
+  const couriers = useStore((state) => state.couriers);
+  const courier = couriers.find(
+    (candidate) => candidate.user_id === session?.userId,
+  );
+
+  if (loading) {
+    return (
+      <div className="grid min-h-[40vh] place-items-center text-sm text-muted-foreground">
+        Loading courier verification…
+      </div>
+    );
+  }
+
+  if (courier?.verification_status === "approved") {
+    return <Navigate to="/courier" replace />;
+  }
+
+  return <Onboarding />;
+}
+
 const merchantNav: NavItem[] = [
   { to: "/merchant", label: "Overview", icon: LayoutDashboard, end: true },
   { to: "/merchant/new", label: "New delivery", icon: Plus },
@@ -258,17 +304,12 @@ const App = () => {
                   <Route path="/app/settings" element={<CSettings />} />
                 </Route>
 
-                <Route
-                  element={
-                    <DashboardShell
-                      role="courier"
-                      nav={courierNav}
-                      title="Courier"
-                    />
-                  }
-                >
+                <Route element={<CourierShell />}>
                   <Route path="/courier" element={<CourierHome />} />
-                  <Route path="/courier/onboarding" element={<Onboarding />} />
+                  <Route
+                    path="/courier/onboarding"
+                    element={<CourierOnboardingGate />}
+                  />
                   <Route path="/courier/jobs/:id" element={<JobDetails />} />
                   <Route path="/courier/active/:id" element={<ActiveJob />} />
                   <Route

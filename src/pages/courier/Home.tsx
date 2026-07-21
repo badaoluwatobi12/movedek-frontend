@@ -23,6 +23,7 @@ import {
   Wallet,
 } from "lucide-react";
 import { toast } from "sonner";
+import { getCourierOnboardingMode } from "@/lib/courierOnboarding";
 
 const getErrorMessage = (error: unknown) =>
   error instanceof Error ? error.message : "Could not load courier deliveries.";
@@ -116,20 +117,29 @@ export default function CourierHome() {
   }
 
   if (me.verification_status !== "approved") {
+    const onboardingMode = getCourierOnboardingMode(me);
+    const isUnderReview = onboardingMode === "under_review";
+    const isRejected = onboardingMode === "rejected";
+
     return (
       <div className="card-elevated p-5 sm:p-6 md:p-8 max-w-xl mx-auto text-center">
         <div className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-warning/15 text-warning-foreground">
           <ShieldCheck className="h-7 w-7" />
         </div>
         <h2 className="mt-4 font-display text-xl font-bold text-primary">
-          {me.verification_status === "rejected"
-            ? "Verification rejected"
-            : "Verification pending"}
+          {isRejected
+            ? "Verification needs correction"
+            : isUnderReview
+              ? "Verification under review"
+              : "Complete courier onboarding"}
         </h2>
         <p className="mt-2 text-sm text-muted-foreground">
-          {me.verification_status === "rejected"
-            ? "Update your courier details and submit again for admin review."
-            : "Submit your courier profile, documents, vehicle and bank details. Admin must approve you before jobs appear."}
+          {isRejected
+            ? me.review?.reason ??
+              "Update the requested courier details and submit once more for admin review."
+            : isUnderReview
+              ? "Your application has already been submitted. You do not need to onboard again while the admin review is pending."
+              : "Complete your courier profile, documents, vehicle, and bank details once. Admin approval is required before jobs appear."}
         </p>
         <div className="mt-4 flex items-center justify-center gap-2">
           <VerificationBadge status={me.verification_status} />
@@ -137,7 +147,11 @@ export default function CourierHome() {
         </div>
         <Link to="/courier/onboarding">
           <Button className="mt-5 accent-gradient text-white shadow-glow">
-            Continue onboarding
+            {isUnderReview
+              ? "View verification status"
+              : isRejected
+                ? "Correct application"
+                : "Start onboarding"}
           </Button>
         </Link>
       </div>

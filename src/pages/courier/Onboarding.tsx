@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ShieldCheck, UserCheck } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Clock3, RefreshCcw, ShieldCheck, UserCheck } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +15,13 @@ import type {
 } from "@/lib/types";
 import { http } from "@/services/http";
 import { verificationDocumentService } from "@/services/verificationDocument.service";
+import {
+  courierOnboardingStepKey,
+  getCourierOnboardingMode,
+  getFirstIncompleteOnboardingStep,
+  isUsableVerificationDocument,
+  type CourierOnboardingProfile,
+} from "@/lib/courierOnboarding";
 
 const steps = [
   "Profile",
@@ -35,37 +42,59 @@ const vehicleTypes: CourierType[] = [
   "logistics",
 ];
 
+const emptyProfile: CourierOnboardingProfile = {
+  fullName: "",
+  address: "",
+  zones: "",
+  vehicleType: "motorcycle",
+  vehicleModel: "",
+  plate: "",
+  colour: "",
+  bankName: "",
+  accountNumber: "",
+  accountName: "",
+  emergencyName: "",
+  emergencyRelationship: "",
+  emergencyPhone: "",
+};
+
+function readStoredStep(userId: string) {
+  try {
+    const raw = window.localStorage.getItem(courierOnboardingStepKey(userId));
+    if (raw === null) return null;
+    const value = Number(raw);
+    return Number.isInteger(value) && value >= 0 && value < steps.length
+      ? value
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+function clearSavedProgress(userId: string) {
+  try {
+    window.localStorage.removeItem(courierOnboardingStepKey(userId));
+  } catch {
+    // Browser storage is a convenience only; PostgreSQL remains authoritative.
+  }
+}
+
 export default function Onboarding() {
   const nav = useNavigate();
   const session = useSession()!;
   const [step, setStep] = useState(0);
   const [documents, setDocuments] = useState<VerificationDocument[]>([]);
   const [documentsLoading, setDocumentsLoading] = useState(true);
+  const [profileReady, setProfileReady] = useState(false);
+  const [savingStep, setSavingStep] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const stepInitialized = useRef(false);
   const couriers = useStore((state) => state.couriers);
   const users = useStore((state) => state.users);
   const me = couriers.find((courier) => courier.user_id === session.userId);
   const user = users.find((candidate) => candidate.id === session.userId);
-
-  const [profile, setProfile] = useState({
-    fullName: user?.full_name ?? "",
-    address: me?.home_address ?? "",
-    zones: Array.isArray(me?.service_zones)
-      ? me.service_zones.join(", ")
-      : (me?.service_zones ?? ""),
-    vehicleType: me?.courier_type ?? ("motorcycle" as CourierType),
-    vehicleModel:
-      me?.vehicle_type === "Not added yet" ? "" : (me?.vehicle_type ?? ""),
-    plate: me?.plate_number ?? "",
-    colour: me?.vehicle_colour ?? "",
-    bankName: me?.bank_name === "Not added" ? "" : (me?.bank_name ?? ""),
-    accountNumber:
-      me?.account_number === "Not added" ? "" : (me?.account_number ?? ""),
-    accountName: me?.account_name ?? user?.full_name ?? "",
-    emergencyName: me?.emergency_contact_name ?? "",
-    emergencyRelationship: me?.emergency_contact_relationship ?? "",
-    emergencyPhone: me?.emergency_contact_phone ?? "",
-  });
+  const [profile, setProfile] =
+    useState<CourierOnboardingProfile>(emptyProfile);
 
   const reloadDocuments = useCallback(async () => {
     try {
@@ -94,6 +123,82 @@ export default function Onboarding() {
     [documents],
   );
 
+  const onboardingMode = me ? getCourierOnboardingMode(me) : "draft";
+
+  useEffect(() => {
+    if (!me || profileReady) return;
+
+    const serverProfile: CourierOnboardingProfile = {
+      fullName: user?.full_name ?? "",
+      address: me.home_address ?? "",
+      zones: Array.isArray(me.service_zones)
+        ? me.service_zones.join(", ")
+        : (me.service_zones ?? ""),
+      vehicleType: me.courier_type ?? "motorcycle",
+      vehicleModel:
+        me.vehicle_type === "Not added yet" ? "" : (me.vehicle_type ?? ""),
+      plate: me.plate_number ?? "",
+      colour: me.vehicle_colour ?? "",
+      bankName: me.bank_name === "Not added" ? "" : (me.bank_name ?? ""),
+      accountNumber:
+        me.account_number === "Not added" ? "" : (me.account_number ?? ""),
+      accountName: me.account_name ?? user?.full_name ?? "",
+      emergencyName: me.emergency_contact_name ?? "",
+      emergencyRelationship: me.emergency_contact_relationship ?? "",
+      emergencyPhone: me.emergency_contact_phone ?? "",
+    };
+    setProfile(serverProfile);
+    setProfileReady(true);
+  }, [me, profileReady, session.userId, user]);
+
+
+  useEffect(() => {
+    if (
+      !profileReady ||
+      documentsLoading ||
+      !me ||
+      stepInitialized.current ||
+      onboardingMode === "under_review" ||
+      onboardingMode === "approved"
+    ) {
+      return;
+    }
+
+    const firstIncomplete = getFirstIncompleteOnboardingStep({
+      profile,
+      documents: documentByType,
+    });
+    const resumeTarget =
+      onboardingMode === "rejected" && firstIncomplete === steps.length - 1
+        ? 0
+        : firstIncomplete;
+    const savedStep = readStoredStep(session.userId);
+    setStep(
+      savedStep === null ? resumeTarget : Math.min(savedStep, resumeTarget),
+    );
+    stepInitialized.current = true;
+  }, [
+    documentByType,
+    documentsLoading,
+    me,
+    onboardingMode,
+    profile,
+    profileReady,
+    session.userId,
+  ]);
+
+  useEffect(() => {
+    if (!stepInitialized.current || onboardingMode === "under_review") return;
+    try {
+      window.localStorage.setItem(
+        courierOnboardingStepKey(session.userId),
+        String(step),
+      );
+    } catch {
+      // Continue without local step persistence when storage is unavailable.
+    }
+  }, [onboardingMode, session.userId, step]);
+
   if (!me) {
     return (
       <EmptyState
@@ -115,10 +220,16 @@ export default function Onboarding() {
     ) {
       return "Complete your name, home address, and preferred zones.";
     }
-    if (step === 1 && !documentByType.selfie) {
+    if (
+      step === 1 &&
+      !isUsableVerificationDocument(documentByType.selfie)
+    ) {
       return "Upload a real selfie before continuing.";
     }
-    if (step === 2 && !documentByType.government_id) {
+    if (
+      step === 2 &&
+      !isUsableVerificationDocument(documentByType.government_id)
+    ) {
       return "Upload a real government ID before continuing.";
     }
     if (
@@ -129,7 +240,11 @@ export default function Onboarding() {
     ) {
       return "Add your courier type, movement or vehicle type, and plate or identifier.";
     }
-    if (step === 4 && licenseRequired && !documentByType.driver_license) {
+    if (
+      step === 4 &&
+      licenseRequired &&
+      !isUsableVerificationDocument(documentByType.driver_license)
+    ) {
       return "Upload a driver licence for this courier type.";
     }
     if (
@@ -152,13 +267,79 @@ export default function Onboarding() {
     return "";
   };
 
-  const next = () => {
+  const saveCurrentStep = async () => {
+    if (step === 0) {
+      await http("/users/me", {
+        method: "PATCH",
+        body: JSON.stringify({ full_name: profile.fullName.trim() }),
+      });
+      await http(`/couriers/${encodeURIComponent(me.id)}`, {
+        method: "PATCH",
+        body: JSON.stringify({
+          home_address: profile.address.trim(),
+          service_zones: profile.zones
+            .split(",")
+            .map((zone) => zone.trim())
+            .filter(Boolean),
+        }),
+      });
+    }
+
+    if (step === 3) {
+      await http(`/couriers/${encodeURIComponent(me.id)}`, {
+        method: "PATCH",
+        body: JSON.stringify({
+          courier_type: profile.vehicleType,
+          vehicle_type: profile.vehicleModel.trim(),
+          plate_number: profile.plate.trim(),
+          vehicle_colour: profile.colour.trim(),
+        }),
+      });
+    }
+
+    if (step === 5) {
+      await http(`/couriers/${encodeURIComponent(me.id)}`, {
+        method: "PATCH",
+        body: JSON.stringify({
+          bank_name: profile.bankName.trim(),
+          account_number: profile.accountNumber.trim(),
+          account_name: profile.accountName.trim(),
+        }),
+      });
+    }
+
+    if (step === 6) {
+      await http(`/couriers/${encodeURIComponent(me.id)}`, {
+        method: "PATCH",
+        body: JSON.stringify({
+          emergency_contact_name: profile.emergencyName.trim(),
+          emergency_contact_relationship: profile.emergencyRelationship.trim(),
+          emergency_contact_phone: profile.emergencyPhone.trim(),
+        }),
+      });
+    }
+  };
+
+  const next = async () => {
     const error = validateStep();
     if (error) {
       toast.error(error);
       return;
     }
-    setStep((current) => Math.min(steps.length - 1, current + 1));
+
+    setSavingStep(true);
+    try {
+      await saveCurrentStep();
+      setStep((current) => Math.min(steps.length - 1, current + 1));
+    } catch (saveError) {
+      toast.error(
+        saveError instanceof Error
+          ? saveError.message
+          : "Could not save this onboarding step.",
+      );
+    } finally {
+      setSavingStep(false);
+    }
   };
 
   const submit = async () => {
@@ -167,11 +348,17 @@ export default function Onboarding() {
       toast.error(error);
       return;
     }
-    if (!documentByType.selfie || !documentByType.government_id) {
+    if (
+      !isUsableVerificationDocument(documentByType.selfie) ||
+      !isUsableVerificationDocument(documentByType.government_id)
+    ) {
       toast.error("Upload all required verification documents.");
       return;
     }
-    if (licenseRequired && !documentByType.driver_license) {
+    if (
+      licenseRequired &&
+      !isUsableVerificationDocument(documentByType.driver_license)
+    ) {
       toast.error("A driver licence is required for this courier type.");
       return;
     }
@@ -203,11 +390,12 @@ export default function Onboarding() {
           onboarding_submitted_at: new Date().toISOString(),
         }),
       });
+      clearSavedProgress(session.userId);
       await store.refresh();
       toast.success(
         "Your profile and real documents were submitted for admin review.",
       );
-      nav("/courier");
+      nav("/courier", { replace: true });
     } catch (submitError) {
       toast.error(
         submitError instanceof Error
@@ -219,6 +407,58 @@ export default function Onboarding() {
     }
   };
 
+  if (onboardingMode === "approved") {
+    return (
+      <EmptyState
+        icon={CheckCircle2}
+        title="Courier verification complete"
+        desc="Your account is approved. You do not need to complete onboarding again."
+        action={<Button onClick={() => nav("/courier", { replace: true })}>Open dashboard</Button>}
+      />
+    );
+  }
+
+  if (onboardingMode === "under_review") {
+    return (
+      <div className="mx-auto max-w-2xl space-y-6">
+        <div className="card-elevated p-6 text-center sm:p-8">
+          <div className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-warning/15 text-warning-foreground">
+            <Clock3 className="h-7 w-7" />
+          </div>
+          <h1 className="mt-4 font-display text-2xl font-bold text-primary">
+            Verification under review
+          </h1>
+          <p className="mt-2 text-sm leading-6 text-muted-foreground">
+            Your onboarding was submitted
+            {me.onboarding_submitted_at
+              ? ` on ${new Date(me.onboarding_submitted_at).toLocaleDateString()}`
+              : ""}
+            . You do not need to submit it again. MoveDek will notify you after an administrator reviews it.
+          </p>
+          <div className="mt-6 flex flex-wrap justify-center gap-3">
+            <Button variant="outline" onClick={() => void store.refresh()}>
+              <RefreshCcw className="mr-2 h-4 w-4" />
+              Refresh status
+            </Button>
+            <Button onClick={() => nav("/courier", { replace: true })}>
+              Return to dashboard
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!profileReady || documentsLoading) {
+    return (
+      <EmptyState
+        icon={RefreshCcw}
+        title="Loading onboarding progress"
+        desc="Restoring your saved courier details and verification documents."
+      />
+    );
+  }
+
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -227,14 +467,30 @@ export default function Onboarding() {
             Courier onboarding
           </h1>
           <p className="text-sm text-muted-foreground">
-            Complete your profile and upload real verification documents for
-            private admin review.
+            {onboardingMode === "rejected"
+              ? "Correct the requested details and resubmit only once."
+              : "Complete your profile and upload real verification documents for private admin review."}
           </p>
         </div>
         <span className="chip bg-muted capitalize">
           {me.verification_status}
         </span>
       </div>
+
+      {onboardingMode === "rejected" && (
+        <div className="flex gap-3 rounded-xl border border-destructive/25 bg-destructive/5 p-4 text-sm">
+          <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-destructive" />
+          <div>
+            <div className="font-semibold text-destructive">
+              Your application needs correction
+            </div>
+            <p className="mt-1 text-muted-foreground">
+              {me.review?.reason ??
+                "Review your profile and documents, replace rejected items, then submit again."}
+            </p>
+          </div>
+        </div>
+      )}
 
       <Stepper steps={steps} current={step} />
 
@@ -492,9 +748,9 @@ export default function Onboarding() {
                 ✓ Bank: {profile.bankName} · {profile.accountNumber}
               </div>
               <div>
-                {documentByType.selfie ? "✓" : "✗"} Selfie ·{" "}
-                {documentByType.government_id ? "✓" : "✗"} Government ID ·{" "}
-                {documentByType.driver_license
+                {isUsableVerificationDocument(documentByType.selfie) ? "✓" : "✗"} Selfie ·{" "}
+                {isUsableVerificationDocument(documentByType.government_id) ? "✓" : "✗"} Government ID ·{" "}
+                {isUsableVerificationDocument(documentByType.driver_license)
                   ? "✓ Driver licence"
                   : licenseRequired
                     ? "✗ Driver licence"
@@ -512,17 +768,17 @@ export default function Onboarding() {
         <Button
           variant="ghost"
           onClick={() => setStep((current) => Math.max(0, current - 1))}
-          disabled={step === 0 || submitting}
+          disabled={step === 0 || submitting || savingStep}
         >
           Back
         </Button>
         {step < steps.length - 1 ? (
           <Button
             className="accent-gradient text-white shadow-glow"
-            onClick={next}
-            disabled={documentsLoading}
+            onClick={() => void next()}
+            disabled={documentsLoading || savingStep}
           >
-            Continue
+            {savingStep ? "Saving…" : "Continue"}
           </Button>
         ) : (
           <Button
