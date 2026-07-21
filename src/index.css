@@ -53,7 +53,11 @@
       hsl(151 70% 29%) 55%,
       hsl(142 69% 38%) 100%
     );
-    --gradient-accent: linear-gradient(135deg, hsl(151 70% 32%), hsl(142 69% 45%));
+    --gradient-accent: linear-gradient(
+      135deg,
+      hsl(151 70% 32%),
+      hsl(142 69% 45%)
+    );
     --gradient-card: linear-gradient(180deg, hsl(0 0% 100%), hsl(215 30% 98%));
 
     --shadow-sm: 0 1px 2px hsl(219 40% 20% / 0.06);
@@ -68,6 +72,34 @@
     --sidebar-accent: 151 55% 27%;
     --sidebar-accent-foreground: 210 40% 96%;
     --sidebar-border: 151 45% 30%;
+    --sidebar-ring: 142 69% 45%;
+  }
+  .dark {
+    --background: 154 35% 7%;
+    --foreground: 210 40% 96%;
+    --card: 154 30% 10%;
+    --card-foreground: 210 40% 96%;
+    --popover: 154 30% 10%;
+    --popover-foreground: 210 40% 96%;
+    --primary: 142 69% 45%;
+    --primary-foreground: 154 45% 8%;
+    --secondary: 154 20% 16%;
+    --secondary-foreground: 210 40% 96%;
+    --muted: 154 18% 15%;
+    --muted-foreground: 150 10% 68%;
+    --accent: 151 70% 32%;
+    --accent-foreground: 0 0% 100%;
+    --border: 154 18% 22%;
+    --input: 154 18% 22%;
+    --ring: 142 69% 45%;
+    --gradient-card: linear-gradient(180deg, hsl(154 30% 10%), hsl(154 26% 8%));
+    --sidebar-background: 154 40% 6%;
+    --sidebar-foreground: 210 40% 96%;
+    --sidebar-primary: 142 69% 45%;
+    --sidebar-primary-foreground: 154 45% 8%;
+    --sidebar-accent: 154 25% 14%;
+    --sidebar-accent-foreground: 210 40% 96%;
+    --sidebar-border: 154 20% 20%;
     --sidebar-ring: 142 69% 45%;
   }
 }
@@ -180,8 +212,16 @@
 @layer components {
   .auth-portal-hero {
     background:
-      radial-gradient(circle at 15% 15%, rgb(52 211 153 / 0.28), transparent 28%),
-      radial-gradient(circle at 85% 80%, rgb(163 230 53 / 0.18), transparent 30%),
+      radial-gradient(
+        circle at 15% 15%,
+        rgb(52 211 153 / 0.28),
+        transparent 28%
+      ),
+      radial-gradient(
+        circle at 85% 80%,
+        rgb(163 230 53 / 0.18),
+        transparent 30%
+      ),
       linear-gradient(145deg, #064e3b 0%, #047857 48%, #059669 100%);
   }
 
@@ -197,13 +237,24 @@
 @layer components {
   .landing-hero {
     background:
-      radial-gradient(circle at 82% 16%, rgb(52 211 153 / 0.32), transparent 34%),
-      radial-gradient(circle at 18% 88%, rgb(16 185 129 / 0.18), transparent 30%),
+      radial-gradient(
+        circle at 82% 16%,
+        rgb(52 211 153 / 0.32),
+        transparent 34%
+      ),
+      radial-gradient(
+        circle at 18% 88%,
+        rgb(16 185 129 / 0.18),
+        transparent 30%
+      ),
       linear-gradient(120deg, #043f30 0%, #006b48 48%, #08a85f 100%);
   }
 
   .landing-dot-grid {
-    background-image: radial-gradient(rgb(167 243 208 / 0.38) 1.2px, transparent 1.2px);
+    background-image: radial-gradient(
+      rgb(167 243 208 / 0.38) 1.2px,
+      transparent 1.2px
+    );
     background-size: 26px 26px;
     mask-image: linear-gradient(to right, black, transparent 56%);
   }
@@ -218,8 +269,17 @@
     border-radius: 50%;
     pointer-events: none;
   }
-  .landing-route-one { right: 7%; top: 7%; transform: rotate(24deg); }
-  .landing-route-two { right: 34%; bottom: 2%; transform: rotate(205deg) scale(.78); opacity: .55; }
+  .landing-route-one {
+    right: 7%;
+    top: 7%;
+    transform: rotate(24deg);
+  }
+  .landing-route-two {
+    right: 34%;
+    bottom: 2%;
+    transform: rotate(205deg) scale(0.78);
+    opacity: 0.55;
+  }
 
   .landing-phone {
     position: absolute;
@@ -232,37 +292,153 @@
     transform: translate(-39%, -50%) rotate(5deg);
     border-radius: 48px;
     background: linear-gradient(145deg, #111827, #020617 54%, #334155);
-    box-shadow: 0 42px 80px -26px rgb(2 44 34 / .9), inset 0 0 0 2px rgb(255 255 255 / .16);
+    box-shadow:
+      0 42px 80px -26px rgb(2 44 34 / 0.9),
+      inset 0 0 0 2px rgb(255 255 255 / 0.16);
   }
-  .landing-phone-screen { position: relative; height: 100%; overflow: hidden; border-radius: 39px; background: #fff; }
-  .landing-phone-notch { position: absolute; z-index: 10; left: 50%; top: 17px; width: 92px; height: 23px; transform: translateX(-50%); border-radius: 999px; background: #020617; }
+  .landing-phone-screen {
+    position: relative;
+    height: 100%;
+    overflow: hidden;
+    border-radius: 39px;
+    background: #fff;
+  }
+  .landing-phone-notch {
+    position: absolute;
+    z-index: 10;
+    left: 50%;
+    top: 17px;
+    width: 92px;
+    height: 23px;
+    transform: translateX(-50%);
+    border-radius: 999px;
+    background: #020617;
+  }
   .landing-map {
     position: relative;
     height: 215px;
     overflow: hidden;
     background-color: #f1f5f9;
     background-image:
-      linear-gradient(30deg, transparent 45%, rgb(203 213 225 / .65) 46%, transparent 48%),
-      linear-gradient(145deg, transparent 43%, rgb(203 213 225 / .55) 44%, transparent 47%),
-      linear-gradient(90deg, transparent 49%, rgb(226 232 240 / .9) 50%, transparent 52%);
-    background-size: 90px 76px, 120px 98px, 70px 70px;
+      linear-gradient(
+        30deg,
+        transparent 45%,
+        rgb(203 213 225 / 0.65) 46%,
+        transparent 48%
+      ),
+      linear-gradient(
+        145deg,
+        transparent 43%,
+        rgb(203 213 225 / 0.55) 44%,
+        transparent 47%
+      ),
+      linear-gradient(
+        90deg,
+        transparent 49%,
+        rgb(226 232 240 / 0.9) 50%,
+        transparent 52%
+      );
+    background-size:
+      90px 76px,
+      120px 98px,
+      70px 70px;
   }
-  .landing-map-label { position: absolute; z-index: 2; color: #94a3b8; font-size: 10px; font-weight: 800; letter-spacing: .1em; }
-  .landing-map-label-one { left: 42%; top: 20%; }
-  .landing-map-label-two { left: 13%; top: 48%; }
-  .landing-map-label-three { right: 10%; bottom: 24%; }
-  .landing-delivery-card { margin: -18px 14px 0; position: relative; z-index: 4; border-radius: 22px; background: #fff; padding: 18px; box-shadow: 0 18px 45px -22px rgb(15 23 42 / .35); }
+  .landing-map-label {
+    position: absolute;
+    z-index: 2;
+    color: #94a3b8;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+  }
+  .landing-map-label-one {
+    left: 42%;
+    top: 20%;
+  }
+  .landing-map-label-two {
+    left: 13%;
+    top: 48%;
+  }
+  .landing-map-label-three {
+    right: 10%;
+    bottom: 24%;
+  }
+  .landing-delivery-card {
+    margin: -18px 14px 0;
+    position: relative;
+    z-index: 4;
+    border-radius: 22px;
+    background: #fff;
+    padding: 18px;
+    box-shadow: 0 18px 45px -22px rgb(15 23 42 / 0.35);
+  }
 
-  .landing-pin { position: absolute; z-index: 2; display: grid; place-items: center; border-radius: 999px 999px 999px 2px; background: linear-gradient(145deg, #34d399, #047857); color: white; box-shadow: 0 22px 40px -15px rgb(6 78 59 / .8); transform: rotate(-45deg); }
-  .landing-pin svg { transform: rotate(45deg); }
-  .landing-pin-one { right: 2%; top: 25%; width: 74px; height: 74px; }
-  .landing-pin-two { left: 11%; top: 14%; width: 52px; height: 52px; opacity: .9; }
-  .landing-scooter { position: absolute; z-index: 3; left: 5%; bottom: 2%; filter: drop-shadow(0 24px 18px rgb(2 44 34 / .55)); transform: rotate(-4deg); }
-  .landing-parcel { position: absolute; z-index: 3; display: grid; place-items: center; width: 72px; height: 72px; border-radius: 18px; color: rgb(209 250 229); background: linear-gradient(145deg, rgb(16 185 129 / .8), rgb(4 120 87 / .9)); border: 1px solid rgb(255 255 255 / .18); box-shadow: 0 22px 45px -20px rgb(2 44 34 / .75); }
-  .landing-parcel-one { right: 2%; bottom: 17%; transform: rotate(8deg); }
-  .landing-parcel-two { right: 14%; bottom: 1%; transform: rotate(-7deg) scale(.82); }
+  .landing-pin {
+    position: absolute;
+    z-index: 2;
+    display: grid;
+    place-items: center;
+    border-radius: 999px 999px 999px 2px;
+    background: linear-gradient(145deg, #34d399, #047857);
+    color: white;
+    box-shadow: 0 22px 40px -15px rgb(6 78 59 / 0.8);
+    transform: rotate(-45deg);
+  }
+  .landing-pin svg {
+    transform: rotate(45deg);
+  }
+  .landing-pin-one {
+    right: 2%;
+    top: 25%;
+    width: 74px;
+    height: 74px;
+  }
+  .landing-pin-two {
+    left: 11%;
+    top: 14%;
+    width: 52px;
+    height: 52px;
+    opacity: 0.9;
+  }
+  .landing-scooter {
+    position: absolute;
+    z-index: 3;
+    left: 5%;
+    bottom: 2%;
+    filter: drop-shadow(0 24px 18px rgb(2 44 34 / 0.55));
+    transform: rotate(-4deg);
+  }
+  .landing-parcel {
+    position: absolute;
+    z-index: 3;
+    display: grid;
+    place-items: center;
+    width: 72px;
+    height: 72px;
+    border-radius: 18px;
+    color: rgb(209 250 229);
+    background: linear-gradient(
+      145deg,
+      rgb(16 185 129 / 0.8),
+      rgb(4 120 87 / 0.9)
+    );
+    border: 1px solid rgb(255 255 255 / 0.18);
+    box-shadow: 0 22px 45px -20px rgb(2 44 34 / 0.75);
+  }
+  .landing-parcel-one {
+    right: 2%;
+    bottom: 17%;
+    transform: rotate(8deg);
+  }
+  .landing-parcel-two {
+    right: 14%;
+    bottom: 1%;
+    transform: rotate(-7deg) scale(0.82);
+  }
 }
 
 @media (max-width: 1023px) {
-  .landing-hero { min-height: auto; }
+  .landing-hero {
+    min-height: auto;
+  }
 }
