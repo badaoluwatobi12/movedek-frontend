@@ -17,6 +17,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Star, Coins, Package, Wallet, RefreshCcw, Download, Search } from "lucide-react";
 import { toast } from "sonner";
+import PaginationBar from "@/components/common/PaginationBar";
+import { useClientPagination } from "@/hooks/useClientPagination";
 
 export function CourierEarnings() {
   const session = useSession()!;
@@ -24,13 +26,11 @@ export function CourierEarnings() {
   const walletQuery = useWallet();
   const historyQuery = useDeliveries({ scope: "history", limit: 100 });
   const me = couriers.find((c) => c.user_id === session.userId);
-  if (!me)
-    return <EmptyState icon={Package} title="Courier profile not found" />;
 
   const wallet = walletQuery.data?.wallet;
   const walletTx = walletQuery.data?.transactions ?? [];
   const completedDeliveries = (historyQuery.data?.items ?? []).filter(
-    (d) => d.courier_id === me.id && d.status === "delivered",
+    (d) => d.courier_id === me?.id && d.status === "delivered",
   );
   const payoutTransactions = wallet
     ? walletTx.filter(
@@ -40,6 +40,9 @@ export function CourierEarnings() {
           tx.description.startsWith("Courier payout"),
       )
     : [];
+  const payoutPage = useClientPagination(payoutTransactions, 10);
+  if (!me)
+    return <EmptyState icon={Package} title="Courier profile not found" />;
   const totalEarned = completedDeliveries.reduce(
     (a, d) => a + d.courier_payout,
     0,
@@ -112,7 +115,7 @@ export function CourierEarnings() {
                 </TableCell>
               </TableRow>
             )}
-            {payoutTransactions.map((tx) => (
+            {payoutPage.items.map((tx) => (
               <TableRow key={tx.id}>
                 <TableCell>{shortDate(tx.created_at)}</TableCell>
                 <TableCell>{tx.description}</TableCell>
@@ -166,6 +169,8 @@ export function CourierWithdrawals() {
     }
   };
 
+  const withdrawalPage = useClientPagination(withdrawals, 10);
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
@@ -215,7 +220,7 @@ export function CourierWithdrawals() {
                 </TableCell>
               </TableRow>
             )}
-            {withdrawals.map((w) => (
+            {withdrawalPage.items.map((w) => (
               <TableRow key={w.id}>
                 <TableCell>{shortDate(w.created_at)}</TableCell>
                 <TableCell>{naira(w.amount)}</TableCell>
@@ -244,6 +249,8 @@ export function CourierRatings() {
   const list = ratings.filter(
     (r) => r.to_user_id === me.user_id || r.to_user_id === me.id,
   );
+  const ratingPage = useClientPagination(list, 10);
+
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-3">
@@ -262,7 +269,7 @@ export function CourierRatings() {
           desc="Ratings will appear after customers rate completed deliveries."
         />
       ) : (
-        list.map((r) => (
+        ratingPage.items.map((r) => (
           <div key={r.id} className="card-elevated p-4">
             <div className="flex items-center justify-between">
               <div className="font-medium text-primary">
@@ -283,6 +290,7 @@ export function CourierRatings() {
           </div>
         ))
       )}
+      <PaginationBar meta={ratingPage.pagination} onPageChange={ratingPage.setPage} />
     </div>
   );
 }
@@ -317,6 +325,8 @@ export function CourierHistory() {
     void store.refresh();
     void historyQuery.refetch();
   };
+
+  const historyPage = useClientPagination(filtered, 20, [query, status, dateFrom]);
 
   const exportCsv = () => {
     const escape = (value: unknown) => `"${String(value ?? "").replaceAll('"', '""')}"`;
@@ -382,7 +392,7 @@ export function CourierHistory() {
             {historyQuery.isLoading && <TableRow><TableCell colSpan={5} className="py-8 text-center text-muted-foreground">Loading delivery history...</TableCell></TableRow>}
             {historyQuery.error && <TableRow><TableCell colSpan={5} className="py-8 text-center text-destructive">Could not load delivery history.</TableCell></TableRow>}
             {!historyQuery.isLoading && !historyQuery.error && filtered.length === 0 && <TableRow><TableCell colSpan={5} className="py-8 text-center text-muted-foreground">No deliveries match these filters.</TableCell></TableRow>}
-            {filtered.map((delivery) => (
+            {historyPage.items.map((delivery) => (
               <TableRow key={delivery.id}>
                 <TableCell>{shortDate(delivery.completed_at ?? delivery.created_at)}</TableCell>
                 <TableCell>{delivery.item_name}</TableCell>

@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { RiskBadge, StatusBadge } from "@/components/badges";
 import ErrorState from "@/components/common/ErrorState";
 import LoadingState from "@/components/common/LoadingState";
+import PaginationBar from "@/components/common/PaginationBar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -41,13 +42,14 @@ const filters: { id: "all" | DeliveryStatus; label: string }[] = [
 export default function AdminDeliveries() {
   const [status, setStatus] = useState<"all" | DeliveryStatus>("all");
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
   const users = useStore((state) => state.users);
   const couriers = useStore((state) => state.couriers);
   const query = useDeliveries({
     status: status === "all" ? undefined : status,
     search: search.trim() || undefined,
-    page: 1,
-    limit: 100,
+    page,
+    limit: 25,
   });
   const assignCourier = useAssignCourier();
   const updateStatus = useUpdateDeliveryStatus();
@@ -125,7 +127,7 @@ export default function AdminDeliveries() {
           {filters.map((item) => (
             <button
               key={item.id}
-              onClick={() => setStatus(item.id)}
+              onClick={() => { setStatus(item.id); setPage(1); }}
               className={`chip ${
                 status === item.id
                   ? "bg-primary text-primary-foreground"
@@ -140,7 +142,7 @@ export default function AdminDeliveries() {
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             value={search}
-            onChange={(event) => setSearch(event.target.value)}
+            onChange={(event) => { setSearch(event.target.value); setPage(1); }}
             placeholder="Search deliveries"
             className="pl-9"
           />
@@ -289,6 +291,7 @@ export default function AdminDeliveries() {
               })}
             </TableBody>
           </Table>
+          {query.data && <PaginationBar meta={query.data.pagination} onPageChange={setPage} disabled={query.isFetching} />}
         </div>
       )}
     </div>

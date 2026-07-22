@@ -5,6 +5,7 @@ import { StatusBadge, PaymentBadge } from "@/components/badges";
 import { EmptyState } from "@/components/common";
 import ErrorState from "@/components/common/ErrorState";
 import LoadingState from "@/components/common/LoadingState";
+import PaginationBar from "@/components/common/PaginationBar";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -35,11 +36,12 @@ const statuses: ("all" | DeliveryStatus)[] = [
 
 export default function DeliveryHistory() {
   const [status, setStatus] = useState<"all" | DeliveryStatus>("all");
+  const [page, setPage] = useState(1);
   const payments = useStore((s) => s.payments);
   const query = useDeliveries({
     status: status === "all" ? undefined : status,
-    page: 1,
-    limit: 50,
+    page,
+    limit: 20,
   });
   const deliveries = query.data?.items ?? [];
 
@@ -77,7 +79,7 @@ export default function DeliveryHistory() {
         {statuses.map((item) => (
           <button
             key={item}
-            onClick={() => setStatus(item)}
+            onClick={() => { setStatus(item); setPage(1); }}
             className={`rounded-full border px-3 py-1 text-xs capitalize ${
               status === item
                 ? "border-accent bg-accent/10 text-accent"
@@ -164,6 +166,7 @@ export default function DeliveryHistory() {
               })}
             </TableBody>
           </Table>
+          {query.data && <PaginationBar meta={query.data.pagination} onPageChange={setPage} disabled={query.isFetching} />}
         </div>
       )}
     </div>

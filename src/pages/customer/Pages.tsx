@@ -15,6 +15,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import PaginationBar from "@/components/common/PaginationBar";
+import { useClientPagination } from "@/hooks/useClientPagination";
 import {
   MapPin,
   Plus,
@@ -61,6 +63,8 @@ export function WalletPage() {
       );
     }
   };
+
+  const transactionPage = useClientPagination(tx, 15);
 
   return (
     <div className="space-y-6">
@@ -126,7 +130,7 @@ export function WalletPage() {
                 </TableCell>
               </TableRow>
             )}
-            {tx.map((t) => (
+            {transactionPage.items.map((t) => (
               <TableRow key={t.id}>
                 <TableCell>{shortDate(t.created_at)}</TableCell>
                 <TableCell>{t.description}</TableCell>
@@ -210,6 +214,8 @@ export function Addresses() {
     else toast.error(result.message);
   };
 
+  const addressPage = useClientPagination(saved, 12);
+
   return (
     <div className="space-y-6">
       <div>
@@ -257,7 +263,7 @@ export function Addresses() {
         />
       ) : (
         <div className="grid gap-3 sm:grid-cols-2">
-          {saved.map((s) => (
+          {addressPage.items.map((s) => (
             <div key={s.id} className="card-elevated p-4">
               {editingId === s.id ? (
                 <div className="space-y-3">
@@ -315,6 +321,7 @@ export function Addresses() {
               )}
             </div>
           ))}
+          <PaginationBar meta={addressPage.pagination} onPageChange={addressPage.setPage} />
         </div>
       )}
     </div>
@@ -343,6 +350,8 @@ export function Support() {
     setMessage("");
     toast.success("Ticket submitted");
   };
+
+  const supportPage = useClientPagination(myTickets, 10);
 
   return (
     <div className="max-w-2xl space-y-6">
@@ -391,7 +400,7 @@ export function Support() {
         {myTickets.length === 0 ? (
           <EmptyState icon={LifeBuoy} title="No support tickets yet" />
         ) : (
-          myTickets.map((t) => (
+          supportPage.items.map((t) => (
             <div key={t.id} className="card-elevated p-4">
               <div className="flex items-center justify-between gap-3">
                 <div className="font-medium text-primary">{t.subject}</div>
@@ -410,6 +419,7 @@ export function Support() {
             </div>
           ))
         )}
+        <PaginationBar meta={supportPage.pagination} onPageChange={supportPage.setPage} />
       </div>
     </div>
   );

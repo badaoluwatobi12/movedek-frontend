@@ -53,6 +53,8 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { toast } from "sonner";
+import PaginationBar from "@/components/common/PaginationBar";
+import { useClientPagination } from "@/hooks/useClientPagination";
 
 const deliveryStatuses: DeliveryStatus[] = [
   "pending",
@@ -316,6 +318,7 @@ export function AdminUsers() {
       .toLowerCase()
       .includes(q.toLowerCase()),
   );
+  const userPage = useClientPagination(list, 20, [q]);
   const toggle = (id: string, status: "active" | "suspended") => {
     store.setUserStatus(id, status);
     toast.success(`User ${status}`);
@@ -375,7 +378,7 @@ export function AdminUsers() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {list.map((u) => {
+              {userPage.items.map((u) => {
                 const pilotStatus = getPilotAccessStatus(u);
                 const updatingPilot = pilotUpdating === u.id;
                 return (
@@ -458,6 +461,7 @@ export function AdminUsers() {
               })}
             </TableBody>
           </Table>
+          <PaginationBar meta={userPage.pagination} onPageChange={userPage.setPage} />
         </div>
       )}
     </div>
@@ -472,6 +476,8 @@ export function AdminCouriers() {
     filter === "all"
       ? couriers
       : couriers.filter((c) => c.verification_status === filter);
+  const courierPage = useClientPagination(list, 20, [filter]);
+
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -513,7 +519,7 @@ export function AdminCouriers() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {list.map((c) => {
+              {courierPage.items.map((c) => {
                 const u = users.find((user) => user.id === c.user_id);
                 return (
                   <TableRow key={c.id}>
@@ -583,6 +589,7 @@ export function AdminCouriers() {
               })}
             </TableBody>
           </Table>
+          <PaginationBar meta={courierPage.pagination} onPageChange={courierPage.setPage} />
         </div>
       )}
     </div>
@@ -899,6 +906,8 @@ export function AdminMap() {
 export function AdminPayments() {
   const payments = useStore((s) => s.payments);
   const users = useStore((s) => s.users);
+  const paymentPage = useClientPagination(payments, 20);
+
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -929,7 +938,7 @@ export function AdminPayments() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {payments.map((p) => (
+              {paymentPage.items.map((p) => (
                 <TableRow key={p.id}>
                   <TableCell className="font-mono text-xs">
                     {p.reference}
@@ -960,6 +969,7 @@ export function AdminPayments() {
               ))}
             </TableBody>
           </Table>
+          <PaginationBar meta={paymentPage.pagination} onPageChange={paymentPage.setPage} />
         </div>
       )}
     </div>
@@ -974,6 +984,8 @@ export function AdminWithdrawals() {
     store.setWithdrawalStatus(id, status);
     toast.success(`Marked ${status}`);
   };
+  const withdrawalPage = useClientPagination(list, 20);
+
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -1002,7 +1014,7 @@ export function AdminWithdrawals() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {list.map((w) => {
+              {withdrawalPage.items.map((w) => {
                 const c = couriers.find((x) => x.id === w.courier_id);
                 return (
                   <TableRow key={w.id}>
@@ -1042,6 +1054,7 @@ export function AdminWithdrawals() {
               })}
             </TableBody>
           </Table>
+          <PaginationBar meta={withdrawalPage.pagination} onPageChange={withdrawalPage.setPage} />
         </div>
       )}
     </div>
@@ -1051,6 +1064,8 @@ export function AdminWithdrawals() {
 export function AdminDisputes() {
   const users = useStore((s) => s.users);
   const disputes = useStore((s) => s.disputes);
+  const disputePage = useClientPagination(disputes, 20);
+
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -1080,7 +1095,7 @@ export function AdminDisputes() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {disputes.map((d) => (
+              {disputePage.items.map((d) => (
                 <TableRow key={d.id}>
                   <TableCell>{shortDate(d.created_at)}</TableCell>
                   <TableCell className="font-mono text-xs">
@@ -1109,6 +1124,7 @@ export function AdminDisputes() {
               ))}
             </TableBody>
           </Table>
+          <PaginationBar meta={disputePage.pagination} onPageChange={disputePage.setPage} />
         </div>
       )}
     </div>
@@ -1124,6 +1140,8 @@ export function AdminFraud() {
       d.status === "disputed" ||
       d.item_value >= 100000,
   );
+  const fraudPage = useClientPagination(alerts, 20);
+
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -1145,7 +1163,7 @@ export function AdminFraud() {
         />
       ) : (
         <div className="grid gap-3">
-          {alerts.map((d) => (
+          {fraudPage.items.map((d) => (
             <div key={d.id} className="card-elevated p-4">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
@@ -1164,6 +1182,7 @@ export function AdminFraud() {
               </div>
             </div>
           ))}
+          <PaginationBar meta={fraudPage.pagination} onPageChange={fraudPage.setPage} />
         </div>
       )}
     </div>
@@ -1304,6 +1323,8 @@ export function AdminTrust() {
 export function AdminSupport() {
   const tickets = useStore((s) => s.tickets);
   const users = useStore((s) => s.users);
+  const ticketPage = useClientPagination(tickets, 20);
+
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -1333,7 +1354,7 @@ export function AdminSupport() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {tickets.map((t) => (
+              {ticketPage.items.map((t) => (
                 <TableRow key={t.id}>
                   <TableCell>{shortDate(t.created_at)}</TableCell>
                   <TableCell>
@@ -1362,6 +1383,7 @@ export function AdminSupport() {
               ))}
             </TableBody>
           </Table>
+          <PaginationBar meta={ticketPage.pagination} onPageChange={ticketPage.setPage} />
         </div>
       )}
     </div>
@@ -1370,6 +1392,8 @@ export function AdminSupport() {
 
 export function AdminAudit() {
   const logs = useStore((state) => state.auditLogs);
+  const auditPage = useClientPagination(logs, 25);
+
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -1386,7 +1410,7 @@ export function AdminAudit() {
         />
       ) : (
         <div className="card-elevated divide-y">
-          {logs.map((log) => (
+          {auditPage.items.map((log) => (
             <div
               key={log.id}
               className="grid gap-2 p-4 md:grid-cols-[130px_1fr]"
@@ -1406,6 +1430,7 @@ export function AdminAudit() {
               </div>
             </div>
           ))}
+          <PaginationBar meta={auditPage.pagination} onPageChange={auditPage.setPage} />
         </div>
       )}
     </div>

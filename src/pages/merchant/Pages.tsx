@@ -26,6 +26,8 @@ import {
   Store,
 } from "lucide-react";
 import { toast } from "sonner";
+import PaginationBar from "@/components/common/PaginationBar";
+import { useClientPagination } from "@/hooks/useClientPagination";
 
 const activeStatuses = ["searching", "assigned", "picked_up", "in_transit"];
 
@@ -147,6 +149,8 @@ export function MerchantOverview() {
 
 export function MerchantOrders() {
   const list = useMerchantDeliveries();
+  const orderPage = useClientPagination(list, 20);
+
   return (
     <div className="space-y-4">
       <h1 className="font-display text-2xl font-bold text-primary">Orders</h1>
@@ -173,7 +177,7 @@ export function MerchantOrders() {
                 </TableCell>
               </TableRow>
             )}
-            {list.map((d) => (
+            {orderPage.items.map((d) => (
               <TableRow key={d.id}>
                 <TableCell className="font-mono text-xs">
                   #{d.id.slice(0, 6).toUpperCase()}
@@ -262,6 +266,8 @@ export function MerchantCustomers() {
     return Array.from(map.values());
   }, [deliveries]);
 
+  const customerPage = useClientPagination(rows, 20);
+
   return (
     <div className="space-y-4">
       <h1 className="font-display text-2xl font-bold text-primary">
@@ -288,7 +294,7 @@ export function MerchantCustomers() {
                 </TableCell>
               </TableRow>
             )}
-            {rows.map((r) => (
+            {customerPage.items.map((r) => (
               <TableRow key={`${r.name}-${r.phone}`}>
                 <TableCell>{r.name}</TableCell>
                 <TableCell>{r.phone}</TableCell>
@@ -314,6 +320,8 @@ export function MerchantPayments() {
       deliveries.some((delivery) => delivery.id === payment.delivery_id),
     ),
   );
+
+  const paymentPage = useClientPagination(payments, 20);
 
   return (
     <div className="space-y-6">
@@ -353,7 +361,7 @@ export function MerchantPayments() {
                 </TableCell>
               </TableRow>
             )}
-            {payments.map((payment) => (
+            {paymentPage.items.map((payment) => (
               <TableRow key={payment.id}>
                 <TableCell>{shortDate(payment.created_at)}</TableCell>
                 <TableCell className="font-mono text-xs">

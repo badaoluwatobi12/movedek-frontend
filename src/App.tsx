@@ -57,7 +57,6 @@ import {
   Tag,
   BadgeCheck,
   FileText,
-  Settings,
   BellRing,
   MailCheck,
 } from "lucide-react";
@@ -74,8 +73,9 @@ const WalletTopUpCallback = lazy(
   () => import("./pages/customer/WalletTopUpCallback"),
 );
 const Addresses = lazy(() => import("./pages/customer/SavedAddresses"));
-const Support = lazy(() => import("./pages/customer/CustomerSupport"));
-const CSettings = lazy(() => import("./pages/customer/CustomerSettings"));
+const SupportCenter = lazy(() => import("./pages/shared/SupportCenter"));
+const DisputesPage = lazy(() => import("./pages/shared/DisputesPage"));
+const FraudAlertPage = lazy(() => import("./pages/shared/FraudAlertPage"));
 const CourierHome = lazy(() => import("./pages/courier/CourierDashboard"));
 const Onboarding = lazy(() => import("./pages/courier/CourierVerification"));
 const JobDetails = lazy(() => import("./pages/courier/JobDetails"));
@@ -138,8 +138,9 @@ const customerNav: NavItem[] = [
   { to: "/app/wallet", label: "Wallet", icon: Wallet },
   { to: "/app/addresses", label: "Addresses", icon: MapPin },
   { to: "/app/support", label: "Support", icon: LifeBuoy },
+  { to: "/app/disputes", label: "Disputes", icon: AlertTriangle },
+  { to: "/app/fraud-alert", label: "Fraud alert", icon: ShieldAlert },
   { to: "/app/profile", label: "Profile", icon: User },
-  { to: "/app/settings", label: "Settings", icon: Settings },
 ];
 
 const courierNav: NavItem[] = [
@@ -150,6 +151,9 @@ const courierNav: NavItem[] = [
   { to: "/courier/notifications", label: "Notifications", icon: BellRing },
   { to: "/courier/ratings", label: "Ratings", icon: Star },
   { to: "/courier/history", label: "History", icon: History },
+  { to: "/courier/support", label: "Support", icon: LifeBuoy },
+  { to: "/courier/disputes", label: "Disputes", icon: AlertTriangle },
+  { to: "/courier/fraud-alert", label: "Fraud alert", icon: ShieldAlert },
   { to: "/courier/profile", label: "Profile", icon: User },
 ];
 
@@ -207,6 +211,9 @@ const merchantNav: NavItem[] = [
   { to: "/merchant/payments", label: "Payments", icon: CreditCard },
   { to: "/merchant/notifications", label: "Notifications", icon: BellRing },
   { to: "/merchant/staff", label: "Staff", icon: Store },
+  { to: "/merchant/support", label: "Support", icon: LifeBuoy },
+  { to: "/merchant/disputes", label: "Disputes", icon: AlertTriangle },
+  { to: "/merchant/fraud-alert", label: "Fraud alert", icon: ShieldAlert },
   { to: "/merchant/profile", label: "Profile", icon: User },
   { to: "/merchant/settings", label: "Settings", icon: Settings },
 ];
@@ -299,9 +306,11 @@ const App = () => {
                     element={<PaymentCallback />}
                   />
                   <Route path="/app/addresses" element={<Addresses />} />
-                  <Route path="/app/support" element={<Support />} />
+                  <Route path="/app/support" element={<SupportCenter role="customer" />} />
+                  <Route path="/app/disputes" element={<DisputesPage role="customer" />} />
+                  <Route path="/app/fraud-alert" element={<FraudAlertPage role="customer" />} />
                   <Route path="/app/profile" element={<ProfilePage />} />
-                  <Route path="/app/settings" element={<CSettings />} />
+                  <Route path="/app/settings" element={<Navigate to="/app/profile" replace />} />
                 </Route>
 
                 <Route element={<CourierShell />}>
@@ -326,6 +335,9 @@ const App = () => {
                   />
                   <Route path="/courier/ratings" element={<CourierRatings />} />
                   <Route path="/courier/history" element={<CourierHistory />} />
+                  <Route path="/courier/support" element={<SupportCenter role="courier" />} />
+                  <Route path="/courier/disputes" element={<DisputesPage role="courier" />} />
+                  <Route path="/courier/fraud-alert" element={<FraudAlertPage role="courier" />} />
                   <Route path="/courier/profile" element={<ProfilePage />} />
                 </Route>
 
@@ -355,6 +367,9 @@ const App = () => {
                     element={<NotificationsPage />}
                   />
                   <Route path="/merchant/staff" element={<MerchantStaff />} />
+                  <Route path="/merchant/support" element={<SupportCenter role="merchant" />} />
+                  <Route path="/merchant/disputes" element={<DisputesPage role="merchant" />} />
+                  <Route path="/merchant/fraud-alert" element={<FraudAlertPage role="merchant" />} />
                   <Route path="/merchant/profile" element={<ProfilePage />} />
                   <Route
                     path="/merchant/settings"

@@ -1201,7 +1201,7 @@ export const store = {
     return { ok: false, message: "Address not found." };
   },
 
-  addTicket(userId: string, subject: string, message: string) {
+  addTicket(userId: string, subject: string, message: string, metadata: { category?: string; priority?: string; requester_role?: string } = {}) {
     const ticket: Ticket = {
       id: createId("ticket"),
       user_id: userId,
@@ -1209,11 +1209,12 @@ export const store = {
       message,
       status: "open",
       created_at: new Date().toISOString(),
-    };
+      ...metadata,
+    } as Ticket;
     replaceArray(state.tickets, [ticket, ...state.tickets]);
     commitRemote("/support", {
       method: "POST",
-      body: JSON.stringify({ subject, message }),
+      body: JSON.stringify({ subject, message, ...metadata }),
     });
     emit();
     return ticket;
