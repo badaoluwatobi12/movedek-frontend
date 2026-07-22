@@ -51,8 +51,8 @@ function document(
     reviewedBy: null,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
-    accessUrl: `/api/couriers/documents/doc-${documentType}/access`,
-    downloadUrl: `/api/couriers/documents/doc-${documentType}/access?download=true`,
+    accessUrl: `/couriers/documents/doc-${documentType}/access`,
+    downloadUrl: `/couriers/documents/doc-${documentType}/access?download=true`,
   };
 }
 

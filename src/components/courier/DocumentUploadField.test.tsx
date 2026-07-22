@@ -40,8 +40,8 @@ const uploadedDocument: VerificationDocument = {
   reviewedBy: null,
   createdAt: "2026-07-22T10:00:00.000Z",
   updatedAt: "2026-07-22T10:00:00.000Z",
-  accessUrl: "/api/couriers/documents/document-1/access",
-  downloadUrl: "/api/couriers/documents/document-1/access?download=true",
+  accessUrl: "/couriers/documents/document-1/access",
+  downloadUrl: "/couriers/documents/document-1/access?download=true",
 };
 
 describe("DocumentUploadField", () => {

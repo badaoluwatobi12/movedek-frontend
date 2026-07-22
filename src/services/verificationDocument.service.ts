@@ -5,9 +5,25 @@ import type {
 import { API_BASE_URL } from "./apiBase";
 import { http } from "./http";
 
-function absolute(path: string) {
+export function resolveVerificationDocumentUrl(
+  path: string,
+  apiBaseUrl = API_BASE_URL,
+) {
   if (/^https?:\/\//i.test(path)) return path;
-  return `${API_BASE_URL}${path.startsWith("/") ? path : `/${path}`}`;
+
+  const normalizedBaseUrl = apiBaseUrl.trim().replace(/\/+$/, "");
+  let normalizedPath = `/${path.trim().replace(/^\/+/, "")}`;
+
+  // The API base already ends in /api in production. Older backend responses
+  // also included /api, which produced invalid /api/api document links.
+  if (
+    /\/api$/i.test(normalizedBaseUrl) &&
+    /^\/api(?:\/|$)/i.test(normalizedPath)
+  ) {
+    normalizedPath = normalizedPath.slice(4) || "/";
+  }
+
+  return `${normalizedBaseUrl}${normalizedPath}`;
 }
 
 export const verificationDocumentService = {
@@ -35,6 +51,10 @@ export const verificationDocumentService = {
 
   open: (document: VerificationDocument, download = false) => {
     const path = download ? document.downloadUrl : document.accessUrl;
-    window.open(absolute(path), "_blank", "noopener,noreferrer");
+    window.open(
+      resolveVerificationDocumentUrl(path),
+      "_blank",
+      "noopener,noreferrer",
+    );
   },
 };
