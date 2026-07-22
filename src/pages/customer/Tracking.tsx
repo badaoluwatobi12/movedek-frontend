@@ -1,7 +1,7 @@
 import { Link, useParams } from "react-router-dom";
 import { useMemo, useState } from "react";
 import { useSession, useStore, store } from "@/data/store";
-import { DeliveryRouteMap } from "@/components/common";
+import { LiveDeliveryTrackingMap } from "@/components/delivery/LiveDeliveryTrackingMap";
 import ErrorState from "@/components/common/ErrorState";
 import LoadingState from "@/components/common/LoadingState";
 import { PaymentBadge, StatusBadge } from "@/components/badges";
@@ -211,9 +211,11 @@ export default function Tracking() {
 
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="space-y-4 lg:col-span-2">
-          <DeliveryRouteMap
+          <LiveDeliveryTrackingMap
+            deliveryId={delivery.id}
             pickupAddress={delivery.pickup_address}
             dropoffAddress={delivery.dropoff_address}
+            active={["assigned", "accepted", "picked_up", "in_transit"].includes(delivery.status)}
             className="h-80"
           />
 
