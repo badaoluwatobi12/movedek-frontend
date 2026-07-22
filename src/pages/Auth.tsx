@@ -23,10 +23,12 @@ import { store, useStore } from "@/data/store";
 import { safeInternalNext } from "@/lib/authStorage";
 import type { Role } from "@/lib/types";
 import {
+  AlertCircle,
   ArrowLeft,
   BarChart3,
   Bike,
   CheckCircle2,
+  CircleAlert,
   Eye,
   EyeOff,
   Headphones,
@@ -47,6 +49,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 type AuthPortal = "admin" | "courier" | "merchant" | "customer" | "account";
 
@@ -258,7 +261,34 @@ AuthInput.displayName = "AuthInput";
 
 function FieldError({ message }: { message?: string }) {
   if (!message) return null;
-  return <p className="text-sm font-semibold text-destructive">{message}</p>;
+  return (
+    <p className="flex items-center gap-1.5 text-sm font-semibold text-destructive">
+      <CircleAlert className="h-4 w-4 shrink-0" aria-hidden="true" />
+      {message}
+    </p>
+  );
+}
+
+type FormAlertState = {
+  title: string;
+  message: string;
+};
+
+function FormAlert({ alert }: { alert: FormAlertState | null }) {
+  if (!alert) return null;
+
+  return (
+    <Alert
+      variant="destructive"
+      className="rounded-xl border-destructive/30 bg-destructive/5 px-4 py-4 text-destructive shadow-sm [&>svg]:left-4 [&>svg]:top-4"
+    >
+      <AlertCircle className="h-5 w-5" aria-hidden="true" />
+      <AlertTitle className="text-sm font-extrabold">{alert.title}</AlertTitle>
+      <AlertDescription className="mt-1 text-sm font-medium leading-6 text-destructive/90">
+        {alert.message}
+      </AlertDescription>
+    </Alert>
+  );
 }
 
 function dashboardPathForRole(role: Role) {
@@ -298,6 +328,7 @@ export function Login() {
   const portal = useMemo(() => portalFromNext(next), [next]);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [formAlert, setFormAlert] = useState<FormAlertState | null>(null);
   const activeSession = useStore((state) => state.session);
   const authLoading = useStore((state) => state.loading);
 
@@ -317,33 +348,51 @@ export function Login() {
     }
   }, [activeSession, authLoading, navigate, next]);
 
-  const submit = handleSubmit(async (input) => {
-    setLoading(true);
-    try {
-      const user = await store.loginWithCredentials(
-        input.email,
-        input.password,
-      );
-      toast.success("Signed in");
-      navigate(redirectPathForRole(user.role, next), { replace: true });
-    } catch (error) {
-      const authError = error as Error & { code?: string };
-      if (authError.code === "EMAIL_NOT_VERIFIED") {
-        navigate(
-          `/auth/check-email?email=${encodeURIComponent(input.email.trim().toLowerCase())}`,
+  const submit = handleSubmit(
+    async (input) => {
+      setFormAlert(null);
+      setLoading(true);
+      try {
+        const user = await store.loginWithCredentials(
+          input.email,
+          input.password,
         );
-        toast.error("Verify your email address before signing in.");
-      } else {
-        toast.error(
-          error instanceof Error
-            ? error.message
-            : "Login failed. Check that the backend is running.",
-        );
+        toast.success("Signed in successfully");
+        navigate(redirectPathForRole(user.role, next), { replace: true });
+      } catch (error) {
+        const authError = error as Error & { code?: string };
+        if (authError.code === "EMAIL_NOT_VERIFIED") {
+          navigate(
+            `/auth/check-email?email=${encodeURIComponent(input.email.trim().toLowerCase())}`,
+          );
+          return;
+        }
+
+        const rawMessage =
+          error instanceof Error ? error.message : "We could not sign you in.";
+        const protectionUnavailable =
+          /request protection|csrf|temporarily unavailable/i.test(rawMessage);
+
+        setFormAlert({
+          title: protectionUnavailable
+            ? "Sign-in service is temporarily unavailable"
+            : "Unable to sign in",
+          message: protectionUnavailable
+            ? "MoveDek could not establish a secure sign-in session. Please wait a moment, refresh the page, and try again."
+            : rawMessage ||
+              "Check your email and password, then try again.",
+        });
+      } finally {
+        setLoading(false);
       }
-    } finally {
-      setLoading(false);
-    }
-  });
+    },
+    () => {
+      setFormAlert({
+        title: "Check the highlighted fields",
+        message: "Enter a valid email address and password before continuing.",
+      });
+    },
+  );
 
   return (
     <AuthLayout
@@ -355,7 +404,9 @@ export function Login() {
           : `Sign in to your ${portal === "account" ? "MoveDek" : portal} workspace.`
       }
     >
-      <form onSubmit={submit} className="space-y-6">
+      <form onSubmit={submit} className="space-y-6" noValidate>
+        <FormAlert alert={formAlert} />
+
         <div className="space-y-2">
           <Label className="text-base font-bold text-primary">Email</Label>
           <div className="relative">
@@ -365,7 +416,12 @@ export function Login() {
               {...register("email")}
               placeholder="you@mail.ng"
               autoComplete="email"
-              className="pl-14"
+              aria-invalid={Boolean(errors.email)}
+              className={cn(
+                "pl-14",
+                errors.email &&
+                  "border-destructive bg-destructive/5 focus-visible:ring-destructive/30",
+              )}
             />
           </div>
           <FieldError message={errors.email?.message} />
@@ -380,7 +436,12 @@ export function Login() {
               {...register("password")}
               placeholder="Enter password"
               autoComplete="current-password"
-              className="pl-14 pr-12"
+              aria-invalid={Boolean(errors.password)}
+              className={cn(
+                "pl-14 pr-12",
+                errors.password &&
+                  "border-destructive bg-destructive/5 focus-visible:ring-destructive/30",
+              )}
             />
             <button
               type="button"
@@ -480,6 +541,7 @@ export function Register() {
   );
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [formAlert, setFormAlert] = useState<FormAlertState | null>(null);
 
   const {
     register,
@@ -491,6 +553,7 @@ export function Register() {
   });
 
   const submit = handleSubmit(async (input) => {
+    setFormAlert(null);
     setLoading(true);
     try {
       const result = await store.registerAccount({
@@ -509,11 +572,13 @@ export function Register() {
         replace: true,
       });
     } catch (error) {
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "Registration failed. Check that the backend is running.",
-      );
+      setFormAlert({
+        title: "Unable to create account",
+        message:
+          error instanceof Error
+            ? error.message
+            : "MoveDek could not create your account. Please review your details and try again.",
+      });
     } finally {
       setLoading(false);
     }
@@ -554,7 +619,8 @@ export function Register() {
         ))}
       </div>
 
-      <form onSubmit={submit} className="space-y-5">
+      <form onSubmit={submit} className="space-y-5" noValidate>
+        <FormAlert alert={formAlert} />
         <div className="space-y-2">
           <Label className="text-base font-bold text-primary">Full name</Label>
           <div className="relative">
