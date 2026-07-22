@@ -6,6 +6,7 @@ import type {
   DeliveryRecord,
   PaginatedDeliveries,
   UpdateDeliveryStatusPayload,
+  DeliveryActivityEvent,
 } from "@/types/delivery";
 
 const buildQueryString = (params: DeliveryListParams = {}) => {
@@ -26,6 +27,8 @@ export const deliveryService = {
     http<PaginatedDeliveries>(`/deliveries${buildQueryString(params)}`, {}),
 
   get: (id: string) => http<DeliveryRecord>(`/deliveries/${id}`, {}),
+
+  activity: (id: string) => http<DeliveryActivityEvent[]>(`/deliveries/${id}/activity`, {}),
 
   create: (input: CreateDeliveryPayload) =>
     http<DeliveryRecord>("/deliveries", {

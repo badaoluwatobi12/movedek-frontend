@@ -1,7 +1,10 @@
+import { useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "@/data/store";
 import { notificationService } from "@/services/notification.service";
-import type { NotificationListParams } from "@/types/notification";
+import type { NotificationListParams, NotificationRecord } from "@/types/notification";
+import { realtimeSocket } from "@/lib/realtime";
+import { toast } from "sonner";
 
 export const notificationKeys = {
   all: ["notifications"] as const,
@@ -62,4 +65,20 @@ export function useClearReadNotifications() {
       void queryClient.invalidateQueries({ queryKey: notificationKeys.all });
     },
   });
+}
+
+export function useRealtimeNotifications() {
+  const session = useSession();
+  const queryClient = useQueryClient();
+  useEffect(() => {
+    if (!session) return;
+    const socket = realtimeSocket();
+    const onNotification = (notification: NotificationRecord) => {
+      void queryClient.invalidateQueries({ queryKey: notificationKeys.all });
+      const notify = notification.priority === "critical" ? toast.error : notification.priority === "high" ? toast.warning : toast.info;
+      notify(notification.title, { description: notification.message });
+    };
+    socket.on("notification:new", onNotification);
+    return () => { socket.off("notification:new", onNotification); };
+  }, [queryClient, session]);
 }

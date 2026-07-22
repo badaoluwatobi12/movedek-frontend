@@ -78,6 +78,11 @@ function NotificationItem({
               >
                 {notification.category}
               </Badge>
+              {notification.priority !== "medium" && (
+                <Badge variant={notification.priority === "critical" ? "destructive" : "secondary"} className="capitalize">
+                  {notification.priority}
+                </Badge>
+              )}
               {isUnread && <span className="h-2 w-2 rounded-full bg-primary" />}
               <span className="text-xs text-muted-foreground">
                 {timeAgo(notification.created_at)}

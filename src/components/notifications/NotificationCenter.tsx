@@ -21,6 +21,7 @@ import {
   useMarkNotificationRead,
   useNotifications,
   useNotificationUnreadCount,
+  useRealtimeNotifications,
 } from "@/hooks/useNotifications";
 import { cn } from "@/lib/utils";
 import type { NotificationRecord } from "@/types/notification";
@@ -61,6 +62,9 @@ function AlertRow({
       />
       <div className="min-w-0 flex-1">
         <div className="flex items-start justify-between gap-3">
+          <div className="flex min-w-0 items-center gap-2">
+          {item.priority === "critical" && <span className="rounded bg-destructive px-1.5 py-0.5 text-[9px] font-bold uppercase text-destructive-foreground">Critical</span>}
+          {item.priority === "high" && <span className="rounded bg-warning/20 px-1.5 py-0.5 text-[9px] font-bold uppercase text-warning-foreground">High</span>}
           <p
             className={cn(
               "truncate text-sm",
@@ -69,6 +73,7 @@ function AlertRow({
           >
             {item.title}
           </p>
+          </div>
           <span className="shrink-0 text-[11px] text-muted-foreground">
             {relativeTime(item.created_at)}
           </span>
@@ -112,6 +117,7 @@ export default function NotificationCenter({
   notificationPath: string;
 }) {
   const [open, setOpen] = useState(false);
+  useRealtimeNotifications();
   const unreadQuery = useNotificationUnreadCount();
   const recentQuery = useNotifications({
     read_status: "all",

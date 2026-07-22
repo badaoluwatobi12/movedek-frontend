@@ -11,6 +11,7 @@ export type NotificationCategory =
 export type NotificationKind =
   "info" | "success" | "warning" | "danger" | "action";
 export type NotificationReadStatus = "all" | "unread" | "read";
+export type NotificationPriority = "low" | "medium" | "high" | "critical";
 
 export interface NotificationRecord {
   id: string;
@@ -20,6 +21,7 @@ export interface NotificationRecord {
   message: string;
   category: NotificationCategory;
   kind: NotificationKind;
+  priority: NotificationPriority;
   entity_type: string | null;
   entity_id: string | null;
   action_url: string | null;

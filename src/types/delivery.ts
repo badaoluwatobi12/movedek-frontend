@@ -129,3 +129,5 @@ export const deliveryStatuses: DeliveryStatus[] = [
   "cancelled",
   "disputed",
 ];
+
+export interface DeliveryActivityEvent { type: string; label: string; at: string; }
