@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useSession, useStore, store } from "@/data/store";
 import { useDeliveries } from "@/hooks/useDeliveries";
 import { useWallet } from "@/hooks/useWallet";
@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Star, Coins, Package, Wallet, RefreshCcw } from "lucide-react";
+import { Star, Coins, Package, Wallet, RefreshCcw, Download, Search } from "lucide-react";
 import { toast } from "sonner";
 
 export function CourierEarnings() {
@@ -44,6 +44,16 @@ export function CourierEarnings() {
     (a, d) => a + d.courier_payout,
     0,
   );
+  const now = Date.now();
+  const earnedSince = (start: number) =>
+    completedDeliveries
+      .filter((delivery) =>
+        new Date(delivery.completed_at ?? delivery.updated_at ?? delivery.created_at).getTime() >= start,
+      )
+      .reduce((sum, delivery) => sum + delivery.courier_payout, 0);
+  const todayStart = new Date().setHours(0, 0, 0, 0);
+  const sevenDaysAgo = now - 7 * 24 * 60 * 60 * 1000;
+  const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).getTime();
 
   return (
     <div className="space-y-6">
@@ -56,7 +66,7 @@ export function CourierEarnings() {
           Refresh
         </Button>
       </div>
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <StatCard
           label="Wallet balance"
           value={naira(wallet?.balance ?? 0)}
@@ -74,6 +84,9 @@ export function CourierEarnings() {
           icon={Coins}
           tone="accent"
         />
+        <StatCard label="Earned today" value={naira(earnedSince(todayStart))} icon={Coins} />
+        <StatCard label="Last 7 days" value={naira(earnedSince(sevenDaysAgo))} icon={Coins} tone="success" />
+        <StatCard label="This month" value={naira(earnedSince(monthStart))} icon={Coins} tone="warning" />
       </div>
       <div className="card-elevated overflow-hidden">
         <div className="p-4 border-b font-display font-semibold text-primary">
@@ -280,10 +293,54 @@ export function CourierHistory() {
   const me = couriers.find((c) => c.user_id === session.userId);
   const historyQuery = useDeliveries({ scope: "history", limit: 100 });
   const list = historyQuery.data?.items ?? [];
+  const [query, setQuery] = useState("");
+  const [status, setStatus] = useState("all");
+  const [dateFrom, setDateFrom] = useState("");
+
+  const filtered = useMemo(() => {
+    const normalized = query.trim().toLowerCase();
+    const from = dateFrom ? new Date(`${dateFrom}T00:00:00`).getTime() : 0;
+    return list.filter((delivery) => {
+      const haystack = `${delivery.item_name} ${delivery.pickup_address} ${delivery.dropoff_address}`.toLowerCase();
+      const deliveryDate = new Date(
+        delivery.completed_at ?? delivery.updated_at ?? delivery.created_at,
+      ).getTime();
+      return (
+        (!normalized || haystack.includes(normalized)) &&
+        (status === "all" || delivery.status === status) &&
+        (!from || deliveryDate >= from)
+      );
+    });
+  }, [dateFrom, list, query, status]);
 
   const refreshHistory = () => {
     void store.refresh();
     void historyQuery.refetch();
+  };
+
+  const exportCsv = () => {
+    const escape = (value: unknown) => `"${String(value ?? "").replaceAll('"', '""')}"`;
+    const rows = [
+      ["Date", "Item", "Pickup", "Drop-off", "Payout", "Status"],
+      ...filtered.map((delivery) => [
+        delivery.completed_at ?? delivery.created_at,
+        delivery.item_name,
+        delivery.pickup_address,
+        delivery.dropoff_address,
+        delivery.courier_payout,
+        delivery.status,
+      ]),
+    ];
+    const blob = new Blob([rows.map((row) => row.map(escape).join(",")).join("\n")], {
+      type: "text/csv;charset=utf-8",
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `movedek-delivery-history-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+    toast.success("Delivery history exported");
   };
 
   if (!me)
@@ -292,72 +349,46 @@ export function CourierHistory() {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="font-display text-2xl font-bold text-primary">
-          Delivery history
-        </h1>
-        <Button variant="outline" onClick={refreshHistory}>
-          <RefreshCcw className="mr-2 h-4 w-4" />
-          Refresh
-        </Button>
+        <div>
+          <h1 className="font-display text-2xl font-bold text-primary">Delivery history</h1>
+          <p className="text-sm text-muted-foreground">Search, filter, and export your completed delivery records.</p>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={exportCsv} disabled={!filtered.length}>
+            <Download className="mr-2 h-4 w-4" /> Export CSV
+          </Button>
+          <Button variant="outline" onClick={refreshHistory}>
+            <RefreshCcw className="mr-2 h-4 w-4" /> Refresh
+          </Button>
+        </div>
+      </div>
+      <div className="card-elevated grid gap-3 p-4 md:grid-cols-3">
+        <div className="relative">
+          <Search className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+          <Input className="pl-9" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search item or route" />
+        </div>
+        <select value={status} onChange={(e) => setStatus(e.target.value)} className="h-10 rounded-md border border-input bg-background px-3 text-sm">
+          <option value="all">All statuses</option>
+          <option value="delivered">Delivered</option>
+          <option value="cancelled">Cancelled</option>
+          <option value="disputed">Disputed</option>
+        </select>
+        <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} aria-label="History from date" />
       </div>
       <div className="card-elevated overflow-hidden">
         <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Date</TableHead>
-              <TableHead>Item</TableHead>
-              <TableHead>Route</TableHead>
-              <TableHead>Payout</TableHead>
-              <TableHead>Status</TableHead>
-            </TableRow>
-          </TableHeader>
+          <TableHeader><TableRow><TableHead>Date</TableHead><TableHead>Item</TableHead><TableHead>Route</TableHead><TableHead>Payout</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
           <TableBody>
-            {historyQuery.isLoading && (
-              <TableRow>
-                <TableCell
-                  colSpan={5}
-                  className="text-center text-muted-foreground py-8"
-                >
-                  Loading delivery history...
-                </TableCell>
-              </TableRow>
-            )}
-            {historyQuery.error && (
-              <TableRow>
-                <TableCell
-                  colSpan={5}
-                  className="text-center text-destructive py-8"
-                >
-                  Could not load delivery history.
-                </TableCell>
-              </TableRow>
-            )}
-            {!historyQuery.isLoading &&
-              !historyQuery.error &&
-              list.length === 0 && (
-                <TableRow>
-                  <TableCell
-                    colSpan={5}
-                    className="text-center text-muted-foreground py-8"
-                  >
-                    No delivery history yet.
-                  </TableCell>
-                </TableRow>
-              )}
-            {list.map((delivery) => (
+            {historyQuery.isLoading && <TableRow><TableCell colSpan={5} className="py-8 text-center text-muted-foreground">Loading delivery history...</TableCell></TableRow>}
+            {historyQuery.error && <TableRow><TableCell colSpan={5} className="py-8 text-center text-destructive">Could not load delivery history.</TableCell></TableRow>}
+            {!historyQuery.isLoading && !historyQuery.error && filtered.length === 0 && <TableRow><TableCell colSpan={5} className="py-8 text-center text-muted-foreground">No deliveries match these filters.</TableCell></TableRow>}
+            {filtered.map((delivery) => (
               <TableRow key={delivery.id}>
-                <TableCell>
-                  {shortDate(delivery.completed_at ?? delivery.created_at)}
-                </TableCell>
+                <TableCell>{shortDate(delivery.completed_at ?? delivery.created_at)}</TableCell>
                 <TableCell>{delivery.item_name}</TableCell>
-                <TableCell className="text-sm text-muted-foreground">
-                  {delivery.pickup_address.split(",")[0]} →{" "}
-                  {delivery.dropoff_address.split(",")[0]}
-                </TableCell>
+                <TableCell className="text-sm text-muted-foreground">{delivery.pickup_address.split(",")[0]} → {delivery.dropoff_address.split(",")[0]}</TableCell>
                 <TableCell>{naira(delivery.courier_payout)}</TableCell>
-                <TableCell>
-                  <StatusBadge status={delivery.status} />
-                </TableCell>
+                <TableCell><StatusBadge status={delivery.status} /></TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -366,3 +397,4 @@ export function CourierHistory() {
     </div>
   );
 }
+

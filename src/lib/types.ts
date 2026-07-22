@@ -127,6 +127,8 @@ export interface Delivery {
   dropoff_pin: string;
   distance_km: number;
   created_at: string;
+  updated_at?: string | null;
+  assigned_at?: string | null;
   pickup_confirmed_at?: string | null;
   pickup_proof_uploaded?: boolean;
   transit_started_at?: string | null;

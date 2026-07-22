@@ -47,6 +47,9 @@ import {
   CreditCard,
   LifeBuoy,
   Save,
+  Clock3,
+  Gauge,
+  Activity,
   type LucideIcon,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -174,6 +177,22 @@ export function AdminOverview() {
   const paidRevenue = payments
     .filter((p) => p.status === "paid")
     .reduce((sum, p) => sum + p.amount, 0);
+  const nowMs = Date.now();
+  const delayed = active.filter((delivery) =>
+    nowMs - new Date(delivery.assigned_at ?? delivery.created_at).getTime() >
+    90 * 60 * 1000,
+  );
+  const stuck = active.filter((delivery) =>
+    nowMs - new Date(delivery.updated_at ?? delivery.created_at).getTime() >
+    45 * 60 * 1000,
+  );
+  const finished = all.filter((delivery) =>
+    ["delivered", "cancelled", "disputed"].includes(delivery.status),
+  );
+  const successRate = finished.length
+    ? Math.round((done.length / finished.length) * 100)
+    : 0;
+  const onlineCouriers = couriers.filter((courier) => courier.is_online).length;
 
   return (
     <div className="space-y-6">
@@ -233,6 +252,10 @@ export function AdminOverview() {
           value={String(tickets.filter((t) => t.status !== "closed").length)}
           icon={LifeBuoy}
         />
+        <StatCard label="Delayed deliveries" value={String(delayed.length)} icon={Clock3} tone="warning" />
+        <StatCard label="Stuck deliveries" value={String(stuck.length)} icon={Activity} tone={stuck.length ? "warning" : "success"} />
+        <StatCard label="Delivery success" value={`${successRate}%`} icon={Gauge} tone="success" />
+        <StatCard label="Couriers online" value={String(onlineCouriers)} icon={Bike} tone="accent" />
       </div>
       <div className="grid gap-4 lg:grid-cols-3">
         <div className="card-elevated p-5 lg:col-span-2">

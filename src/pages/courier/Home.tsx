@@ -13,7 +13,6 @@ import { naira, timeAgo, trustCap } from "@/lib/format";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import {
-  Coins,
   Package,
   ShieldCheck,
   Star,
@@ -21,6 +20,8 @@ import {
   ArrowRight,
   RefreshCcw,
   Wallet,
+  Gauge,
+  Timer,
 } from "lucide-react";
 import { toast } from "sonner";
 import { getCourierOnboardingMode } from "@/lib/courierOnboarding";
@@ -35,6 +36,7 @@ export default function CourierHome() {
   const couriers = useStore((s) => s.couriers);
   const users = useStore((s) => s.users);
   const loading = useStore((s) => s.loading);
+  const allDeliveries = useStore((s) => s.deliveries);
   const apiError = useStore((s) => s.apiError);
   const activeJobsQuery = useDeliveries({ scope: "active", limit: 5 });
   const availableJobsQuery = useDeliveries({ scope: "available", limit: 30 });
@@ -51,6 +53,28 @@ export default function CourierHome() {
         (delivery) => delivery.item_value <= (trustCap[myTrustLevel] ?? 0),
       )
     : [];
+  const myJobs = me
+    ? allDeliveries.filter((delivery) => delivery.courier_id === me.id)
+    : [];
+  const completedJobs = myJobs.filter((delivery) => delivery.status === "delivered");
+  const finishedJobs = myJobs.filter((delivery) =>
+    ["delivered", "cancelled", "disputed"].includes(delivery.status),
+  );
+  const completionRate = finishedJobs.length
+    ? Math.round((completedJobs.length / finishedJobs.length) * 100)
+    : 0;
+  const averageDeliveryMinutes = completedJobs.length
+    ? Math.round(
+        completedJobs.reduce((sum, delivery) => {
+          const start = new Date(delivery.assigned_at ?? delivery.created_at).getTime();
+          const end = new Date(
+            delivery.completed_at ?? delivery.updated_at ?? delivery.created_at,
+          ).getTime();
+          return sum + Math.max(0, end - start) / 60000;
+        }, 0) / completedJobs.length,
+      )
+    : 0;
+
   const deliveriesLoading =
     activeJobsQuery.isLoading || availableJobsQuery.isLoading;
   const deliveriesError = activeJobsQuery.error ?? availableJobsQuery.error;
@@ -208,6 +232,17 @@ export default function CourierHome() {
           value={`${me.rating.toFixed(1)}★`}
           icon={Star}
           tone="warning"
+        />
+        <StatCard
+          label="Completion rate"
+          value={`${completionRate}%`}
+          icon={Gauge}
+          tone="success"
+        />
+        <StatCard
+          label="Average delivery"
+          value={averageDeliveryMinutes ? `${averageDeliveryMinutes} min` : "—"}
+          icon={Timer}
         />
       </div>
 
