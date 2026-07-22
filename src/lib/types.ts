@@ -219,7 +219,7 @@ export interface VerificationDocument {
   courierId: string;
   ownerUserId: string;
   documentType: VerificationDocumentType;
-  provider: "cloudinary";
+  provider: "r2" | "cloudinary";
   resourceType: "image" | "raw";
   format: string;
   bytes: number;

@@ -178,7 +178,7 @@ export default function AdminCourierVerification() {
           </h2>
           <p className="text-sm text-muted-foreground">
             Files are opened through authenticated backend access. Links are not
-            exposed as public Cloudinary URLs.
+            exposed as public object-storage URLs.
           </p>
         </div>
 

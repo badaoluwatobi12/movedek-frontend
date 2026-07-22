@@ -36,7 +36,7 @@ function document(
     courierId: "courier-1",
     ownerUserId: "user-1",
     documentType,
-    provider: "cloudinary",
+    provider: "r2",
     resourceType: "image",
     format: "jpg",
     bytes: 100,
