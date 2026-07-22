@@ -295,7 +295,7 @@ function DeliveryContactCard({
         {role}
       </div>
       <div className="mt-1 font-semibold text-primary">{name || "Contact"}</div>
-      <div className="text-sm text-muted-foreground">{phone || "No phone number"}</div>
+      <div className="text-sm text-muted-foreground">{phone || "Hidden for privacy"}</div>
       <div className="mt-1 line-clamp-2 text-xs text-muted-foreground">{address}</div>
       {href ? (
         <Button asChild variant={active ? "default" : "outline"} size="sm" className="mt-3 w-full">
@@ -658,8 +658,7 @@ export function ActiveJob() {
           <div className="space-y-3">
             <div className="rounded-xl bg-accent/10 p-4 text-sm">
               <Truck className="mr-2 inline h-4 w-4" />
-              Head to <b>{d.pickup_address}</b>. Call {d.pickup_contact} if you
-              need pickup directions.
+              Head to <b>{d.pickup_address}</b>. Contact details are available only while this delivery is active.
             </div>
             <DeliveryRouteMap
               pickupAddress={d.pickup_address}
