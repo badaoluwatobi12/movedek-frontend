@@ -442,3 +442,98 @@
     min-height: auto;
   }
 }
+
+/* Global usability polish applied to every authenticated and public page. */
+@layer base {
+  :focus-visible {
+    outline: 3px solid hsl(var(--ring) / 0.35);
+    outline-offset: 2px;
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: hsl(var(--muted-foreground) / 0.75);
+  }
+
+  input:disabled,
+  textarea:disabled,
+  select:disabled,
+  button:disabled {
+    cursor: not-allowed;
+  }
+}
+
+@layer components {
+  main form {
+    @apply min-w-0;
+  }
+
+  main form label {
+    @apply leading-5;
+  }
+
+  main :where(input, textarea, select) {
+    @apply transition-[border-color,box-shadow,background-color] duration-150;
+  }
+
+  main :where(input, textarea, select):focus-visible {
+    @apply border-primary ring-2 ring-primary/15;
+  }
+
+  main table {
+    @apply w-full text-sm;
+  }
+
+  main th {
+    @apply whitespace-nowrap bg-muted/60 text-left font-semibold text-foreground;
+  }
+
+  main td,
+  main th {
+    @apply px-3 py-3 align-middle;
+  }
+
+  main tbody tr {
+    @apply border-b border-border/60 transition-colors hover:bg-muted/30;
+  }
+
+  .page-stack > :first-child {
+    @apply scroll-mt-24;
+  }
+
+  .user-help-text {
+    @apply mt-1.5 text-xs leading-5 text-muted-foreground;
+  }
+
+  .form-section {
+    @apply rounded-2xl border border-border/60 bg-card p-4 shadow-sm sm:p-6;
+  }
+}
+
+@media (max-width: 639px) {
+  main {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+
+  main button,
+  main [role="button"] {
+    min-height: 2.5rem;
+  }
+
+  [data-sonner-toaster] {
+    left: 0.75rem !important;
+    right: 0.75rem !important;
+    width: auto !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { useNotificationUnreadCount } from "@/hooks/useNotifications";
 import { Bell, LogOut, Menu, Zap, type LucideIcon } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { ConnectivityAlert } from "@/components/common/ConnectivityAlert";
 
 export type NavItem = {
   to: string;
@@ -36,6 +37,11 @@ export function DashboardShell({
   const storedUser = getStoredAuthUser();
   const storedUserId = session?.userId;
   const storedRole = session?.role;
+
+  useEffect(() => {
+    document.title = `${title} | MoveDek`;
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [location.pathname, title]);
 
   useEffect(() => {
     if (storedRole && storedRole !== role) {
@@ -163,6 +169,7 @@ export function DashboardShell({
         </header>
         <main className="min-w-0 flex-1 p-3 sm:p-5 lg:p-8">
           <div className="mx-auto w-full min-w-0 max-w-[1600px]">
+            <div className="mb-4 sm:mb-5"><ConnectivityAlert /></div>
             <Outlet />
           </div>
         </main>
