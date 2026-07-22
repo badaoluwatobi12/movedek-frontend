@@ -115,6 +115,32 @@ export default function Onboarding() {
     void reloadDocuments();
   }, [reloadDocuments]);
 
+  const applyDocumentChange = useCallback(
+    (
+      type: VerificationDocumentType,
+      nextDocument: VerificationDocument | null,
+    ) => {
+      setDocuments((current) => {
+        const withoutCurrentType = current.filter(
+          (document) => document.documentType !== type,
+        );
+        return nextDocument
+          ? [...withoutCurrentType, nextDocument]
+          : withoutCurrentType;
+      });
+
+      // The upload response is authoritative, so update the step immediately.
+      // Refresh the wider app state in the background without making the user
+      // click the upload button again or showing the loading screen.
+      void store.refresh().catch(() => {
+        toast.error(
+          "The document was saved, but the dashboard status could not refresh.",
+        );
+      });
+    },
+    [],
+  );
+
   const documentByType = useMemo(
     () =>
       Object.fromEntries(
@@ -540,10 +566,9 @@ export default function Onboarding() {
             description="Upload a clear, recent face photo. Images only are recommended."
             type="selfie"
             document={documentByType.selfie}
-            onChanged={async () => {
-              await reloadDocuments();
-              await store.refresh();
-            }}
+            onChanged={(document) =>
+              applyDocumentChange("selfie", document)
+            }
           />
         )}
 
@@ -553,10 +578,9 @@ export default function Onboarding() {
             description="Upload a readable NIN slip, passport, voter card, or another government-issued ID."
             type="government_id"
             document={documentByType.government_id}
-            onChanged={async () => {
-              await reloadDocuments();
-              await store.refresh();
-            }}
+            onChanged={(document) =>
+              applyDocumentChange("government_id", document)
+            }
           />
         )}
 
@@ -630,10 +654,9 @@ export default function Onboarding() {
             type="driver_license"
             document={documentByType.driver_license}
             optional={!licenseRequired}
-            onChanged={async () => {
-              await reloadDocuments();
-              await store.refresh();
-            }}
+            onChanged={(document) =>
+              applyDocumentChange("driver_license", document)
+            }
           />
         )}
 

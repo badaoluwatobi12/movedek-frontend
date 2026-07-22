@@ -25,6 +25,16 @@ function formatBytes(bytes: number) {
   return `${(bytes / 1_000_000).toFixed(1)} MB`;
 }
 
+function validateFile(file: File) {
+  if (!ACCEPTED.includes(file.type)) {
+    return "Use a JPEG, PNG, WebP, or PDF file.";
+  }
+  if (file.size > MAX_BYTES) {
+    return "The document must be 8 MB or smaller.";
+  }
+  return "";
+}
+
 export function DocumentUploadField({
   label,
   description,
@@ -38,54 +48,62 @@ export function DocumentUploadField({
   type: VerificationDocumentType;
   document?: VerificationDocument;
   optional?: boolean;
-  onChanged: () => Promise<void> | void;
+  onChanged: (document: VerificationDocument | null) => Promise<void> | void;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const uploadInFlightRef = useRef(false);
   const [selected, setSelected] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
 
-  const choose = (file?: File) => {
-    if (!file) return;
-    if (!ACCEPTED.includes(file.type)) {
-      toast.error("Use a JPEG, PNG, WebP, or PDF file.");
-      return;
-    }
-    if (file.size > MAX_BYTES) {
-      toast.error("The document must be 8 MB or smaller.");
-      return;
-    }
-    setSelected(file);
+  const resetInput = () => {
+    setSelected(null);
+    if (inputRef.current) inputRef.current.value = "";
   };
 
-  const upload = async () => {
-    if (!selected) {
-      inputRef.current?.click();
+  const upload = async (file: File) => {
+    if (uploadInFlightRef.current) return;
+
+    const validationError = validateFile(file);
+    if (validationError) {
+      toast.error(validationError);
+      resetInput();
       return;
     }
+
+    uploadInFlightRef.current = true;
+    setSelected(file);
     setBusy(true);
+
     try {
-      await verificationDocumentService.upload(type, selected);
-      setSelected(null);
-      if (inputRef.current) inputRef.current.value = "";
-      await onChanged();
+      const uploadedDocument = await verificationDocumentService.upload(
+        type,
+        file,
+      );
+      resetInput();
+      await onChanged(uploadedDocument);
       toast.success(`${label} uploaded securely.`);
     } catch (error) {
+      resetInput();
       toast.error(error instanceof Error ? error.message : "Upload failed.");
     } finally {
+      uploadInFlightRef.current = false;
       setBusy(false);
     }
   };
 
   const remove = async () => {
-    if (!document) return;
+    if (!document || uploadInFlightRef.current) return;
+
+    uploadInFlightRef.current = true;
     setBusy(true);
     try {
       await verificationDocumentService.remove(document.id);
-      await onChanged();
+      await onChanged(null);
       toast.success(`${label} removed.`);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Delete failed.");
     } finally {
+      uploadInFlightRef.current = false;
       setBusy(false);
     }
   };
@@ -142,19 +160,35 @@ export function DocumentUploadField({
       <Input
         ref={inputRef}
         type="file"
-        className="mt-4"
+        className="sr-only"
+        aria-label={`Choose ${label.toLowerCase()} file`}
         accept=".jpg,.jpeg,.png,.webp,.pdf,image/jpeg,image/png,image/webp,application/pdf"
         disabled={busy}
-        onChange={(event) => choose(event.target.files?.[0])}
+        onChange={(event) => {
+          const file = event.target.files?.[0];
+          if (file) void upload(file);
+        }}
       />
-      {selected && (
-        <p className="mt-2 text-xs text-muted-foreground">
-          Selected: {selected.name} · {formatBytes(selected.size)}
-        </p>
+
+      {selected && busy && (
+        <div className="mt-4 rounded-xl border border-primary/20 bg-primary/5 p-3 text-sm">
+          <div className="flex items-center gap-2 font-medium text-primary">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            Uploading {selected.name}
+          </div>
+          <div className="mt-1 text-xs text-muted-foreground">
+            {formatBytes(selected.size)} · Keep this page open until the upload
+            finishes.
+          </div>
+        </div>
       )}
 
       <div className="mt-4 flex flex-wrap gap-2">
-        <Button type="button" onClick={upload} disabled={busy}>
+        <Button
+          type="button"
+          onClick={() => inputRef.current?.click()}
+          disabled={busy}
+        >
           {busy ? (
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
           ) : document ? (
@@ -162,8 +196,8 @@ export function DocumentUploadField({
           ) : (
             <UploadCloud className="mr-2 h-4 w-4" />
           )}
-          {selected
-            ? "Upload selected file"
+          {busy
+            ? "Uploading..."
             : document
               ? "Choose replacement"
               : "Choose file"}
@@ -190,6 +224,13 @@ export function DocumentUploadField({
           </>
         )}
       </div>
+
+      {!document && !busy && (
+        <p className="mt-3 text-xs text-muted-foreground">
+          Selecting a file starts the secure upload automatically. One click is
+          enough.
+        </p>
+      )}
     </div>
   );
 }
