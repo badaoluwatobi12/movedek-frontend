@@ -1211,7 +1211,7 @@ export function AdminPricing() {
   );
 }
 
-export function AdminCategories() {
+export function AdminDeliveryPolicy() {
   return (
     <div className="max-w-3xl space-y-4">
       <div>

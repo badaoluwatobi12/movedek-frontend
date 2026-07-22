@@ -102,7 +102,7 @@ export default function Landing() {
           >
             {[
               ["#how", "How it works"],
-              ["#categories", "What you can send"],
+              ["#what-you-can-send", "What you can send"],
               ["#couriers", "Couriers"],
               ["#merchants", "For merchants"],
               ["#faq", "FAQ"],
@@ -378,7 +378,7 @@ export default function Landing() {
             {
               n: 1,
               title: "Create a request",
-              desc: "Pick a category, add pickup and drop-off details, and see instant pricing.",
+              desc: "Describe what you are sending, add pickup and drop-off details, and see instant pricing.",
             },
             {
               n: 2,
@@ -404,8 +404,8 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* CATEGORIES */}
-      <section id="categories" className="section scroll-mt-24 bg-muted/40">
+      {/* WHAT YOU CAN SEND */}
+      <section id="what-you-can-send" className="section scroll-mt-24 bg-muted/40">
         <div className="container-x">
           <div className="flex items-end justify-between flex-wrap gap-4">
             <div>
@@ -629,7 +629,7 @@ export default function Landing() {
                 <a href="#how">How it works</a>
               </li>
               <li>
-                <a href="#categories">What you can send</a>
+                <a href="#what-you-can-send">What you can send</a>
               </li>
               <li>
                 <a href="#faq">FAQ</a>

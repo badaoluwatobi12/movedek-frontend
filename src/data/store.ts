@@ -1524,25 +1524,6 @@ export const store = {
     emit();
   },
 
-  toggleCategory(category: string) {
-    state.settings = {
-      ...state.settings,
-      categories: {
-        ...state.settings.categories,
-        [category]: !state.settings.categories[category],
-      },
-    };
-    this.addAudit("Updated delivery policy", {
-      category,
-      enabled: state.settings.categories[category],
-    });
-    commitRemote(`/admin/settings/categories/${encodeURIComponent(category)}`, {
-      method: "PATCH",
-      body: JSON.stringify({ enabled: state.settings.categories[category] }),
-    });
-    emit();
-  },
-
   saveTrustCaps(trust_caps: AdminSettings["trust_caps"]) {
     state.settings = { ...state.settings, trust_caps };
     this.addAudit("Updated trust level limits", trust_caps);

@@ -118,9 +118,9 @@ const AdminWithdrawals = lazy(() => import("./pages/admin/AdminWithdrawals"));
 const AdminDisputes = lazy(() => import("./pages/admin/AdminDisputes"));
 const AdminFraud = lazy(() => import("./pages/admin/AdminFraudAlerts"));
 const AdminPricing = lazy(() => import("./pages/admin/AdminPricingSettings"));
-const AdminCategories = lazy(() =>
+const AdminDeliveryPolicy = lazy(() =>
   import("./pages/admin/Pages").then((module) => ({
-    default: module.AdminCategories,
+    default: module.AdminDeliveryPolicy,
   })),
 );
 const AdminTrust = lazy(() => import("./pages/admin/AdminTrustLevels"));
@@ -223,7 +223,7 @@ const adminNav: NavItem[] = [
   { to: "/admin/disputes", label: "Disputes", icon: AlertTriangle },
   { to: "/admin/fraud", label: "Fraud alerts", icon: ShieldAlert },
   { to: "/admin/settings/pricing", label: "Pricing", icon: Tag },
-  { to: "/admin/settings/categories", label: "Delivery policy", icon: ShieldAlert },
+  { to: "/admin/settings/delivery-policy", label: "Delivery policy", icon: ShieldAlert },
   { to: "/admin/settings/trust", label: "Trust levels", icon: BadgeCheck },
   { to: "/admin/support", label: "Support", icon: LifeBuoy },
   { to: "/admin/audit", label: "Audit log", icon: FileText },
@@ -395,8 +395,12 @@ const App = () => {
                     element={<AdminPricing />}
                   />
                   <Route
+                    path="/admin/settings/delivery-policy"
+                    element={<AdminDeliveryPolicy />}
+                  />
+                  <Route
                     path="/admin/settings/categories"
-                    element={<AdminCategories />}
+                    element={<Navigate to="/admin/settings/delivery-policy" replace />}
                   />
                   <Route
                     path="/admin/settings/trust"
