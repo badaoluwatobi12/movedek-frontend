@@ -290,28 +290,35 @@ export default function AdminCourierVerification() {
             </div>
           </div>
         )}
-        <div className="flex flex-wrap gap-3">
-          <Button
-            onClick={() => void review("approved")}
-            disabled={Boolean(reviewing) || !requiredReady}
-          >
-            {reviewing === "approved" && (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            )}
-            Approve courier
+        {courier.verification_status === "approved" ? (
+          <Button type="button" disabled className="cursor-default">
+            <CheckCircle2 className="mr-2 h-4 w-4" />
+            Approved
           </Button>
-          <Button
-            variant="outline"
-            onClick={() => void review("rejected")}
-            disabled={Boolean(reviewing)}
-            className="border-destructive/40 text-destructive hover:text-destructive"
-          >
-            {reviewing === "rejected" && (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            )}
-            Reject and request changes
-          </Button>
-        </div>
+        ) : (
+          <div className="flex flex-wrap gap-3">
+            <Button
+              onClick={() => void review("approved")}
+              disabled={Boolean(reviewing) || !requiredReady}
+            >
+              {reviewing === "approved" && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
+              Approve courier
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => void review("rejected")}
+              disabled={Boolean(reviewing)}
+              className="border-destructive/40 text-destructive hover:text-destructive"
+            >
+              {reviewing === "rejected" && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
+              Reject and request changes
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );

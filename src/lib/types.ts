@@ -42,6 +42,12 @@ export interface User {
     promotions?: boolean;
   };
   status: "active" | "suspended";
+  pilot_access?: boolean;
+  internal_tester?: boolean;
+  pilot_access_granted_at?: string;
+  pilot_access_granted_by?: string;
+  pilot_access_revoked_at?: string;
+  pilot_access_revoked_by?: string;
   created_at: string;
 }
 

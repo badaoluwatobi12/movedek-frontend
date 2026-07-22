@@ -38,7 +38,25 @@ export interface EmailDeliveryPage {
   total: number;
 }
 
+export interface PilotAccessResult {
+  user_id: string;
+  pilot_access: boolean;
+  pilot_access_status: "approved" | "pending" | "revoked";
+}
+
 export const adminService = {
+  grantPilotAccess: (userId: string) =>
+    http<PilotAccessResult>(
+      `/pilot/admin/access/${encodeURIComponent(userId)}`,
+      { method: "POST" },
+    ),
+
+  revokePilotAccess: (userId: string) =>
+    http<PilotAccessResult>(
+      `/pilot/admin/access/${encodeURIComponent(userId)}`,
+      { method: "DELETE" },
+    ),
+
   reviewCourier: (
     courierId: string,
     decision: "approved" | "rejected",

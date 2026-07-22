@@ -10,6 +10,8 @@ import {
   RiskBadge,
 } from "@/components/badges";
 import { naira, shortDate } from "@/lib/format";
+import { getPilotAccessStatus } from "@/lib/pilotAccess";
+import { adminService } from "@/services/admin.service";
 import { store, useStore } from "@/data/store";
 import type {
   DeliveryStatus,
@@ -285,6 +287,7 @@ export function AdminOverview() {
 export function AdminUsers() {
   const users = useStore((s) => s.users);
   const [q, setQ] = useState("");
+  const [pilotUpdating, setPilotUpdating] = useState<string | null>(null);
   const list = users.filter((u) =>
     `${u.full_name} ${u.email} ${u.phone} ${u.role}`
       .toLowerCase()
@@ -293,6 +296,24 @@ export function AdminUsers() {
   const toggle = (id: string, status: "active" | "suspended") => {
     store.setUserStatus(id, status);
     toast.success(`User ${status}`);
+  };
+  const updatePilotAccess = async (userId: string, enabled: boolean) => {
+    if (pilotUpdating) return;
+    setPilotUpdating(userId);
+    try {
+      if (enabled) await adminService.grantPilotAccess(userId);
+      else await adminService.revokePilotAccess(userId);
+      await store.refresh();
+      toast.success(enabled ? "Pilot access approved" : "Pilot access revoked");
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Could not update pilot access.",
+      );
+    } finally {
+      setPilotUpdating(null);
+    }
   };
 
   return (
@@ -303,7 +324,7 @@ export function AdminUsers() {
             Users
           </h1>
           <p className="text-sm text-muted-foreground">
-            Suspend or reactivate real registered users.
+            Manage account status and approve access to the MoveDek pilot.
           </p>
         </div>
         <RefreshButton />
@@ -316,7 +337,7 @@ export function AdminUsers() {
       {list.length === 0 ? (
         <EmptyAdmin icon={Users} title="No users found" />
       ) : (
-        <div className="card-elevated overflow-hidden">
+        <div className="card-elevated overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
@@ -324,43 +345,94 @@ export function AdminUsers() {
                 <TableHead>Email</TableHead>
                 <TableHead>Phone</TableHead>
                 <TableHead>Role</TableHead>
-                <TableHead>Status</TableHead>
+                <TableHead>Account</TableHead>
+                <TableHead>Pilot access</TableHead>
                 <TableHead>Joined</TableHead>
-                <TableHead className="text-right">Action</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {list.map((u) => (
-                <TableRow key={u.id}>
-                  <TableCell className="font-medium">{u.full_name}</TableCell>
-                  <TableCell>{u.email}</TableCell>
-                  <TableCell>{u.phone || "—"}</TableCell>
-                  <TableCell className="capitalize">{u.role}</TableCell>
-                  <TableCell>
-                    <span
-                      className={`chip ${u.status === "active" ? "bg-success/15 text-success" : "bg-destructive/15 text-destructive"}`}
-                    >
-                      {u.status}
-                    </span>
-                  </TableCell>
-                  <TableCell>{shortDate(u.created_at)}</TableCell>
-                  <TableCell className="text-right">
-                    {u.status === "active" ? (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => toggle(u.id, "suspended")}
+              {list.map((u) => {
+                const pilotStatus = getPilotAccessStatus(u);
+                const updatingPilot = pilotUpdating === u.id;
+                return (
+                  <TableRow key={u.id}>
+                    <TableCell className="font-medium">{u.full_name}</TableCell>
+                    <TableCell>{u.email}</TableCell>
+                    <TableCell>{u.phone || "—"}</TableCell>
+                    <TableCell className="capitalize">{u.role}</TableCell>
+                    <TableCell>
+                      <span
+                        className={`chip ${u.status === "active" ? "bg-success/15 text-success" : "bg-destructive/15 text-destructive"}`}
                       >
-                        Suspend
-                      </Button>
-                    ) : (
-                      <Button size="sm" onClick={() => toggle(u.id, "active")}>
-                        Activate
-                      </Button>
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))}
+                        {u.status}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <span
+                        className={`chip ${
+                          pilotStatus === "approved"
+                            ? "bg-success/15 text-success"
+                            : pilotStatus === "revoked"
+                              ? "bg-destructive/15 text-destructive"
+                              : "bg-accent/15 text-accent"
+                        }`}
+                      >
+                        {u.internal_tester
+                          ? "Internal tester"
+                          : pilotStatus === "not_applicable"
+                            ? "Not applicable"
+                            : pilotStatus}
+                      </span>
+                    </TableCell>
+                    <TableCell>{shortDate(u.created_at)}</TableCell>
+                    <TableCell>
+                      <div className="flex flex-wrap justify-end gap-2">
+                        {pilotStatus !== "not_applicable" &&
+                          !u.internal_tester &&
+                          (pilotStatus === "approved" ? (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              disabled={Boolean(pilotUpdating)}
+                              onClick={() => void updatePilotAccess(u.id, false)}
+                              className="border-destructive/40 text-destructive hover:text-destructive"
+                            >
+                              {updatingPilot ? "Revoking…" : "Revoke pilot"}
+                            </Button>
+                          ) : (
+                            <Button
+                              size="sm"
+                              disabled={
+                                Boolean(pilotUpdating) || u.status !== "active"
+                              }
+                              onClick={() => void updatePilotAccess(u.id, true)}
+                            >
+                              {updatingPilot ? "Approving…" : "Approve pilot"}
+                            </Button>
+                          ))}
+                        {u.role !== "admin" &&
+                          (u.status === "active" ? (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => toggle(u.id, "suspended")}
+                            >
+                              Suspend
+                            </Button>
+                          ) : (
+                            <Button
+                              size="sm"
+                              onClick={() => toggle(u.id, "active")}
+                            >
+                              Activate
+                            </Button>
+                          ))}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </div>
