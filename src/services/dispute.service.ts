@@ -5,6 +5,7 @@ import type {
   DisputeRecord,
   PaginatedDisputes,
   UpdateDisputePayload,
+  type DisputeStatus,
 } from "@/types/dispute";
 
 const buildQueryString = (params: DisputeListParams = {}) => {
@@ -32,6 +33,21 @@ export const disputeService = {
   update: (id: string, input: UpdateDisputePayload) =>
     http<DisputeRecord>(`/disputes/${id}`, {
       method: "PATCH",
+      body: JSON.stringify(input),
+    }),
+
+  timeline: (id: string) =>
+    http<{ messages: Array<Record<string, unknown>>; actions: Array<Record<string, unknown>> }>(`/disputes/${id}/timeline`, {}),
+
+  addMessage: (id: string, body: string, internalOnly = false) =>
+    http<Record<string, unknown>>(`/disputes/${id}/messages`, {
+      method: "POST",
+      body: JSON.stringify({ body, internal_only: internalOnly }),
+    }),
+
+  addAction: (id: string, input: { action: string; to_status?: DisputeStatus; reason?: string }) =>
+    http<Record<string, unknown>>(`/disputes/${id}/actions`, {
+      method: "POST",
       body: JSON.stringify(input),
     }),
 };

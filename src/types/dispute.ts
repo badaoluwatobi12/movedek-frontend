@@ -1,4 +1,4 @@
-export type DisputeStatus = "open" | "reviewing" | "resolved" | "rejected";
+export type DisputeStatus = "open" | "submitted" | "reviewing" | "waiting_customer" | "waiting_courier" | "waiting_merchant" | "resolved" | "rejected" | "closed";
 
 export interface DisputeRecord {
   id: string;
@@ -50,7 +50,12 @@ export interface UpdateDisputePayload {
 
 export const disputeStatuses: DisputeStatus[] = [
   "open",
+  "submitted",
   "reviewing",
+  "waiting_customer",
+  "waiting_courier",
+  "waiting_merchant",
   "resolved",
   "rejected",
+  "closed",
 ];

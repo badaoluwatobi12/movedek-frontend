@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { AlertTriangle, RefreshCcw, Search } from "lucide-react";
+import { AlertTriangle, Clock3, RefreshCcw, Search, ShieldAlert } from "lucide-react";
 import { toast } from "sonner";
 import ErrorState from "@/components/common/ErrorState";
 import LoadingState from "@/components/common/LoadingState";
@@ -22,19 +22,29 @@ import { disputeStatuses } from "@/types/dispute";
 const filterOptions: { id: "all" | DisputeStatus; label: string }[] = [
   { id: "all", label: "All" },
   { id: "open", label: "Open" },
+  { id: "submitted", label: "Submitted" },
   { id: "reviewing", label: "Reviewing" },
+  { id: "waiting_customer", label: "Waiting customer" },
+  { id: "waiting_courier", label: "Waiting courier" },
+  { id: "waiting_merchant", label: "Waiting merchant" },
   { id: "resolved", label: "Resolved" },
   { id: "rejected", label: "Rejected" },
+  { id: "closed", label: "Closed" },
 ];
 
 function DisputeBadge({ status }: { status: DisputeStatus }) {
-  const cls = {
+  const cls: Record<DisputeStatus, string> = {
     open: "bg-destructive/15 text-destructive",
+    submitted: "bg-destructive/15 text-destructive",
     reviewing: "bg-warning/15 text-warning-foreground",
+    waiting_customer: "bg-warning/15 text-warning-foreground",
+    waiting_courier: "bg-warning/15 text-warning-foreground",
+    waiting_merchant: "bg-warning/15 text-warning-foreground",
     resolved: "bg-success/15 text-success",
     rejected: "bg-muted text-muted-foreground",
-  }[status];
-  return <span className={`chip capitalize ${cls}`}>{status}</span>;
+    closed: "bg-muted text-muted-foreground",
+  };
+  return <span className={`chip capitalize ${cls[status]}`}>{status.replaceAll("_", " ")}</span>;
 }
 
 export default function AdminDisputes() {
@@ -92,6 +102,12 @@ export default function AdminDisputes() {
           />
           Refresh
         </Button>
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-3">
+        <div className="card-soft p-4"><div className="flex items-center gap-2 text-sm text-muted-foreground"><ShieldAlert className="h-4 w-4" />Open cases</div><div className="mt-2 text-2xl font-bold">{disputes.filter((item) => !["resolved", "rejected", "closed"].includes(item.status)).length}</div></div>
+        <div className="card-soft p-4"><div className="flex items-center gap-2 text-sm text-muted-foreground"><Clock3 className="h-4 w-4" />Awaiting participant</div><div className="mt-2 text-2xl font-bold">{disputes.filter((item) => item.status.startsWith("waiting_")).length}</div></div>
+        <div className="card-soft p-4"><div className="flex items-center gap-2 text-sm text-muted-foreground"><AlertTriangle className="h-4 w-4" />Needs review</div><div className="mt-2 text-2xl font-bold">{disputes.filter((item) => ["open", "submitted", "reviewing"].includes(item.status)).length}</div></div>
       </div>
 
       <div className="grid gap-3 lg:grid-cols-[1fr_280px]">
