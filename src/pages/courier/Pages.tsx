@@ -153,6 +153,7 @@ export function CourierWithdrawals() {
     ? allWithdrawals.filter((w) => w.courier_id === me.id)
     : [];
   const [amount, setAmount] = useState(5000);
+  const withdrawalPage = useClientPagination(withdrawals, 10);
   if (!me)
     return <EmptyState icon={Package} title="Courier profile not found" />;
 
@@ -168,8 +169,6 @@ export function CourierWithdrawals() {
       );
     }
   };
-
-  const withdrawalPage = useClientPagination(withdrawals, 10);
 
   return (
     <div className="space-y-6">
@@ -245,11 +244,11 @@ export function CourierRatings() {
   const users = useStore((s) => s.users);
   const ratings = useStore((s) => s.ratings);
   const me = couriers.find((c) => c.user_id === session.userId);
-  if (!me) return <EmptyState icon={Star} title="Courier profile not found" />;
   const list = ratings.filter(
-    (r) => r.to_user_id === me.user_id || r.to_user_id === me.id,
+    (r) => me != null && (r.to_user_id === me.user_id || r.to_user_id === me.id),
   );
   const ratingPage = useClientPagination(list, 10);
+  if (!me) return <EmptyState icon={Star} title="Courier profile not found" />;
 
   return (
     <div className="space-y-4">
@@ -300,7 +299,7 @@ export function CourierHistory() {
   const couriers = useStore((s) => s.couriers);
   const me = couriers.find((c) => c.user_id === session.userId);
   const historyQuery = useDeliveries({ scope: "history", limit: 100 });
-  const list = historyQuery.data?.items ?? [];
+  const list = useMemo(() => historyQuery.data?.items ?? [], [historyQuery.data?.items]);
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("all");
   const [dateFrom, setDateFrom] = useState("");

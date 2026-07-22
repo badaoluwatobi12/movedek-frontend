@@ -5,7 +5,7 @@ import type {
   DisputeRecord,
   PaginatedDisputes,
   UpdateDisputePayload,
-  type DisputeStatus,
+  DisputeStatus,
 } from "@/types/dispute";
 
 const buildQueryString = (params: DisputeListParams = {}) => {

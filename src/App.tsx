@@ -59,6 +59,7 @@ import {
   FileText,
   BellRing,
   MailCheck,
+  Settings,
 } from "lucide-react";
 
 const CustomerDashboard = lazy(

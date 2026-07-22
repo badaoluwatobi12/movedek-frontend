@@ -195,9 +195,20 @@ export interface Rating {
 export interface Dispute {
   id: string;
   delivery_id: string;
-  user_id: string;
+  user_id?: string;
+  opened_by?: string;
   reason: string;
-  status: "open" | "reviewing" | "resolved" | "rejected";
+  details?: string | null;
+  status:
+    | "open"
+    | "submitted"
+    | "reviewing"
+    | "waiting_customer"
+    | "waiting_courier"
+    | "waiting_merchant"
+    | "resolved"
+    | "rejected"
+    | "closed";
   created_at: string;
 }
 export interface Ticket {
@@ -205,7 +216,10 @@ export interface Ticket {
   user_id: string;
   subject: string;
   message: string;
-  status: "open" | "pending" | "closed";
+  category?: string;
+  priority?: string;
+  requester_role?: Role;
+  status: "open" | "pending" | "closed" | "resolved" | "in_progress";
   created_at: string;
 }
 export interface Notification {
