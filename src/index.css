@@ -537,3 +537,51 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+@layer components {
+  .dashboard-section {
+    @apply min-w-0 space-y-5 sm:space-y-6;
+  }
+
+  .content-panel {
+    @apply min-w-0 rounded-2xl border border-border/70 bg-card p-4 shadow-sm sm:p-5 lg:p-6;
+  }
+
+  main :where(button, [role="button"], a[class*="button"]) {
+    @apply touch-manipulation;
+  }
+
+  main :where(input, select, textarea) {
+    @apply min-h-11 rounded-xl bg-background text-base sm:text-sm;
+  }
+
+  main :where(table) {
+    @apply w-full text-sm;
+  }
+
+  main :where(th) {
+    @apply whitespace-nowrap bg-muted/55 px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground;
+  }
+
+  main :where(td) {
+    @apply px-4 py-3 align-middle;
+  }
+
+  main :where(tbody tr) {
+    @apply border-b border-border/60 transition-colors hover:bg-muted/30;
+  }
+}
+
+@media (max-width: 767px) {
+  main :where(table) {
+    min-width: 680px;
+  }
+
+  main :where(.card-elevated, .card-soft, .stat-card, .content-panel) {
+    border-radius: 0.875rem;
+  }
+
+  main :where(h2) {
+    line-height: 1.25;
+  }
+}
