@@ -13,6 +13,7 @@ export const DELIVERY_STATUSES = [
   "pending",
   "searching",
   "assigned",
+  "accepted",
   "picked_up",
   "in_transit",
   "delivered",

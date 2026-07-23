@@ -123,8 +123,8 @@ export interface Delivery {
   price: number;
   courier_payout: number;
   protection: boolean;
-  pickup_pin: string;
-  dropoff_pin: string;
+  pickup_pin?: string;
+  dropoff_pin?: string;
   distance_km: number;
   created_at: string;
   updated_at?: string | null;

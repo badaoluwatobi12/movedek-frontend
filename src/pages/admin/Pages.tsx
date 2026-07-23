@@ -60,9 +60,11 @@ const deliveryStatuses: DeliveryStatus[] = [
   "pending",
   "searching",
   "assigned",
+  "accepted",
   "picked_up",
   "in_transit",
   "delivered",
+  "completed",
   "cancelled",
   "disputed",
 ];
