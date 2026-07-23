@@ -86,7 +86,7 @@ const disputeStatuses: Dispute["status"][] = [
   "resolved",
   "rejected",
 ];
-const ticketStatuses: Ticket["status"][] = ["open", "pending", "closed"];
+const ticketStatuses: Ticket["status"][] = ["open", "in_progress", "closed"];
 const trustLevels: TrustLevel[] = ["bronze", "silver", "gold", "platinum"];
 
 function initials(name?: string) {
@@ -1426,7 +1426,7 @@ export function AdminSupport() {
                   </TableCell>
                   <TableCell>
                     <span className="chip bg-warning/15 text-warning-foreground capitalize">
-                      {t.status}
+                      {String(t.status).replaceAll("_", " ")}
                     </span>
                   </TableCell>
                   <TableCell className="text-right">
@@ -1434,8 +1434,16 @@ export function AdminSupport() {
                       value={t.status}
                       options={ticketStatuses}
                       onChange={(status) => {
-                        store.setTicketStatus(t.id, status);
-                        toast.success("Ticket updated");
+                        void store
+                          .setTicketStatus(t.id, status)
+                          .then(() => toast.success("Ticket updated"))
+                          .catch((error) =>
+                            toast.error(
+                              error instanceof Error
+                                ? error.message
+                                : "Could not update ticket.",
+                            ),
+                          );
                       }}
                     />
                   </TableCell>

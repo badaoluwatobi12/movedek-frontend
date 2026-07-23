@@ -405,9 +405,9 @@ export function Support() {
               <div className="flex items-center justify-between gap-3">
                 <div className="font-medium text-primary">{t.subject}</div>
                 <span
-                  className={`chip capitalize ${t.status === "closed" ? "bg-success/15 text-success" : t.status === "pending" ? "bg-warning/15 text-warning-foreground" : "bg-accent/15 text-accent"}`}
+                  className={`chip capitalize ${t.status === "closed" ? "bg-success/15 text-success" : t.status === "in_progress" ? "bg-warning/15 text-warning-foreground" : "bg-accent/15 text-accent"}`}
                 >
-                  {t.status}
+                  {String(t.status).replaceAll("_", " ")}
                 </span>
               </div>
               <p className="mt-1 text-sm text-muted-foreground whitespace-pre-wrap">

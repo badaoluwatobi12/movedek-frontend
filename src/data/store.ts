@@ -1452,17 +1452,13 @@ export const store = {
     emit();
   },
 
-  setTicketStatus(id: string, status: Ticket["status"]) {
-    replaceArray(
-      state.tickets,
-      state.tickets.map((t) => (t.id === id ? { ...t, status } : t)),
-    );
-    this.addAudit(`Set support ticket status to ${status}`, { id, status });
-    commitRemote(`/support/${id}`, {
+  async setTicketStatus(id: string, status: Ticket["status"]) {
+    const ticket = await apiFetch<Ticket>(`/support/${id}`, {
       method: "PATCH",
       body: JSON.stringify({ status }),
     });
-    emit();
+    await refreshAfterMutation();
+    return ticket;
   },
 
   savePricingSettings(pricing: AdminSettings["pricing"]) {

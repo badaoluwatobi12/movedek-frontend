@@ -227,7 +227,7 @@ export interface Ticket {
   category?: string;
   priority?: string;
   requester_role?: Role;
-  status: "open" | "pending" | "closed" | "resolved" | "in_progress";
+  status: "open" | "in_progress" | "closed";
   created_at: string;
 }
 export interface Notification {
