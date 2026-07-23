@@ -14,6 +14,7 @@ import { useNotificationUnreadCount } from "@/hooks/useNotifications";
 import { Bell, LogOut, Menu, Zap, type LucideIcon } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { ConnectivityAlert } from "@/components/common/ConnectivityAlert";
+import { toast } from "sonner";
 
 export type NavItem = {
   to: string;
@@ -131,9 +132,15 @@ export function DashboardShell({
             type="button"
             aria-label="Log out"
             title="Log out"
-            onClick={() => {
-              store.logout();
-              navigate("/");
+            onClick={async () => {
+              try {
+                await store.logout();
+                navigate("/");
+              } catch (error) {
+                toast.error(
+                  error instanceof Error ? error.message : "Could not log out",
+                );
+              }
             }}
             className="rounded-lg p-2 text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-white"
           >

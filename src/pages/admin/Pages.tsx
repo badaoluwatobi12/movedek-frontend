@@ -673,9 +673,17 @@ export function AdminCourierDetail() {
             <div className="flex gap-2">
               <Button
                 className="flex-1"
-                onClick={() => {
-                  store.setVerification(c.id, "approved");
-                  toast.success("Approved");
+                onClick={async () => {
+                  try {
+                    await store.setVerification(c.id, "approved");
+                    toast.success("Approved");
+                  } catch (error) {
+                    toast.error(
+                      error instanceof Error
+                        ? error.message
+                        : "Could not approve courier",
+                    );
+                  }
                 }}
               >
                 Approve
@@ -683,9 +691,17 @@ export function AdminCourierDetail() {
               <Button
                 variant="outline"
                 className="flex-1"
-                onClick={() => {
-                  store.setVerification(c.id, "rejected");
-                  toast.error("Rejected");
+                onClick={async () => {
+                  try {
+                    await store.setVerification(c.id, "rejected");
+                    toast.success("Courier rejected");
+                  } catch (error) {
+                    toast.error(
+                      error instanceof Error
+                        ? error.message
+                        : "Could not reject courier",
+                    );
+                  }
                 }}
               >
                 Reject
@@ -961,9 +977,17 @@ export function AdminPayments() {
                     <NativeSelect
                       value={p.status}
                       options={paymentStatuses}
-                      onChange={(status) => {
-                        store.setPaymentStatus(p.id, status);
-                        toast.success("Payment updated");
+                      onChange={async (status) => {
+                        try {
+                          await store.setPaymentStatus(p.id, status);
+                          toast.success("Payment updated");
+                        } catch (error) {
+                          toast.error(
+                            error instanceof Error
+                              ? error.message
+                              : "Could not update payment",
+                          );
+                        }
                       }}
                     />
                   </TableCell>
@@ -981,10 +1005,20 @@ export function AdminPayments() {
 export function AdminWithdrawals() {
   const list = useStore((s) => s.withdrawals);
   const couriers = useStore((s) => s.couriers);
+  const merchants = useStore((s) => s.merchants);
   const users = useStore((s) => s.users);
-  const act = (id: string, status: Withdrawal["status"]) => {
-    store.setWithdrawalStatus(id, status);
-    toast.success(`Marked ${status}`);
+  const act = async (
+    id: string,
+    status: Exclude<Withdrawal["status"], "pending">,
+  ) => {
+    try {
+      await store.setWithdrawalStatus(id, status);
+      toast.success(`Marked ${status}`);
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Could not update withdrawal",
+      );
+    }
   };
   const withdrawalPage = useClientPagination(list, 20);
 
@@ -996,7 +1030,7 @@ export function AdminWithdrawals() {
             Withdrawals
           </h1>
           <p className="text-sm text-muted-foreground">
-            Approve, pay, or fail courier withdrawal requests.
+            Approve, pay, or fail courier and merchant withdrawal requests.
           </p>
         </div>
         <RefreshButton />
@@ -1009,7 +1043,7 @@ export function AdminWithdrawals() {
             <TableHeader>
               <TableRow>
                 <TableHead>Date</TableHead>
-                <TableHead>Courier</TableHead>
+                <TableHead>Account</TableHead>
                 <TableHead>Amount</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Action</TableHead>
@@ -1018,11 +1052,19 @@ export function AdminWithdrawals() {
             <TableBody>
               {withdrawalPage.items.map((w) => {
                 const c = couriers.find((x) => x.id === w.courier_id);
+                const merchant = merchants.find(
+                  (candidate) => candidate.id === w.merchant_id,
+                );
+                const owner = users.find(
+                  (candidate) =>
+                    candidate.id ===
+                    (w.user_id ?? c?.user_id ?? merchant?.user_id),
+                );
                 return (
                   <TableRow key={w.id}>
                     <TableCell>{shortDate(w.created_at)}</TableCell>
                     <TableCell>
-                      {c && users.find((u) => u.id === c.user_id)?.full_name}
+                      {merchant?.business_name ?? owner?.full_name ?? "Unknown"}
                     </TableCell>
                     <TableCell>{naira(w.amount)}</TableCell>
                     <TableCell>
@@ -1031,25 +1073,41 @@ export function AdminWithdrawals() {
                       </span>
                     </TableCell>
                     <TableCell className="text-right">
-                      <div className="flex flex-wrap justify-end gap-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => act(w.id, "approved")}
-                        >
-                          Approve
-                        </Button>
-                        <Button size="sm" onClick={() => act(w.id, "paid")}>
-                          Mark paid
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => act(w.id, "failed")}
-                        >
-                          Fail
-                        </Button>
-                      </div>
+                      {w.status === "pending" ? (
+                        <div className="flex flex-wrap justify-end gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => act(w.id, "approved")}
+                          >
+                            Approve
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => act(w.id, "failed")}
+                          >
+                            Fail
+                          </Button>
+                        </div>
+                      ) : w.status === "approved" ? (
+                        <div className="flex flex-wrap justify-end gap-2">
+                          <Button size="sm" onClick={() => act(w.id, "paid")}>
+                            Mark paid
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => act(w.id, "failed")}
+                          >
+                            Fail
+                          </Button>
+                        </div>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">
+                          No action required
+                        </span>
+                      )}
                     </TableCell>
                   </TableRow>
                 );

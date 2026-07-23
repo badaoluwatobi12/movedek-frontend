@@ -164,7 +164,7 @@ export default function ProfilePage() {
         deleteConfirmation,
         deleteReason,
       );
-      store.logout();
+      await store.logout({ skipRemote: true });
       toast.success("Your MoveDek account has been deleted");
       navigate("/login", { replace: true });
     } catch (error) {

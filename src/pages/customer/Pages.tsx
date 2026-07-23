@@ -502,9 +502,15 @@ export function Settings() {
         <Button
           variant="outline"
           className="mt-3"
-          onClick={() => {
-            store.logout();
-            window.location.href = "/";
+          onClick={async () => {
+            try {
+              await store.logout();
+              window.location.href = "/";
+            } catch (error) {
+              toast.error(
+                error instanceof Error ? error.message : "Could not sign out",
+              );
+            }
           }}
         >
           <LogOut className="mr-2 h-4 w-4" /> Sign out

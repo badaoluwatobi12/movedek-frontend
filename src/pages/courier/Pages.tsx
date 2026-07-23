@@ -157,9 +157,9 @@ export function CourierWithdrawals() {
   if (!me)
     return <EmptyState icon={Package} title="Courier profile not found" />;
 
-  const request = () => {
+  const request = async () => {
     try {
-      const created = store.requestWithdrawal(me.id, amount);
+      const created = await store.requestWithdrawal(me.id, amount);
       if (!created) return toast.error("Enter a valid withdrawal amount");
       toast.success("Withdrawal requested. Your balance has been updated.");
       setAmount(5000);

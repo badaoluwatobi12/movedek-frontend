@@ -178,10 +178,18 @@ export interface WalletTx {
 }
 export interface Withdrawal {
   id: string;
-  courier_id: string;
+  user_id?: string;
+  courier_id?: string | null;
+  merchant_id?: string | null;
   amount: number;
   status: "pending" | "approved" | "failed" | "paid";
+  bank_name?: string;
+  account_number?: string;
+  review_reason?: string | null;
+  reviewed_by?: string | null;
+  reviewed_at?: string | null;
   created_at: string;
+  updated_at?: string;
 }
 export interface Rating {
   id: string;

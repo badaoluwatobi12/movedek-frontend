@@ -451,15 +451,34 @@ const persist = () => {
   scheduleRefresh();
 };
 
-const commitRemote = <T = unknown>(path: string, options: RequestInit) => {
-  void apiFetch<T>(path, options)
-    .then(() => loadRemoteState())
-    .catch((error) => {
-      state.apiError =
-        error instanceof Error ? error.message : "Could not save this change.";
-      emit();
-      void loadRemoteState();
-    });
+const refreshAfterMutation = async () => {
+  try {
+    await loadRemoteState();
+  } catch {
+    state.apiError = "Change saved, but the latest data could not be refreshed.";
+    emit();
+  }
+};
+
+const commitRemote = async <T = unknown>(
+  path: string,
+  options: RequestInit,
+  behavior: { throwOnError?: boolean } = {},
+): Promise<T | null> => {
+  let result: T;
+  try {
+    result = await apiFetch<T>(path, options);
+  } catch (error) {
+    state.apiError =
+      error instanceof Error ? error.message : "Could not save this change.";
+    emit();
+    await loadRemoteState().catch(() => undefined);
+    if (behavior.throwOnError) throw error;
+    return null;
+  }
+
+  await refreshAfterMutation();
+  return result;
 };
 
 const setSessionFromUser = (user: User) => {
@@ -529,7 +548,6 @@ export const store = {
     const normalizedEmail = email.trim().toLowerCase();
     const result = await apiFetch<{
       user: User;
-      token: string;
       snapshot?: RemoteSnapshot;
     }>("/auth/login", {
       method: "POST",
@@ -550,8 +568,10 @@ export const store = {
     return this.loginWithCredentials(email, password);
   },
 
-  logout() {
-    void apiFetch("/auth/logout", { method: "POST" }).catch(() => undefined);
+  async logout(options: { skipRemote?: boolean } = {}) {
+    if (!options.skipRemote) {
+      await apiFetch("/auth/logout", { method: "POST" });
+    }
     state.session = null;
     state.pendingRegistration = null;
     clearStoredSession();
@@ -1111,9 +1131,11 @@ export const store = {
     return wallet;
   },
 
-  requestWithdrawal(courierId: string, amount: number) {
+  async requestWithdrawal(courierId: string, amount: number) {
     if (!Number.isFinite(amount) || amount <= 0) return null;
-    const courier = state.couriers.find((c) => c.id === courierId);
+    const courier = state.couriers.find(
+      (candidate) => candidate.id === courierId,
+    );
     if (!courier) return null;
     if (
       !courier.bank_name ||
@@ -1125,37 +1147,12 @@ export const store = {
         "Add your bank details in courier onboarding before requesting withdrawal.",
       );
     }
-    const wallet = ensureCourierWallet(courier);
-    if (wallet.balance < amount)
-      throw new Error("Insufficient courier wallet balance.");
-    wallet.balance -= amount;
-    const createdAt = new Date().toISOString();
-    const withdrawal: Withdrawal = {
-      id: createId("wd"),
-      courier_id: courierId,
-      amount,
-      status: "pending",
-      created_at: createdAt,
-    };
-    replaceArray(state.withdrawals, [withdrawal, ...state.withdrawals]);
-    replaceArray(state.walletTx, [
-      {
-        id: createId("tx"),
-        wallet_id: wallet.id,
-        type: "debit",
-        amount,
-        description: "Courier withdrawal request",
-        status: "pending",
-        created_at: createdAt,
-      },
-      ...state.walletTx,
-    ]);
-    this.addAudit("Courier requested withdrawal", { courierId, amount });
-    commitRemote("/withdrawals", {
+
+    const withdrawal = await apiFetch<Withdrawal>("/withdrawals", {
       method: "POST",
       body: JSON.stringify({ amount }),
     });
-    emit();
+    await refreshAfterMutation();
     return withdrawal;
   },
 
@@ -1323,22 +1320,13 @@ export const store = {
     emit();
   },
 
-  setVerification(
+  async setVerification(
     courierId: string,
-    status: "approved" | "rejected" | "pending",
+    status: "approved" | "rejected",
   ) {
-    replaceArray(
-      state.couriers,
-      state.couriers.map((c) =>
-        c.id === courierId ? { ...c, verification_status: status } : c,
-      ),
-    );
-    this.addAudit(
-      `${status === "approved" ? "Approved" : status === "rejected" ? "Rejected" : "Reset"} courier verification`,
-      { courierId, status },
-    );
-    if (status !== "pending") {
-      commitRemote(`/admin/couriers/${courierId}/review`, {
+    await commitRemote(
+      `/admin/couriers/${courierId}/review`,
+      {
         method: "POST",
         body: JSON.stringify({
           decision: status,
@@ -1347,9 +1335,9 @@ export const store = {
               ? "Required profile and verification documents reviewed."
               : "Application requires corrected profile information or documents.",
         }),
-      });
-    }
-    emit();
+      },
+      { throwOnError: true },
+    );
   },
 
   setCourierTrust(courierId: string, trust_level: Courier["trust_level"]) {
@@ -1430,63 +1418,25 @@ export const store = {
     emit();
   },
 
-  setPaymentStatus(paymentId: string, status: Payment["status"]) {
-    replaceArray(
-      state.payments,
-      state.payments.map((p) => (p.id === paymentId ? { ...p, status } : p)),
-    );
-    this.addAudit(`Set payment status to ${status}`, { paymentId, status });
-    commitRemote(`/payments/${paymentId}/status`, {
+  async setPaymentStatus(paymentId: string, status: Payment["status"]) {
+    const payment = await apiFetch<Payment>(`/payments/${paymentId}/status`, {
       method: "PATCH",
       body: JSON.stringify({ status }),
     });
-    emit();
+    await refreshAfterMutation();
+    return payment;
   },
 
-  setWithdrawalStatus(id: string, status: Withdrawal["status"]) {
-    const current = state.withdrawals.find((w) => w.id === id);
-    replaceArray(
-      state.withdrawals,
-      state.withdrawals.map((w) => (w.id === id ? { ...w, status } : w)),
-    );
-    if (current) {
-      const courier = state.couriers.find((c) => c.id === current.courier_id);
-      const wallet = courier ? ensureCourierWallet(courier) : null;
-      if (wallet && status === "failed" && current.status !== "failed") {
-        wallet.balance += current.amount;
-        replaceArray(state.walletTx, [
-          {
-            id: createId("tx"),
-            wallet_id: wallet.id,
-            type: "credit",
-            amount: current.amount,
-            description: "Refunded failed withdrawal",
-            status: "success",
-            created_at: new Date().toISOString(),
-          },
-          ...state.walletTx,
-        ]);
-      }
-      if (wallet && (status === "paid" || status === "approved")) {
-        replaceArray(
-          state.walletTx,
-          state.walletTx.map((tx) =>
-            tx.wallet_id === wallet.id &&
-            tx.description === "Courier withdrawal request" &&
-            tx.amount === current.amount &&
-            tx.status === "pending"
-              ? { ...tx, status: "success" }
-              : tx,
-          ),
-        );
-      }
-    }
-    this.addAudit(`Set withdrawal status to ${status}`, { id, status });
-    commitRemote(`/withdrawals/${id}`, {
+  async setWithdrawalStatus(
+    id: string,
+    status: Exclude<Withdrawal["status"], "pending">,
+  ) {
+    const withdrawal = await apiFetch<Withdrawal>(`/withdrawals/${id}`, {
       method: "PATCH",
       body: JSON.stringify({ status }),
     });
-    emit();
+    await refreshAfterMutation();
+    return withdrawal;
   },
 
   setDisputeStatus(id: string, status: Dispute["status"]) {
