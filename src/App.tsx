@@ -7,6 +7,7 @@ import { lazy, Suspense, useEffect } from "react";
 import { store, useSession, useStore } from "@/data/store";
 import { queryClient } from "@/services/queryClient";
 import RequireAuth from "@/routes/RequireAuth";
+import RequireRole from "@/routes/RequireRole";
 import { getCourierOnboardingMode } from "@/lib/courierOnboarding";
 
 const Landing = lazy(() => import("./pages/Landing"));
@@ -280,155 +281,210 @@ const App = () => {
               <Route path="/auth/reset" element={<ResetPassword />} />
 
               <Route element={<RequireAuth />}>
-                <Route
-                  element={
-                    <DashboardShell
-                      role="customer"
-                      nav={customerNav}
-                      title="Customer"
+                <Route element={<RequireRole roles={["customer"]} />}>
+                  <Route
+                    element={
+                      <DashboardShell
+                        role="customer"
+                        nav={customerNav}
+                        title="Customer"
+                      />
+                    }
+                  >
+                    <Route path="/app" element={<CustomerDashboard />} />
+                    <Route path="/app/new" element={<CreateDelivery />} />
+                    <Route path="/app/track/:id" element={<Tracking />} />
+                    <Route path="/app/history" element={<CHistory />} />
+                    <Route
+                      path="/app/notifications"
+                      element={<NotificationsPage />}
                     />
-                  }
-                >
-                  <Route path="/app" element={<CustomerDashboard />} />
-                  <Route path="/app/new" element={<CreateDelivery />} />
-                  <Route path="/app/track/:id" element={<Tracking />} />
-                  <Route path="/app/history" element={<CHistory />} />
-                  <Route
-                    path="/app/notifications"
-                    element={<NotificationsPage />}
-                  />
-                  <Route path="/app/wallet" element={<WalletPage />} />
-                  <Route
-                    path="/app/wallet/callback"
-                    element={<WalletTopUpCallback />}
-                  />
-                  <Route
-                    path="/app/payments/callback"
-                    element={<PaymentCallback />}
-                  />
-                  <Route path="/app/addresses" element={<Addresses />} />
-                  <Route path="/app/support" element={<SupportCenter role="customer" />} />
-                  <Route path="/app/disputes" element={<DisputesPage role="customer" />} />
-                  <Route path="/app/fraud-alert" element={<FraudAlertPage role="customer" />} />
-                  <Route path="/app/profile" element={<ProfilePage />} />
-                  <Route path="/app/settings" element={<Navigate to="/app/profile" replace />} />
-                </Route>
-
-                <Route element={<CourierShell />}>
-                  <Route path="/courier" element={<CourierHome />} />
-                  <Route
-                    path="/courier/onboarding"
-                    element={<CourierOnboardingGate />}
-                  />
-                  <Route path="/courier/jobs/:id" element={<JobDetails />} />
-                  <Route path="/courier/active/:id" element={<ActiveJob />} />
-                  <Route
-                    path="/courier/earnings"
-                    element={<CourierEarnings />}
-                  />
-                  <Route
-                    path="/courier/withdrawals"
-                    element={<CourierWithdrawals />}
-                  />
-                  <Route
-                    path="/courier/notifications"
-                    element={<NotificationsPage />}
-                  />
-                  <Route path="/courier/ratings" element={<CourierRatings />} />
-                  <Route path="/courier/history" element={<CourierHistory />} />
-                  <Route path="/courier/support" element={<SupportCenter role="courier" />} />
-                  <Route path="/courier/disputes" element={<DisputesPage role="courier" />} />
-                  <Route path="/courier/fraud-alert" element={<FraudAlertPage role="courier" />} />
-                  <Route path="/courier/profile" element={<ProfilePage />} />
-                </Route>
-
-                <Route
-                  element={
-                    <DashboardShell
-                      role="merchant"
-                      nav={merchantNav}
-                      title="Merchant"
+                    <Route path="/app/wallet" element={<WalletPage />} />
+                    <Route
+                      path="/app/wallet/callback"
+                      element={<WalletTopUpCallback />}
                     />
-                  }
-                >
-                  <Route path="/merchant" element={<MerchantOverview />} />
-                  <Route path="/merchant/new" element={<CreateDelivery />} />
-                  <Route path="/merchant/orders" element={<MerchantOrders />} />
-                  <Route path="/merchant/bulk" element={<MerchantBulk />} />
-                  <Route
-                    path="/merchant/customers"
-                    element={<MerchantCustomers />}
-                  />
-                  <Route
-                    path="/merchant/payments"
-                    element={<MerchantPayments />}
-                  />
-                  <Route
-                    path="/merchant/notifications"
-                    element={<NotificationsPage />}
-                  />
-                  <Route path="/merchant/staff" element={<MerchantStaff />} />
-                  <Route path="/merchant/support" element={<SupportCenter role="merchant" />} />
-                  <Route path="/merchant/disputes" element={<DisputesPage role="merchant" />} />
-                  <Route path="/merchant/fraud-alert" element={<FraudAlertPage role="merchant" />} />
-                  <Route path="/merchant/profile" element={<ProfilePage />} />
-                  <Route
-                    path="/merchant/settings"
-                    element={<MerchantSettings />}
-                  />
+                    <Route
+                      path="/app/payments/callback"
+                      element={<PaymentCallback />}
+                    />
+                    <Route path="/app/addresses" element={<Addresses />} />
+                    <Route
+                      path="/app/support"
+                      element={<SupportCenter role="customer" />}
+                    />
+                    <Route
+                      path="/app/disputes"
+                      element={<DisputesPage role="customer" />}
+                    />
+                    <Route
+                      path="/app/fraud-alert"
+                      element={<FraudAlertPage role="customer" />}
+                    />
+                    <Route path="/app/profile" element={<ProfilePage />} />
+                    <Route
+                      path="/app/settings"
+                      element={<Navigate to="/app/profile" replace />}
+                    />
+                  </Route>
                 </Route>
 
-                <Route
-                  element={
-                    <DashboardShell role="admin" nav={adminNav} title="Admin" />
-                  }
-                >
-                  <Route path="/admin" element={<AdminOverview />} />
-                  <Route path="/admin/users" element={<AdminUsers />} />
-                  <Route path="/admin/couriers" element={<AdminCouriers />} />
+                <Route element={<RequireRole roles={["courier"]} />}>
+                  <Route element={<CourierShell />}>
+                    <Route path="/courier" element={<CourierHome />} />
+                    <Route
+                      path="/courier/onboarding"
+                      element={<CourierOnboardingGate />}
+                    />
+                    <Route path="/courier/jobs/:id" element={<JobDetails />} />
+                    <Route path="/courier/active/:id" element={<ActiveJob />} />
+                    <Route
+                      path="/courier/earnings"
+                      element={<CourierEarnings />}
+                    />
+                    <Route
+                      path="/courier/withdrawals"
+                      element={<CourierWithdrawals />}
+                    />
+                    <Route
+                      path="/courier/notifications"
+                      element={<NotificationsPage />}
+                    />
+                    <Route
+                      path="/courier/ratings"
+                      element={<CourierRatings />}
+                    />
+                    <Route
+                      path="/courier/history"
+                      element={<CourierHistory />}
+                    />
+                    <Route
+                      path="/courier/support"
+                      element={<SupportCenter role="courier" />}
+                    />
+                    <Route
+                      path="/courier/disputes"
+                      element={<DisputesPage role="courier" />}
+                    />
+                    <Route
+                      path="/courier/fraud-alert"
+                      element={<FraudAlertPage role="courier" />}
+                    />
+                    <Route path="/courier/profile" element={<ProfilePage />} />
+                  </Route>
+                </Route>
+
+                <Route element={<RequireRole roles={["merchant"]} />}>
                   <Route
-                    path="/admin/couriers/:id"
-                    element={<AdminCourierDetail />}
-                  />
+                    element={
+                      <DashboardShell
+                        role="merchant"
+                        nav={merchantNav}
+                        title="Merchant"
+                      />
+                    }
+                  >
+                    <Route path="/merchant" element={<MerchantOverview />} />
+                    <Route path="/merchant/new" element={<CreateDelivery />} />
+                    <Route
+                      path="/merchant/orders"
+                      element={<MerchantOrders />}
+                    />
+                    <Route path="/merchant/bulk" element={<MerchantBulk />} />
+                    <Route
+                      path="/merchant/customers"
+                      element={<MerchantCustomers />}
+                    />
+                    <Route
+                      path="/merchant/payments"
+                      element={<MerchantPayments />}
+                    />
+                    <Route
+                      path="/merchant/notifications"
+                      element={<NotificationsPage />}
+                    />
+                    <Route
+                      path="/merchant/staff"
+                      element={<MerchantStaff />}
+                    />
+                    <Route
+                      path="/merchant/support"
+                      element={<SupportCenter role="merchant" />}
+                    />
+                    <Route
+                      path="/merchant/disputes"
+                      element={<DisputesPage role="merchant" />}
+                    />
+                    <Route
+                      path="/merchant/fraud-alert"
+                      element={<FraudAlertPage role="merchant" />}
+                    />
+                    <Route path="/merchant/profile" element={<ProfilePage />} />
+                    <Route
+                      path="/merchant/settings"
+                      element={<MerchantSettings />}
+                    />
+                  </Route>
+                </Route>
+
+                <Route element={<RequireRole roles={["admin"]} />}>
                   <Route
-                    path="/admin/deliveries"
-                    element={<AdminDeliveries />}
-                  />
-                  <Route path="/admin/map" element={<AdminMap />} />
-                  <Route path="/admin/payments" element={<AdminPayments />} />
-                  <Route
-                    path="/admin/notifications"
-                    element={<NotificationsPage />}
-                  />
-                  <Route
-                    path="/admin/withdrawals"
-                    element={<AdminWithdrawals />}
-                  />
-                  <Route path="/admin/disputes" element={<AdminDisputes />} />
-                  <Route path="/admin/fraud" element={<AdminFraud />} />
-                  <Route
-                    path="/admin/settings/pricing"
-                    element={<AdminPricing />}
-                  />
-                  <Route
-                    path="/admin/settings/delivery-policy"
-                    element={<AdminDeliveryPolicy />}
-                  />
-                  <Route
-                    path="/admin/settings/categories"
-                    element={<Navigate to="/admin/settings/delivery-policy" replace />}
-                  />
-                  <Route
-                    path="/admin/settings/trust"
-                    element={<AdminTrust />}
-                  />
-                  <Route path="/admin/support" element={<AdminSupport />} />
-                  <Route path="/admin/audit" element={<AdminAudit />} />
-                  <Route
-                    path="/admin/email"
-                    element={<AdminEmailOperations />}
-                  />
-                  <Route path="/admin/profile" element={<ProfilePage />} />
+                    element={
+                      <DashboardShell role="admin" nav={adminNav} title="Admin" />
+                    }
+                  >
+                    <Route path="/admin" element={<AdminOverview />} />
+                    <Route path="/admin/users" element={<AdminUsers />} />
+                    <Route path="/admin/couriers" element={<AdminCouriers />} />
+                    <Route
+                      path="/admin/couriers/:id"
+                      element={<AdminCourierDetail />}
+                    />
+                    <Route
+                      path="/admin/deliveries"
+                      element={<AdminDeliveries />}
+                    />
+                    <Route path="/admin/map" element={<AdminMap />} />
+                    <Route path="/admin/payments" element={<AdminPayments />} />
+                    <Route
+                      path="/admin/notifications"
+                      element={<NotificationsPage />}
+                    />
+                    <Route
+                      path="/admin/withdrawals"
+                      element={<AdminWithdrawals />}
+                    />
+                    <Route path="/admin/disputes" element={<AdminDisputes />} />
+                    <Route path="/admin/fraud" element={<AdminFraud />} />
+                    <Route
+                      path="/admin/settings/pricing"
+                      element={<AdminPricing />}
+                    />
+                    <Route
+                      path="/admin/settings/delivery-policy"
+                      element={<AdminDeliveryPolicy />}
+                    />
+                    <Route
+                      path="/admin/settings/categories"
+                      element={
+                        <Navigate
+                          to="/admin/settings/delivery-policy"
+                          replace
+                        />
+                      }
+                    />
+                    <Route
+                      path="/admin/settings/trust"
+                      element={<AdminTrust />}
+                    />
+                    <Route path="/admin/support" element={<AdminSupport />} />
+                    <Route path="/admin/audit" element={<AdminAudit />} />
+                    <Route
+                      path="/admin/email"
+                      element={<AdminEmailOperations />}
+                    />
+                    <Route path="/admin/profile" element={<ProfilePage />} />
+                  </Route>
                 </Route>
               </Route>
 
