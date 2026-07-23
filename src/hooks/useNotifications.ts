@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useSession } from "@/data/store";
+import { store, useSession } from "@/data/store";
 import { notificationService } from "@/services/notification.service";
 import type { NotificationListParams, NotificationRecord } from "@/types/notification";
 import { realtimeSocket } from "@/lib/realtime";
@@ -75,6 +75,13 @@ export function useRealtimeNotifications() {
     const socket = realtimeSocket();
     const onNotification = (notification: NotificationRecord) => {
       void queryClient.invalidateQueries({ queryKey: notificationKeys.all });
+      if (
+        ["fraud_alert", "support_ticket", "dispute", "payment", "refund", "wallet"].includes(
+          String(notification.entity_type ?? ""),
+        )
+      ) {
+        void store.refresh();
+      }
       const notify = notification.priority === "critical" ? toast.error : notification.priority === "high" ? toast.warning : toast.info;
       notify(notification.title, { description: notification.message });
     };

@@ -4,6 +4,7 @@ import type {
   Delivery,
   DeliveryStatus,
   Dispute,
+  FraudAlert,
   Merchant,
   Notification,
   Payment,
@@ -49,6 +50,7 @@ type State = {
   payments: Payment[];
   withdrawals: Withdrawal[];
   tickets: Ticket[];
+  fraudSignals: FraudAlert[];
   savedAddresses: SavedAddress[];
   notifications: Notification[];
   disputes: Dispute[];
@@ -131,6 +133,7 @@ const emptyState = (): State => ({
   payments: [],
   withdrawals: [],
   tickets: [],
+  fraudSignals: [],
   savedAddresses: [],
   notifications: [],
   disputes: [],
@@ -211,6 +214,41 @@ const emit = () => {
   listeners.forEach((l) => l());
 };
 
+const normalizeRemoteTicket = (ticket: Ticket): Ticket => {
+  const status = String(ticket.status);
+  return {
+    ...ticket,
+    status:
+      status === "pending"
+        ? "in_progress"
+        : status === "resolved"
+          ? "closed"
+          : status === "in_progress" || status === "closed"
+            ? status
+            : "open",
+  };
+};
+
+const normalizeRemoteFraudAlert = (report: FraudAlert): FraudAlert => {
+  const statuses: FraudAlert["resolution_status"][] = [
+    "open",
+    "acknowledged",
+    "investigating",
+    "action_taken",
+    "resolved",
+    "dismissed",
+  ];
+  const status = String(report.resolution_status);
+  return {
+    ...report,
+    resolution_status: statuses.includes(
+      status as FraudAlert["resolution_status"],
+    )
+      ? (status as FraudAlert["resolution_status"])
+      : "open",
+  };
+};
+
 const replaceArray = <T>(target: T[], value: T[]) => {
   const key = Object.keys(state).find(
     (stateKey) =>
@@ -241,7 +279,12 @@ const applySnapshot = (snapshot: RemoteSnapshot) => {
   if (Array.isArray(snapshot.withdrawals))
     replaceArray(state.withdrawals, snapshot.withdrawals);
   if (Array.isArray(snapshot.tickets))
-    replaceArray(state.tickets, snapshot.tickets);
+    replaceArray(state.tickets, snapshot.tickets.map(normalizeRemoteTicket));
+  if (Array.isArray(snapshot.fraudSignals))
+    replaceArray(
+      state.fraudSignals,
+      snapshot.fraudSignals.map(normalizeRemoteFraudAlert),
+    );
   if (Array.isArray(snapshot.savedAddresses))
     replaceArray(state.savedAddresses, snapshot.savedAddresses);
   if (Array.isArray(snapshot.notifications))
@@ -282,6 +325,7 @@ const remoteSnapshot = (): RemoteSnapshot => ({
   payments: state.payments,
   withdrawals: state.withdrawals,
   tickets: state.tickets,
+  fraudSignals: state.fraudSignals,
   savedAddresses: state.savedAddresses,
   notifications: state.notifications,
   disputes: state.disputes,
@@ -527,6 +571,7 @@ export const store = {
       payments: [],
       withdrawals: [],
       tickets: [],
+      fraudSignals: [],
       savedAddresses: [],
       notifications: [],
       disputes: [],
@@ -1198,22 +1243,21 @@ export const store = {
     return { ok: false, message: "Address not found." };
   },
 
-  addTicket(userId: string, subject: string, message: string, metadata: { category?: string; priority?: string; requester_role?: string } = {}) {
-    const ticket: Ticket = {
-      id: createId("ticket"),
-      user_id: userId,
-      subject,
-      message,
-      status: "open",
-      created_at: new Date().toISOString(),
-      ...metadata,
-    } as Ticket;
-    replaceArray(state.tickets, [ticket, ...state.tickets]);
-    commitRemote("/support", {
+  async addTicket(
+    _userId: string,
+    subject: string,
+    message: string,
+    metadata: {
+      category?: string;
+      priority?: string;
+      requester_role?: string;
+    } = {},
+  ) {
+    const ticket = await apiFetch<Ticket>("/support", {
       method: "POST",
       body: JSON.stringify({ subject, message, ...metadata }),
     });
-    emit();
+    await refreshAfterMutation();
     return ticket;
   },
 
@@ -1452,13 +1496,30 @@ export const store = {
     emit();
   },
 
-  async setTicketStatus(id: string, status: Ticket["status"]) {
+  async setTicketStatus(
+    id: string,
+    status: Ticket["status"],
+    note?: string,
+  ) {
     const ticket = await apiFetch<Ticket>(`/support/${id}`, {
       method: "PATCH",
-      body: JSON.stringify({ status }),
+      body: JSON.stringify({ status, note: note?.trim() || undefined }),
     });
     await refreshAfterMutation();
     return ticket;
+  },
+
+  async setFraudAlertStatus(
+    id: string,
+    status: FraudAlert["resolution_status"],
+    note?: string,
+  ) {
+    const report = await apiFetch<FraudAlert>(`/support/fraud-alerts/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify({ status, note: note?.trim() || undefined }),
+    });
+    await refreshAfterMutation();
+    return report;
   },
 
   savePricingSettings(pricing: AdminSettings["pricing"]) {

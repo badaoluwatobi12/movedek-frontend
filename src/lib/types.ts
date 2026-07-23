@@ -228,7 +228,44 @@ export interface Ticket {
   priority?: string;
   requester_role?: Role;
   status: "open" | "in_progress" | "closed";
+  admin_note?: string | null;
+  reviewed_by?: string | null;
+  updated_at?: string;
+  closed_at?: string | null;
   created_at: string;
+}
+
+export type FraudAlertStatus =
+  | "open"
+  | "acknowledged"
+  | "investigating"
+  | "action_taken"
+  | "resolved"
+  | "dismissed";
+
+export interface FraudAlert {
+  id: string;
+  signal_type: string;
+  source_system?: string;
+  related_entity?: string | null;
+  reference?: string | null;
+  severity: "low" | "medium" | "high" | "critical" | string;
+  details?: string;
+  reporter_role?: Role;
+  reporter_user_id?: string;
+  normalized_attributes?: {
+    details?: string;
+    reporter_role?: Role;
+    reporter_user_id?: string;
+    [key: string]: unknown;
+  };
+  resolution_status: FraudAlertStatus;
+  admin_note?: string | null;
+  reviewed_by?: string | null;
+  resolved_at?: string | null;
+  detected_at: string;
+  updated_at?: string;
+  created_by?: string;
 }
 export interface Notification {
   id: string;

@@ -16,6 +16,8 @@ import { store, useStore } from "@/data/store";
 import type {
   DeliveryStatus,
   Dispute,
+  FraudAlert,
+  FraudAlertStatus,
   Payment,
   Ticket,
   TrustLevel,
@@ -31,6 +33,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import {
   Users,
@@ -87,6 +90,14 @@ const disputeStatuses: Dispute["status"][] = [
   "rejected",
 ];
 const ticketStatuses: Ticket["status"][] = ["open", "in_progress", "closed"];
+const fraudAlertStatuses: FraudAlertStatus[] = [
+  "open",
+  "acknowledged",
+  "investigating",
+  "action_taken",
+  "resolved",
+  "dismissed",
+];
 const trustLevels: TrustLevel[] = ["bronze", "silver", "gold", "platinum"];
 
 function initials(name?: string) {
@@ -1191,16 +1202,125 @@ export function AdminDisputes() {
   );
 }
 
-export function AdminFraud() {
-  const deliveries = useStore((s) => s.deliveries);
-  const users = useStore((s) => s.users);
-  const alerts = deliveries.filter(
-    (d) =>
-      d.risk_level === "high" ||
-      d.status === "disputed" ||
-      d.item_value >= 100000,
+function fraudReporterId(report: FraudAlert) {
+  return (
+    report.reporter_user_id ??
+    report.normalized_attributes?.reporter_user_id ??
+    report.created_by
   );
-  const fraudPage = useClientPagination(alerts, 20);
+}
+
+function fraudDetails(report: FraudAlert) {
+  return report.details ?? report.normalized_attributes?.details ?? "";
+}
+
+function FraudAlertReviewCard({
+  alert,
+  reporterName,
+}: {
+  alert: FraudAlert;
+  reporterName: string;
+}) {
+  const [status, setStatus] = useState<FraudAlertStatus>(
+    alert.resolution_status,
+  );
+  const [note, setNote] = useState(alert.admin_note ?? "");
+  const [saving, setSaving] = useState(false);
+  const unchanged =
+    status === alert.resolution_status &&
+    note.trim() === String(alert.admin_note ?? "").trim();
+
+  const save = async () => {
+    setSaving(true);
+    try {
+      await store.setFraudAlertStatus(alert.id, status, note);
+      toast.success("Fraud alert updated and reporter notified");
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Could not update fraud alert.",
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <article className="card-elevated space-y-4 p-4">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <div className="font-medium capitalize text-primary">
+            {alert.signal_type.replaceAll("_", " ")}
+          </div>
+          <div className="mt-1 text-sm text-muted-foreground">
+            Reporter: {reporterName} · {shortDate(alert.detected_at)}
+          </div>
+          {alert.related_entity || alert.reference ? (
+            <div className="mt-1 text-xs text-muted-foreground">
+              Reference: {alert.related_entity ?? alert.reference}
+            </div>
+          ) : null}
+        </div>
+        <div className="flex gap-2">
+          <span
+            className={`chip capitalize ${
+              alert.severity === "critical"
+                ? "bg-destructive/15 text-destructive"
+                : "bg-warning/15 text-warning-foreground"
+            }`}
+          >
+            {alert.severity}
+          </span>
+          <span className="chip bg-muted capitalize text-muted-foreground">
+            {alert.resolution_status.replaceAll("_", " ")}
+          </span>
+        </div>
+      </div>
+
+      <p className="whitespace-pre-wrap text-sm text-muted-foreground">
+        {fraudDetails(alert)}
+      </p>
+
+      <div className="grid gap-3 lg:grid-cols-[220px_minmax(0,1fr)_auto] lg:items-end">
+        <div className="space-y-2">
+          <Label>Status</Label>
+          <NativeSelect
+            value={status}
+            options={fraudAlertStatuses}
+            onChange={setStatus}
+            className="w-full"
+          />
+        </div>
+        <div className="space-y-2">
+          <Label>Update for the reporter</Label>
+          <Textarea
+            rows={2}
+            value={note}
+            onChange={(event) => setNote(event.target.value)}
+            placeholder="Explain what was reviewed or what action was taken."
+          />
+        </div>
+        <Button onClick={save} disabled={saving || unchanged}>
+          {saving ? "Saving…" : "Save & notify"}
+        </Button>
+      </div>
+    </article>
+  );
+}
+
+export function AdminFraud() {
+  const users = useStore((state) => state.users);
+  const reports = useStore((state) => state.fraudSignals);
+  const sortedReports = useMemo(
+    () =>
+      [...reports].sort(
+        (a, b) =>
+          new Date(b.detected_at).getTime() - new Date(a.detected_at).getTime(),
+      ),
+    [reports],
+  );
+  const fraudPage = useClientPagination(sortedReports, 20);
 
   return (
     <div className="space-y-4">
@@ -1210,39 +1330,36 @@ export function AdminFraud() {
             Fraud alerts
           </h1>
           <p className="text-sm text-muted-foreground">
-            Computed from real risky deliveries and disputes.
+            Review user-submitted fraud reports and notify reporters after every
+            action.
           </p>
         </div>
         <RefreshButton />
       </div>
-      {alerts.length === 0 ? (
+
+      {sortedReports.length === 0 ? (
         <EmptyState
           icon={ShieldAlert}
           title="No fraud alerts yet"
-          desc="High-risk deliveries or disputes will appear here."
+          desc="User-submitted fraud alerts will appear here immediately."
         />
       ) : (
         <div className="grid gap-3">
-          {fraudPage.items.map((d) => (
-            <div key={d.id} className="card-elevated p-4">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div>
-                  <div className="font-medium text-primary">{d.item_name}</div>
-                  <div className="text-sm text-muted-foreground">
-                    Customer:{" "}
-                    {users.find((u) => u.id === d.customer_id)?.full_name ??
-                      "Unknown"}{" "}
-                    · Value {naira(d.item_value)}
-                  </div>
-                </div>
-                <div className="flex gap-2">
-                  <RiskBadge risk={d.risk_level} />
-                  <StatusBadge status={d.status} />
-                </div>
-              </div>
-            </div>
-          ))}
-          <PaginationBar meta={fraudPage.pagination} onPageChange={fraudPage.setPage} />
+          {fraudPage.items.map((report) => {
+            const userId = fraudReporterId(report);
+            const reporter = users.find((user) => user.id === userId);
+            return (
+              <FraudAlertReviewCard
+                key={report.id}
+                alert={report}
+                reporterName={reporter?.full_name ?? userId ?? "Unknown user"}
+              />
+            );
+          })}
+          <PaginationBar
+            meta={fraudPage.pagination}
+            onPageChange={fraudPage.setPage}
+          />
         </div>
       )}
     </div>
@@ -1380,6 +1497,53 @@ export function AdminTrust() {
   );
 }
 
+function SupportTicketReview({ ticket }: { ticket: Ticket }) {
+  const [status, setStatus] = useState<Ticket["status"]>(ticket.status);
+  const [note, setNote] = useState(ticket.admin_note ?? "");
+  const [saving, setSaving] = useState(false);
+  const unchanged =
+    status === ticket.status &&
+    note.trim() === String(ticket.admin_note ?? "").trim();
+
+  const save = async () => {
+    setSaving(true);
+    try {
+      await store.setTicketStatus(ticket.id, status, note);
+      toast.success("Ticket updated and user notified");
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Could not update ticket.",
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="min-w-64 space-y-2">
+      <NativeSelect
+        value={status}
+        options={ticketStatuses}
+        onChange={setStatus}
+        className="w-full"
+      />
+      <Input
+        value={note}
+        onChange={(event) => setNote(event.target.value)}
+        placeholder="Update for the user"
+      />
+      <Button
+        size="sm"
+        onClick={save}
+        disabled={saving || unchanged}
+        className="w-full"
+      >
+        {saving ? "Saving…" : "Save & notify"}
+      </Button>
+    </div>
+  );
+}
+
 export function AdminSupport() {
   const tickets = useStore((s) => s.tickets);
   const users = useStore((s) => s.users);
@@ -1430,22 +1594,7 @@ export function AdminSupport() {
                     </span>
                   </TableCell>
                   <TableCell className="text-right">
-                    <NativeSelect
-                      value={t.status}
-                      options={ticketStatuses}
-                      onChange={(status) => {
-                        void store
-                          .setTicketStatus(t.id, status)
-                          .then(() => toast.success("Ticket updated"))
-                          .catch((error) =>
-                            toast.error(
-                              error instanceof Error
-                                ? error.message
-                                : "Could not update ticket.",
-                            ),
-                          );
-                      }}
-                    />
+                    <SupportTicketReview ticket={t} />
                   </TableCell>
                 </TableRow>
               ))}

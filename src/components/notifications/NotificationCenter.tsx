@@ -21,7 +21,6 @@ import {
   useMarkNotificationRead,
   useNotifications,
   useNotificationUnreadCount,
-  useRealtimeNotifications,
 } from "@/hooks/useNotifications";
 import { cn } from "@/lib/utils";
 import type { NotificationRecord } from "@/types/notification";
@@ -117,7 +116,6 @@ export default function NotificationCenter({
   notificationPath: string;
 }) {
   const [open, setOpen] = useState(false);
-  useRealtimeNotifications();
   const unreadQuery = useNotificationUnreadCount();
   const recentQuery = useNotifications({
     read_status: "all",

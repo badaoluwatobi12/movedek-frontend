@@ -10,7 +10,10 @@ import { getStoredAuthUser, store, useSession, useStore } from "@/data/store";
 import type { Role } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { useNotificationUnreadCount } from "@/hooks/useNotifications";
+import {
+  useNotificationUnreadCount,
+  useRealtimeNotifications,
+} from "@/hooks/useNotifications";
 import { Bell, LogOut, Menu, Zap, type LucideIcon } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { ConnectivityAlert } from "@/components/common/ConnectivityAlert";
@@ -71,6 +74,7 @@ export function DashboardShell({
     user?.full_name || storedUser?.full_name || "MoveDek User";
   const displayEmail = user?.email || storedUser?.email || "";
   const unreadNotifications = useNotificationUnreadCount();
+  useRealtimeNotifications();
   const notificationPath =
     role === "customer" ? "/app/notifications" : `/${role}/notifications`;
   const unreadCount = unreadNotifications.data?.unread_count ?? 0;
