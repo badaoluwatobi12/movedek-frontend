@@ -88,9 +88,12 @@ export default function Landing() {
             className="group flex items-center gap-3"
             aria-label="MoveDek home"
           >
-            <span className="grid h-11 w-11 place-items-center rounded-2xl bg-emerald-600 shadow-[0_10px_24px_-10px_rgba(5,150,105,.8)] transition-transform group-hover:-rotate-3 group-hover:scale-105">
-              <Zap className="h-6 w-6 fill-white text-white" />
-            </span>
+            <img
+              src="/logo.svg"
+              alt=""
+              aria-hidden="true"
+              className="h-11 w-11 rounded-2xl shadow-[0_10px_24px_-10px_rgba(5,150,105,.8)] transition-transform group-hover:-rotate-3 group-hover:scale-105"
+            />
             <span className="font-display text-2xl font-extrabold tracking-[-0.04em] text-emerald-800">
               MoveDek
             </span>
@@ -613,9 +616,12 @@ export default function Landing() {
         <div className="container-x py-12 grid md:grid-cols-4 gap-8">
           <div>
             <div className="flex items-center gap-2">
-              <span className="grid h-9 w-9 place-items-center rounded-xl accent-gradient">
-                <Zap className="h-5 w-5 text-white" />
-              </span>
+              <img
+                src="/logo.svg"
+                alt=""
+                aria-hidden="true"
+                className="h-9 w-9 rounded-xl"
+              />
               <span className="font-display text-xl font-bold">MoveDek</span>
             </div>
             <p className="mt-3 text-sm text-primary-foreground/70">

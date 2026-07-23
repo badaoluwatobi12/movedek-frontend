@@ -14,7 +14,7 @@ import {
   useNotificationUnreadCount,
   useRealtimeNotifications,
 } from "@/hooks/useNotifications";
-import { Bell, LogOut, Menu, Zap, type LucideIcon } from "lucide-react";
+import { Bell, LogOut, Menu, type LucideIcon } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { ConnectivityAlert } from "@/components/common/ConnectivityAlert";
 import { toast } from "sonner";
@@ -84,9 +84,12 @@ export function DashboardShell({
   const Sidebar = (
     <aside className="flex h-full w-[86vw] max-w-[21rem] shrink-0 flex-col bg-sidebar text-sidebar-foreground shadow-2xl md:w-64 md:max-w-none md:shadow-none">
       <Link to="/" onClick={() => setMobileNavOpen(false)} className="flex items-center gap-3 border-b border-sidebar-border/70 px-5 py-5">
-        <span className="flex h-9 w-9 items-center justify-center rounded-xl accent-gradient shadow-glow">
-          <Zap className="h-5 w-5 text-white" />
-        </span>
+        <img
+          src="/logo.svg"
+          alt=""
+          aria-hidden="true"
+          className="h-9 w-9 rounded-xl shadow-glow"
+        />
         <div>
           <div className="font-display text-lg font-bold leading-none">
             MoveDek

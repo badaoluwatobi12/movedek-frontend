@@ -1,6 +1,5 @@
 import { PropsWithChildren } from "react";
 import { Link } from "react-router-dom";
-import { Zap } from "lucide-react";
 
 export default function PublicLayout({ children }: PropsWithChildren) {
   return (
@@ -11,9 +10,12 @@ export default function PublicLayout({ children }: PropsWithChildren) {
             to="/"
             className="flex items-center gap-2 font-display text-xl font-bold text-primary"
           >
-            <span className="grid h-9 w-9 place-items-center rounded-xl accent-gradient text-white">
-              <Zap className="h-5 w-5" />
-            </span>
+            <img
+              src="/logo.svg"
+              alt=""
+              aria-hidden="true"
+              className="h-9 w-9 rounded-xl"
+            />
             MoveDek
           </Link>
           <Link to="/auth/login" className="text-sm font-medium text-accent">

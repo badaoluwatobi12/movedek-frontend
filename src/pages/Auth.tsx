@@ -162,9 +162,12 @@ function AuthLayout({
               to="/"
               className="inline-flex w-fit items-center gap-3 font-display text-2xl font-black tracking-[-0.04em]"
             >
-              <span className="grid h-11 w-11 place-items-center rounded-2xl border border-white/25 bg-white/15 shadow-lg backdrop-blur">
-                <Zap className="h-6 w-6" />
-              </span>
+              <img
+                src="/logo.svg"
+                alt=""
+                aria-hidden="true"
+                className="h-11 w-11 rounded-2xl border border-white/25 shadow-lg"
+              />
               MoveDek
             </Link>
 

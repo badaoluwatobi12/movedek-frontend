@@ -68,8 +68,9 @@ export default function ResetPassword() {
       <section className="w-full max-w-md rounded-3xl border bg-card p-7 shadow-xl">
         <Link
           to="/"
-          className="font-display text-2xl font-extrabold text-primary"
+          className="inline-flex items-center gap-3 font-display text-2xl font-extrabold text-primary"
         >
+          <img src="/logo.svg" alt="" aria-hidden="true" className="h-10 w-10 rounded-xl" />
           MoveDek
         </Link>
         <h1 className="mt-8 font-display text-3xl font-bold text-primary">
