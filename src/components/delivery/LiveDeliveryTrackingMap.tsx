@@ -80,12 +80,16 @@ export function LiveDeliveryTrackingMap({
   deliveryId,
   pickupAddress,
   dropoffAddress,
+  pickupCoordinates,
+  dropoffCoordinates,
   active,
   className,
 }: {
   deliveryId: string;
   pickupAddress: string;
   dropoffAddress: string;
+  pickupCoordinates?: [number, number] | null;
+  dropoffCoordinates?: [number, number] | null;
   active: boolean;
   className?: string;
 }) {
@@ -143,6 +147,8 @@ export function LiveDeliveryTrackingMap({
         <DeliveryRouteMap
           pickupAddress={pickupAddress}
           dropoffAddress={dropoffAddress}
+          pickupCoordinates={pickupCoordinates}
+          dropoffCoordinates={dropoffCoordinates}
           className={className}
         />
         <div className="absolute left-3 top-3 z-[1000] rounded-full bg-background/95 px-3 py-2 text-xs font-medium shadow-md">

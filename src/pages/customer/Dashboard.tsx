@@ -85,7 +85,7 @@ export default function CustomerDashboard() {
           tone="warning"
         />
         <StatCard
-          label="Saved addresses"
+          label="Saved locations"
           value={String(savedAddresses.length)}
           icon={MapPin}
         />

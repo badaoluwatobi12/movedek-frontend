@@ -24,32 +24,104 @@ export const genPin = () => String(Math.floor(1000 + Math.random() * 9000));
 export const genId = (p = "id") =>
   `${p}_${Math.random().toString(36).slice(2, 9)}`;
 
-export const priceEstimate = (
-  distanceKm: number,
-  protection: boolean,
-  courierType: string,
-) => {
-  const base: Record<string, number> = {
-    everyday: 700,
-    motorcycle: 900,
-    car: 1500,
-    van: 2500,
-    logistics: 3500,
+export type PricingZone =
+  | "same_area"
+  | "nearby_areas"
+  | "across_city"
+  | "outskirts";
+
+export const pricingZoneDetails: Record<
+  PricingZone,
+  { label: string; description: string; fare: number }
+> = {
+  same_area: {
+    label: "Within Your Area",
+    description: "Pickup and delivery are in the same neighbourhood.",
+    fare: 1000,
+  },
+  nearby_areas: {
+    label: "Nearby Area",
+    description: "Delivery is to a neighbouring area.",
+    fare: 1500,
+  },
+  across_city: {
+    label: "Across Town",
+    description: "Delivery crosses several areas within the city.",
+    fare: 2500,
+  },
+  outskirts: {
+    label: "City Outskirts",
+    description: "Delivery is near or beyond the main edge of the city.",
+    fare: 4000,
+  },
+};
+
+export type PricingLocation = {
+  area: string;
+  latitude: number;
+  longitude: number;
+};
+
+const distanceBetweenKm = (a: PricingLocation, b: PricingLocation) => {
+  const toRadians = (degrees: number) => (degrees * Math.PI) / 180;
+  const dLat = toRadians(b.latitude - a.latitude);
+  const dLon = toRadians(b.longitude - a.longitude);
+  const firstLat = toRadians(a.latitude);
+  const secondLat = toRadians(b.latitude);
+  const haversine =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(firstLat) *
+      Math.cos(secondLat) *
+      Math.sin(dLon / 2) ** 2;
+  return 6371 * 2 * Math.atan2(Math.sqrt(haversine), Math.sqrt(1 - haversine));
+};
+
+export const resolvePricingZone = (
+  pickup: PricingLocation,
+  dropoff: PricingLocation,
+): PricingZone => {
+  const normalizedPickup = pickup.area.trim().toLocaleLowerCase("en-NG");
+  const normalizedDropoff = dropoff.area.trim().toLocaleLowerCase("en-NG");
+  const distance = distanceBetweenKm(pickup, dropoff);
+
+  if (
+    (normalizedPickup.length > 0 && normalizedPickup === normalizedDropoff) ||
+    distance <= 3
+  ) {
+    return "same_area";
+  }
+  if (distance <= 12) return "nearby_areas";
+  if (distance <= 30) return "across_city";
+  return "outskirts";
+};
+
+export const priceEstimate = ({
+  pickup,
+  dropoff,
+  protection,
+  zoneFares,
+  protectionFee = 300,
+}: {
+  pickup: PricingLocation;
+  dropoff: PricingLocation;
+  protection: boolean;
+  zoneFares?: Partial<Record<PricingZone, number>>;
+  protectionFee?: number;
+}) => {
+  const zone = resolvePricingZone(pickup, dropoff);
+  const configuredFare = zoneFares?.[zone];
+  const zoneFare = Number.isFinite(configuredFare)
+    ? Number(configuredFare)
+    : pricingZoneDetails[zone].fare;
+  const protectionAmount = protection ? protectionFee : 0;
+  return {
+    zone,
+    zoneLabel: pricingZoneDetails[zone].label,
+    zoneDescription: pricingZoneDetails[zone].description,
+    zoneFare,
+    protection: protectionAmount,
+    total: zoneFare + protectionAmount,
   };
-  const perKm: Record<string, number> = {
-    everyday: 120,
-    motorcycle: 150,
-    car: 220,
-    van: 320,
-    logistics: 420,
-  };
-  const b = base[courierType] ?? 900;
-  const km = perKm[courierType] ?? 150;
-  const distance = Math.round(distanceKm * km);
-  const service = Math.round((b + distance) * 0.08);
-  const prot = protection ? 300 : 0;
-  const total = b + distance + service + prot;
-  return { base: b, distance, service, protection: prot, total };
 };
 
 export const trustCap: Record<string, number> = {

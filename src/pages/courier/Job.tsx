@@ -189,6 +189,16 @@ export function JobDetails() {
         <DeliveryRouteMap
           pickupAddress={d.pickup_address}
           dropoffAddress={d.dropoff_address}
+          pickupCoordinates={
+            d.pickup_latitude !== null && d.pickup_longitude !== null
+              ? [d.pickup_latitude, d.pickup_longitude]
+              : null
+          }
+          dropoffCoordinates={
+            d.dropoff_latitude !== null && d.dropoff_longitude !== null
+              ? [d.dropoff_latitude, d.dropoff_longitude]
+              : null
+          }
           className="h-56"
         />
         <div className="grid gap-3 sm:grid-cols-2">
@@ -663,6 +673,16 @@ export function ActiveJob() {
             <DeliveryRouteMap
               pickupAddress={d.pickup_address}
               dropoffAddress={d.dropoff_address}
+              pickupCoordinates={
+                d.pickup_latitude !== null && d.pickup_longitude !== null
+                  ? [d.pickup_latitude, d.pickup_longitude]
+                  : null
+              }
+              dropoffCoordinates={
+                d.dropoff_latitude !== null && d.dropoff_longitude !== null
+                  ? [d.dropoff_latitude, d.dropoff_longitude]
+                  : null
+              }
               className="h-56"
             />
           </div>
@@ -695,6 +715,16 @@ export function ActiveJob() {
             <DeliveryRouteMap
               pickupAddress={d.pickup_address}
               dropoffAddress={d.dropoff_address}
+              pickupCoordinates={
+                d.pickup_latitude !== null && d.pickup_longitude !== null
+                  ? [d.pickup_latitude, d.pickup_longitude]
+                  : null
+              }
+              dropoffCoordinates={
+                d.dropoff_latitude !== null && d.dropoff_longitude !== null
+                  ? [d.dropoff_latitude, d.dropoff_longitude]
+                  : null
+              }
               className="h-56"
             />
           </div>

@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { naira, shortDate } from "@/lib/format";
+import { naira, pricingZoneDetails, shortDate } from "@/lib/format";
 import type { DeliveryStatus } from "@/types/delivery";
 import { useCancelDelivery, useDelivery } from "@/hooks/useDeliveries";
 import { usePayments } from "@/hooks/usePayments";
@@ -218,6 +218,16 @@ export default function Tracking() {
             deliveryId={delivery.id}
             pickupAddress={delivery.pickup_address}
             dropoffAddress={delivery.dropoff_address}
+            pickupCoordinates={
+              delivery.pickup_latitude !== null && delivery.pickup_longitude !== null
+                ? [delivery.pickup_latitude, delivery.pickup_longitude]
+                : null
+            }
+            dropoffCoordinates={
+              delivery.dropoff_latitude !== null && delivery.dropoff_longitude !== null
+                ? [delivery.dropoff_latitude, delivery.dropoff_longitude]
+                : null
+            }
             active={["assigned", "accepted", "picked_up", "in_transit"].includes(delivery.status)}
             className="h-80"
           />
@@ -431,7 +441,13 @@ export default function Tracking() {
             </div>
             <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
               <Info label="Value" value={naira(delivery.item_value)} />
-              <Info label="Distance" value={`${delivery.distance_km} km`} />
+              <Info
+                label="Delivery zone"
+                value={
+                  pricingZoneDetails[delivery.pricing_zone]?.label ??
+                  "Within Your Area"
+                }
+              />
               <Info label="Fee" value={naira(delivery.price)} />
             </div>
           </div>

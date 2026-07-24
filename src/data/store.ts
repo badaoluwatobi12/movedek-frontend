@@ -69,10 +69,17 @@ type State = {
 
 export type AdminSettings = {
   pricing: {
+    zone_fares: {
+      same_area: number;
+      nearby_areas: number;
+      across_city: number;
+      outskirts: number;
+    };
+    protection_fee: number;
+    // Legacy fields remain readable while existing deployments migrate.
     base_fare: number;
     per_km: number;
     service_fee_percent: number;
-    protection_fee: number;
   };
   trust_caps: {
     bronze: number;
@@ -113,10 +120,16 @@ export const getStoredAuthSession = () => readStoredSession();
 export const getStoredAuthUser = () => readStoredUser();
 const defaultSettings = (): AdminSettings => ({
   pricing: {
+    zone_fares: {
+      same_area: 1000,
+      nearby_areas: 1500,
+      across_city: 2500,
+      outskirts: 4000,
+    },
+    protection_fee: 300,
     base_fare: 900,
     per_km: 150,
     service_fee_percent: 8,
-    protection_fee: 300,
   },
   trust_caps: { bronze: 15000, silver: 75000, gold: 250000, platinum: 5000000 },
   categories: { general: true },
@@ -302,6 +315,10 @@ const applySnapshot = (snapshot: RemoteSnapshot) => {
       pricing: {
         ...defaultSettings().pricing,
         ...(snapshot.settings as AdminSettings).pricing,
+        zone_fares: {
+          ...defaultSettings().pricing.zone_fares,
+          ...((snapshot.settings as AdminSettings).pricing?.zone_fares ?? {}),
+        },
       },
       trust_caps: {
         ...defaultSettings().trust_caps,
@@ -1238,7 +1255,7 @@ export const store = {
     if (state.savedAddresses.length !== before) {
       commitRemote(`/addresses/${id}`, { method: "DELETE" });
       emit();
-      return { ok: true, message: "Address removed." };
+      return { ok: true, message: "Location removed." };
     }
     return { ok: false, message: "Address not found." };
   },
@@ -1522,14 +1539,28 @@ export const store = {
     return report;
   },
 
-  savePricingSettings(pricing: AdminSettings["pricing"]) {
-    state.settings = { ...state.settings, pricing };
-    this.addAudit("Updated pricing settings", pricing);
-    commitRemote("/admin/settings/pricing", {
-      method: "PATCH",
-      body: JSON.stringify(pricing),
-    });
+  async savePricingSettings(pricing: AdminSettings["pricing"]) {
+    const saved = await apiFetch<AdminSettings["pricing"]>(
+      "/admin/settings/pricing",
+      {
+        method: "PATCH",
+        body: JSON.stringify(pricing),
+      },
+    );
+    state.settings = {
+      ...state.settings,
+      pricing: {
+        ...pricing,
+        ...saved,
+        zone_fares: {
+          ...pricing.zone_fares,
+          ...(saved.zone_fares ?? {}),
+        },
+      },
+    };
+    this.addAudit("Updated zone pricing settings", state.settings.pricing);
     emit();
+    return state.settings.pricing;
   },
 
   saveTrustCaps(trust_caps: AdminSettings["trust_caps"]) {

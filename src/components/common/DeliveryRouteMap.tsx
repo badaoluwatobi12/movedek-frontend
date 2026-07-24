@@ -67,10 +67,14 @@ function FitToPoints({ points }: { points: [number, number][] }) {
 export function DeliveryRouteMap({
   pickupAddress,
   dropoffAddress,
+  pickupCoordinates,
+  dropoffCoordinates,
   className,
 }: {
   pickupAddress: string;
   dropoffAddress: string;
+  pickupCoordinates?: [number, number] | null;
+  dropoffCoordinates?: [number, number] | null;
   className?: string;
 }) {
   const [pickup, setPickup] = useState<[number, number] | null | undefined>(
@@ -82,14 +86,22 @@ export function DeliveryRouteMap({
 
   useEffect(() => {
     let cancelled = false;
-    setPickup(undefined);
-    setDropoff(undefined);
-    geocode(pickupAddress).then((point) => !cancelled && setPickup(point));
-    geocode(dropoffAddress).then((point) => !cancelled && setDropoff(point));
+    if (pickupCoordinates) {
+      setPickup(pickupCoordinates);
+    } else {
+      setPickup(undefined);
+      geocode(pickupAddress).then((point) => !cancelled && setPickup(point));
+    }
+    if (dropoffCoordinates) {
+      setDropoff(dropoffCoordinates);
+    } else {
+      setDropoff(undefined);
+      geocode(dropoffAddress).then((point) => !cancelled && setDropoff(point));
+    }
     return () => {
       cancelled = true;
     };
-  }, [pickupAddress, dropoffAddress]);
+  }, [pickupAddress, dropoffAddress, pickupCoordinates, dropoffCoordinates]);
 
   const loading = pickup === undefined || dropoff === undefined;
   const points = [pickup, dropoff].filter((p): p is [number, number] =>
@@ -101,7 +113,7 @@ export function DeliveryRouteMap({
       <div
         className={`flex flex-col items-center justify-center gap-1 rounded-2xl border border-border bg-muted/20 text-center text-sm text-muted-foreground ${className ?? ""}`}
       >
-        <p>Couldn't locate these addresses on the map.</p>
+        <p>Map pins were not saved for this older delivery.</p>
         <p className="text-xs">
           {pickupAddress} → {dropoffAddress}
         </p>
@@ -135,7 +147,7 @@ export function DeliveryRouteMap({
       </MapContainer>
       {loading && (
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-background/60 text-sm font-medium">
-          Locating addresses…
+          Loading delivery locations…
         </div>
       )}
     </div>

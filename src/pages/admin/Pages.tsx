@@ -12,6 +12,7 @@ import {
 import { naira, shortDate } from "@/lib/format";
 import { getPilotAccessStatus } from "@/lib/pilotAccess";
 import { adminService } from "@/services/admin.service";
+import { HttpError } from "@/services/http";
 import { store, useStore } from "@/data/store";
 import type {
   DeliveryStatus,
@@ -77,6 +78,30 @@ const paymentStatuses: Payment["status"][] = [
   "failed",
   "refunded",
 ];
+
+function pilotAccessErrorMessage(error: unknown) {
+  if (error instanceof HttpError) {
+    const code =
+      typeof error.body === "object" &&
+      error.body !== null &&
+      "code" in error.body &&
+      typeof error.body.code === "string"
+        ? error.body.code
+        : undefined;
+
+    if (code === "ADMIN_ROLE_NOT_CONFIGURED") {
+      return "Your administrator account has no admin role. Repair it as super_admin or operations_admin on the backend.";
+    }
+    if (code === "ADMIN_PERMISSION_REQUIRED") {
+      return "Your administrator role cannot approve pilot users. A super admin or operations admin must perform this action.";
+    }
+  }
+
+  return error instanceof Error
+    ? error.message
+    : "Could not update pilot access.";
+}
+
 const withdrawalStatuses: Withdrawal["status"][] = [
   "pending",
   "approved",
@@ -345,11 +370,7 @@ export function AdminUsers() {
       await store.refresh();
       toast.success(enabled ? "Pilot access approved" : "Pilot access revoked");
     } catch (error) {
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "Could not update pilot access.",
-      );
+      toast.error(pilotAccessErrorMessage(error));
     } finally {
       setPilotUpdating(null);
     }
@@ -1369,63 +1390,127 @@ export function AdminFraud() {
 export function AdminPricing() {
   const pricing = useStore((s) => s.settings.pricing);
   const [form, setForm] = useState(pricing);
-  const update = (key: keyof typeof form, value: number) =>
+  const [saving, setSaving] = useState(false);
+  const updateZone = (
+    key: keyof typeof form.zone_fares,
+    value: number,
+  ) =>
     setForm((current) => ({
       ...current,
-      [key]: Number.isFinite(value) ? value : 0,
+      zone_fares: {
+        ...current.zone_fares,
+        [key]: Number.isFinite(value) ? value : 0,
+      },
     }));
   return (
     <div className="max-w-2xl space-y-4">
-      <h1 className="font-display text-2xl font-bold text-primary">
-        Pricing settings
-      </h1>
+      <div>
+        <h1 className="font-display text-2xl font-bold text-primary">
+          Zone pricing
+        </h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Customers see familiar area descriptions. MoveDek uses map pins
+          internally to select the correct zone.
+        </p>
+      </div>
       <form
-        className="card-elevated p-5 space-y-4"
-        onSubmit={(e) => {
+        className="card-elevated space-y-4 p-5"
+        onSubmit={async (e) => {
           e.preventDefault();
-          store.savePricingSettings(form);
-          toast.success("Pricing saved to PostgreSQL");
+          setSaving(true);
+          try {
+            const saved = await store.savePricingSettings(form);
+            setForm(saved);
+            toast.success("Zone pricing saved");
+          } catch (error) {
+            toast.error(
+              error instanceof Error
+                ? error.message
+                : "Could not save zone pricing",
+            );
+          } finally {
+            setSaving(false);
+          }
         }}
       >
-        <div className="grid grid-cols-2 gap-2 items-center">
-          <Label>Base fare — motorcycle (₦)</Label>
+        <PricingZoneInput
+          label="Within Your Area"
+          description="Pickup and drop-off are in the same neighbourhood or district."
+          value={form.zone_fares.same_area}
+          onChange={(value) => updateZone("same_area", value)}
+        />
+        <PricingZoneInput
+          label="Nearby Area"
+          description="Delivery is to a neighbouring area."
+          value={form.zone_fares.nearby_areas}
+          onChange={(value) => updateZone("nearby_areas", value)}
+        />
+        <PricingZoneInput
+          label="Across Town"
+          description="Delivery crosses several areas within the city."
+          value={form.zone_fares.across_city}
+          onChange={(value) => updateZone("across_city", value)}
+        />
+        <PricingZoneInput
+          label="City Outskirts"
+          description="Delivery is near or beyond the main edge of the city."
+          value={form.zone_fares.outskirts}
+          onChange={(value) => updateZone("outskirts", value)}
+        />
+        <div className="grid gap-2 sm:grid-cols-[1fr_180px] sm:items-center">
+          <div>
+            <Label>Delivery protection add-on</Label>
+            <p className="text-xs text-muted-foreground">
+              Added only when the customer selects protection.
+            </p>
+          </div>
           <Input
             type="number"
-            value={form.base_fare}
-            onChange={(e) => update("base_fare", Number(e.target.value))}
-          />
-        </div>
-        <div className="grid grid-cols-2 gap-2 items-center">
-          <Label>Per km — motorcycle (₦)</Label>
-          <Input
-            type="number"
-            value={form.per_km}
-            onChange={(e) => update("per_km", Number(e.target.value))}
-          />
-        </div>
-        <div className="grid grid-cols-2 gap-2 items-center">
-          <Label>Service fee %</Label>
-          <Input
-            type="number"
-            value={form.service_fee_percent}
+            min={0}
+            value={form.protection_fee}
             onChange={(e) =>
-              update("service_fee_percent", Number(e.target.value))
+              setForm((current) => ({
+                ...current,
+                protection_fee: Number(e.target.value) || 0,
+              }))
             }
           />
         </div>
-        <div className="grid grid-cols-2 gap-2 items-center">
-          <Label>Protection add-on (₦)</Label>
-          <Input
-            type="number"
-            value={form.protection_fee}
-            onChange={(e) => update("protection_fee", Number(e.target.value))}
-          />
-        </div>
-        <Button className="accent-gradient text-white shadow-glow">
+        <Button
+          disabled={saving}
+          className="accent-gradient text-white shadow-glow"
+        >
           <Save className="mr-2 h-4 w-4" />
-          Save pricing
+          {saving ? "Saving…" : "Save zone pricing"}
         </Button>
       </form>
+    </div>
+  );
+}
+
+function PricingZoneInput({
+  label,
+  description,
+  value,
+  onChange,
+}: {
+  label: string;
+  description: string;
+  value: number;
+  onChange: (value: number) => void;
+}) {
+  return (
+    <div className="grid gap-2 sm:grid-cols-[1fr_180px] sm:items-center">
+      <div>
+        <Label>{label}</Label>
+        <p className="text-xs text-muted-foreground">{description}</p>
+      </div>
+      <Input
+        type="number"
+        min={0}
+        value={value}
+        onChange={(event) => onChange(Number(event.target.value))}
+      />
     </div>
   );
 }

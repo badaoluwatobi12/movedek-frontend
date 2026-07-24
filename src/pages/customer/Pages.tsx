@@ -177,14 +177,14 @@ export function Addresses() {
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!canSave) return toast.error("Add both label and address");
+    if (!canSave) return toast.error("Add both a label and location details");
     store.addAddress({
       user_id: session.userId,
       label: form.label.trim(),
       address: form.address.trim(),
     });
     setForm({ label: "", address: "" });
-    toast.success("Address saved");
+    toast.success("Location saved");
   };
 
   const beginEdit = (address: {
@@ -199,18 +199,18 @@ export function Addresses() {
   const saveEdit = () => {
     if (!editingId) return;
     if (!editForm.label.trim() || !editForm.address.trim())
-      return toast.error("Label and address are required");
+      return toast.error("Label and location details are required");
     store.updateAddress(editingId, {
       label: editForm.label.trim(),
       address: editForm.address.trim(),
     });
     setEditingId(null);
-    toast.success("Address updated");
+    toast.success("Location updated");
   };
 
   const remove = (id: string) => {
     const result = store.removeAddress(id, session.userId);
-    if (result.ok) toast.success("Address removed");
+    if (result.ok) toast.success("Location removed");
     else toast.error(result.message);
   };
 
@@ -220,10 +220,10 @@ export function Addresses() {
     <div className="space-y-6">
       <div>
         <h1 className="font-display text-2xl font-bold text-primary">
-          Saved addresses
+          Saved locations
         </h1>
         <p className="text-sm text-muted-foreground">
-          Save common pickup and drop-off locations for faster delivery
+          Save familiar areas, landmarks or meeting points for faster delivery
           creation.
         </p>
       </div>
@@ -241,11 +241,11 @@ export function Addresses() {
           />
         </div>
         <div className="space-y-2">
-          <Label>Address</Label>
+          <Label>Area, landmark or meeting point</Label>
           <Input
             value={form.address}
             onChange={(e) => setForm({ ...form, address: e.target.value })}
-            placeholder="Street, area, city"
+            placeholder="For example: Allen roundabout, Ikeja"
           />
         </div>
         <div className="flex items-end">
@@ -258,8 +258,8 @@ export function Addresses() {
       {saved.length === 0 ? (
         <EmptyState
           icon={MapPin}
-          title="No saved addresses"
-          desc="Add your first address above."
+          title="No saved locations"
+          desc="Add your first familiar location above."
         />
       ) : (
         <div className="grid gap-3 sm:grid-cols-2">

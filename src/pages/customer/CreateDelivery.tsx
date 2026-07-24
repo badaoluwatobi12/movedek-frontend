@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Stepper } from "@/components/common";
+import { LocationPinPicker } from "@/components/common/LocationPinPicker";
 import { RiskBadge } from "@/components/badges";
 import { useSession, useStore } from "@/data/store";
 import { naira, priceEstimate, riskFor } from "@/lib/format";
@@ -77,8 +78,22 @@ const steps = [
 
 const stepFields: (keyof CreateDeliveryInput)[][] = [
   ["item_name", "item_value", "package_size"],
-  ["pickup_address", "pickup_contact", "pickup_phone"],
-  ["dropoff_address", "dropoff_contact", "dropoff_phone", "distance_km"],
+  [
+    "pickup_area",
+    "pickup_landmark",
+    "pickup_latitude",
+    "pickup_longitude",
+    "pickup_contact",
+    "pickup_phone",
+  ],
+  [
+    "dropoff_area",
+    "dropoff_landmark",
+    "dropoff_latitude",
+    "dropoff_longitude",
+    "dropoff_contact",
+    "dropoff_phone",
+  ],
   ["courier_type"],
   [],
   [],
@@ -89,6 +104,7 @@ export default function CreateDelivery() {
   const session = useSession()!;
   const wallets = useStore((s) => s.wallets);
   const savedAddresses = useStore((s) => s.savedAddresses);
+  const pricingSettings = useStore((s) => s.settings.pricing);
   const wallet = wallets.find((w) => w.user_id === session.userId);
   const myAddresses = savedAddresses.filter(
     (a) => a.user_id === session.userId,
@@ -112,10 +128,14 @@ export default function CreateDelivery() {
     mode: "onChange",
     defaultValues: {
       category: "general",
+      pickup_area: "",
+      pickup_landmark: "",
       pickup_address: "",
       pickup_contact: "",
       pickup_phone: "",
       pickup_notes: "",
+      dropoff_area: "",
+      dropoff_landmark: "",
       dropoff_address: "",
       dropoff_contact: "",
       dropoff_phone: "",
@@ -127,24 +147,60 @@ export default function CreateDelivery() {
       delivery_notes: "",
       courier_type: "motorcycle",
       protection: false,
-      distance_km: 5,
     },
   });
 
   const data = watch();
 
   const price = useMemo(
-    () => priceEstimate(data.distance_km, data.protection, data.courier_type),
-    [data.distance_km, data.protection, data.courier_type],
+    () =>
+      priceEstimate({
+        pickup: {
+          area: data.pickup_area ?? "",
+          latitude: Number(data.pickup_latitude ?? 6.5244),
+          longitude: Number(data.pickup_longitude ?? 3.3792),
+        },
+        dropoff: {
+          area: data.dropoff_area ?? "",
+          latitude: Number(data.dropoff_latitude ?? 6.5244),
+          longitude: Number(data.dropoff_longitude ?? 3.3792),
+        },
+        protection: data.protection,
+        zoneFares: pricingSettings.zone_fares,
+        protectionFee: pricingSettings.protection_fee,
+      }),
+    [
+      data.dropoff_area,
+      data.dropoff_latitude,
+      data.dropoff_longitude,
+      data.pickup_area,
+      data.pickup_latitude,
+      data.pickup_longitude,
+      data.protection,
+      pricingSettings.protection_fee,
+      pricingSettings.zone_fares,
+    ],
   );
   const risk = riskFor(data.item_value);
   const balance = wallet?.balance ?? 0;
   const hasEnoughBalance = balance >= price.total;
 
-  const fillPickup = (address: string) =>
+  const fillPickup = (address: string) => {
     setValue("pickup_address", address, { shouldValidate: true });
-  const fillDropoff = (address: string) =>
+    if (!data.pickup_area?.trim()) {
+      setValue("pickup_area", address.split(",")[0] ?? address, {
+        shouldValidate: true,
+      });
+    }
+  };
+  const fillDropoff = (address: string) => {
     setValue("dropoff_address", address, { shouldValidate: true });
+    if (!data.dropoff_area?.trim()) {
+      setValue("dropoff_area", address.split(",")[0] ?? address, {
+        shouldValidate: true,
+      });
+    }
+  };
 
   const back = () => setStep((s) => Math.max(s - 1, 0));
 
@@ -168,11 +224,19 @@ export default function CreateDelivery() {
       const delivery = await createDelivery.mutateAsync({
         customer_id: session.userId,
         category: "general",
-        pickup_address: input.pickup_address.trim(),
+        pickup_area: input.pickup_area.trim(),
+        pickup_landmark: input.pickup_landmark.trim(),
+        pickup_address: input.pickup_address?.trim() || undefined,
+        pickup_latitude: input.pickup_latitude,
+        pickup_longitude: input.pickup_longitude,
         pickup_contact: input.pickup_contact.trim(),
         pickup_phone: input.pickup_phone.trim(),
         pickup_notes: input.pickup_notes?.trim() || undefined,
-        dropoff_address: input.dropoff_address.trim(),
+        dropoff_area: input.dropoff_area.trim(),
+        dropoff_landmark: input.dropoff_landmark.trim(),
+        dropoff_address: input.dropoff_address?.trim() || undefined,
+        dropoff_latitude: input.dropoff_latitude,
+        dropoff_longitude: input.dropoff_longitude,
         dropoff_contact: input.dropoff_contact.trim(),
         dropoff_phone: input.dropoff_phone.trim(),
         dropoff_notes: input.dropoff_notes?.trim() || undefined,
@@ -183,9 +247,6 @@ export default function CreateDelivery() {
         delivery_notes: input.delivery_notes?.trim() || undefined,
         courier_type: input.courier_type,
         protection: input.protection,
-        price: price.total,
-        courier_payout: Math.round(price.total * 0.78),
-        distance_km: input.distance_km,
       });
       const payment = await initializePayment.mutateAsync({
         delivery_id: delivery.id,
@@ -357,32 +418,83 @@ export default function CreateDelivery() {
 
         {step === 1 && (
           <div className="space-y-4">
-            <h2 className="font-display text-lg font-semibold text-primary">
-              Pickup details
-            </h2>
+            <div>
+              <h2 className="font-display text-lg font-semibold text-primary">
+                Pickup details
+              </h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Tell the rider the area and nearest landmark, then place the map pin.
+                A formal street address is optional.
+              </p>
+            </div>
             {myAddresses.length > 0 && (
               <AddressShortcuts
-                title="Use saved pickup address"
+                title="Use a saved pickup location"
                 addresses={myAddresses}
                 onPick={fillPickup}
               />
             )}
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label>Area or neighbourhood</Label>
+                <Input
+                  {...register("pickup_area")}
+                  placeholder="For example: Ikeja, Yaba, Lekki Phase 1"
+                />
+                {errors.pickup_area && (
+                  <FieldError message={errors.pickup_area.message} />
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label>Nearest landmark</Label>
+                <Input
+                  {...register("pickup_landmark")}
+                  placeholder="For example: opposite Shoprite or Allen roundabout"
+                />
+                {errors.pickup_landmark && (
+                  <FieldError message={errors.pickup_landmark.message} />
+                )}
+              </div>
+            </div>
             <div className="space-y-2">
-              <Label>Pickup address</Label>
+              <Label>Street, estate or building details (optional)</Label>
               <Input
                 {...register("pickup_address")}
-                placeholder="Street, area, city"
+                placeholder="House number, street, estate, gate or building"
               />
-              {errors.pickup_address && (
-                <FieldError message={errors.pickup_address.message} />
-              )}
+              <p className="text-xs text-muted-foreground">
+                Leave this blank when the map cannot find the written address.
+              </p>
             </div>
+            <LocationPinPicker
+              label="Choose the pickup point on the map"
+              value={
+                Number.isFinite(data.pickup_latitude) &&
+                Number.isFinite(data.pickup_longitude)
+                  ? {
+                      latitude: Number(data.pickup_latitude),
+                      longitude: Number(data.pickup_longitude),
+                    }
+                  : null
+              }
+              onChange={(pin) => {
+                setValue("pickup_latitude", pin.latitude, {
+                  shouldValidate: true,
+                });
+                setValue("pickup_longitude", pin.longitude, {
+                  shouldValidate: true,
+                });
+              }}
+            />
+            {(errors.pickup_latitude || errors.pickup_longitude) && (
+              <FieldError message="Select the pickup point on the map." />
+            )}
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label>Contact name</Label>
                 <Input
                   {...register("pickup_contact")}
-                  placeholder="Who to meet"
+                  placeholder="Who should the rider meet?"
                 />
                 {errors.pickup_contact && (
                   <FieldError message={errors.pickup_contact.message} />
@@ -397,10 +509,10 @@ export default function CreateDelivery() {
               </div>
             </div>
             <div className="space-y-2">
-              <Label>Notes for pickup (optional)</Label>
+              <Label>Additional directions (optional)</Label>
               <Textarea
                 {...register("pickup_notes")}
-                placeholder="Gate code, landmarks…"
+                placeholder="For example: enter through Gate 2 and call on arrival"
               />
             </div>
           </div>
@@ -408,26 +520,73 @@ export default function CreateDelivery() {
 
         {step === 2 && (
           <div className="space-y-4">
-            <h2 className="font-display text-lg font-semibold text-primary">
-              Drop-off details
-            </h2>
+            <div>
+              <h2 className="font-display text-lg font-semibold text-primary">
+                Drop-off details
+              </h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Use the receiver's area, nearest landmark and exact map pin.
+              </p>
+            </div>
             {myAddresses.length > 0 && (
               <AddressShortcuts
-                title="Use saved drop-off address"
+                title="Use a saved drop-off location"
                 addresses={myAddresses}
                 onPick={fillDropoff}
               />
             )}
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label>Area or neighbourhood</Label>
+                <Input
+                  {...register("dropoff_area")}
+                  placeholder="For example: Maryland, Surulere, Victoria Island"
+                />
+                {errors.dropoff_area && (
+                  <FieldError message={errors.dropoff_area.message} />
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label>Nearest landmark</Label>
+                <Input
+                  {...register("dropoff_landmark")}
+                  placeholder="For example: mall entrance, bus stop or filling station"
+                />
+                {errors.dropoff_landmark && (
+                  <FieldError message={errors.dropoff_landmark.message} />
+                )}
+              </div>
+            </div>
             <div className="space-y-2">
-              <Label>Drop-off address</Label>
+              <Label>Street, estate or building details (optional)</Label>
               <Input
                 {...register("dropoff_address")}
-                placeholder="Street, area, city"
+                placeholder="House number, street, estate, gate or building"
               />
-              {errors.dropoff_address && (
-                <FieldError message={errors.dropoff_address.message} />
-              )}
             </div>
+            <LocationPinPicker
+              label="Choose the drop-off point on the map"
+              value={
+                Number.isFinite(data.dropoff_latitude) &&
+                Number.isFinite(data.dropoff_longitude)
+                  ? {
+                      latitude: Number(data.dropoff_latitude),
+                      longitude: Number(data.dropoff_longitude),
+                    }
+                  : null
+              }
+              onChange={(pin) => {
+                setValue("dropoff_latitude", pin.latitude, {
+                  shouldValidate: true,
+                });
+                setValue("dropoff_longitude", pin.longitude, {
+                  shouldValidate: true,
+                });
+              }}
+            />
+            {(errors.dropoff_latitude || errors.dropoff_longitude) && (
+              <FieldError message="Select the drop-off point on the map." />
+            )}
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label>Receiver name</Label>
@@ -438,27 +597,18 @@ export default function CreateDelivery() {
               </div>
               <div className="space-y-2">
                 <Label>Receiver phone</Label>
-                <Input {...register("dropoff_phone")} />
+                <Input {...register("dropoff_phone")} placeholder="+234…" />
                 {errors.dropoff_phone && (
                   <FieldError message={errors.dropoff_phone.message} />
                 )}
               </div>
             </div>
             <div className="space-y-2">
-              <Label>Estimated distance in km</Label>
-              <Input
-                type="number"
-                min={0.1}
-                step={0.5}
-                {...register("distance_km", { valueAsNumber: true })}
+              <Label>Additional directions (optional)</Label>
+              <Textarea
+                {...register("dropoff_notes")}
+                placeholder="For example: call at the estate gate"
               />
-              {errors.distance_km && (
-                <FieldError message={errors.distance_km.message} />
-              )}
-            </div>
-            <div className="space-y-2">
-              <Label>Drop-off notes (optional)</Label>
-              <Textarea {...register("dropoff_notes")} />
             </div>
           </div>
         )}
@@ -492,7 +642,7 @@ export default function CreateDelivery() {
               <div>
                 <div className="text-sm font-medium">Delivery protection</div>
                 <div className="text-xs text-muted-foreground">
-                  Cover eligible declared value · +₦300
+                  Cover eligible declared value · +{naira(pricingSettings.protection_fee)}
                 </div>
               </div>
               <Switch
@@ -514,13 +664,22 @@ export default function CreateDelivery() {
               <Info label="Courier" value={data.courier_type} />
               <Info label="Item" value={data.item_name || "—"} />
               <Info label="Value" value={naira(data.item_value)} />
-              <Info label="Distance" value={`${data.distance_km} km`} />
+              <Info label="Delivery zone" value={price.zoneLabel} />
               <Info label="Risk" value={risk} />
+              <Info
+                label="Pickup"
+                value={`${data.pickup_landmark || "—"}, ${data.pickup_area || "—"}`}
+              />
+              <Info
+                label="Drop-off"
+                value={`${data.dropoff_landmark || "—"}, ${data.dropoff_area || "—"}`}
+              />
             </div>
             <div className="card-soft p-4 space-y-2 text-sm">
-              <Row label="Base fare" value={naira(price.base)} />
-              <Row label="Distance fee" value={naira(price.distance)} />
-              <Row label="Service fee" value={naira(price.service)} />
+              <Row label={price.zoneLabel} value={naira(price.zoneFare)} />
+              <p className="pb-1 text-xs text-muted-foreground">
+                {price.zoneDescription}
+              </p>
               {price.protection > 0 && (
                 <Row
                   label="Delivery protection"

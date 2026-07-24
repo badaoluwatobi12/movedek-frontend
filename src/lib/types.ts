@@ -9,6 +9,12 @@ export type TrustLevel = "bronze" | "silver" | "gold" | "platinum";
 
 export type RiskLevel = "low" | "medium" | "high" | "very_high";
 
+export type PricingZone =
+  | "same_area"
+  | "nearby_areas"
+  | "across_city"
+  | "outskirts";
+
 export type DeliveryStatus =
   | "pending"
   | "searching"
@@ -105,10 +111,18 @@ export interface Delivery {
   merchant_id?: string | null;
   category: DeliveryCategory;
   pickup_address: string;
+  pickup_area: string;
+  pickup_landmark: string;
+  pickup_latitude: number | null;
+  pickup_longitude: number | null;
   pickup_contact: string;
   pickup_phone: string;
   pickup_notes?: string | null;
   dropoff_address: string;
+  dropoff_area: string;
+  dropoff_landmark: string;
+  dropoff_latitude: number | null;
+  dropoff_longitude: number | null;
   dropoff_contact: string;
   dropoff_phone: string;
   dropoff_notes?: string | null;
@@ -125,6 +139,7 @@ export interface Delivery {
   protection: boolean;
   pickup_pin?: string;
   dropoff_pin?: string;
+  pricing_zone: PricingZone;
   distance_km: number;
   created_at: string;
   updated_at?: string | null;

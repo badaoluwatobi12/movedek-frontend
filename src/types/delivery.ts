@@ -17,6 +17,12 @@ export type DeliveryStatus =
 
 export type RiskLevel = "low" | "medium" | "high" | "very_high";
 
+export type PricingZone =
+  | "same_area"
+  | "nearby_areas"
+  | "across_city"
+  | "outskirts";
+
 export type PackageSize = "small" | "medium" | "large" | "xl" | "bulk";
 
 export interface DeliveryRecord {
@@ -26,10 +32,18 @@ export interface DeliveryRecord {
   merchant_id: string | null;
   category: DeliveryCategory;
   pickup_address: string;
+  pickup_area: string;
+  pickup_landmark: string;
+  pickup_latitude: number | null;
+  pickup_longitude: number | null;
   pickup_contact: string;
   pickup_phone: string;
   pickup_notes: string | null;
   dropoff_address: string;
+  dropoff_area: string;
+  dropoff_landmark: string;
+  dropoff_latitude: number | null;
+  dropoff_longitude: number | null;
   dropoff_contact: string;
   dropoff_phone: string;
   dropoff_notes: string | null;
@@ -46,6 +60,7 @@ export interface DeliveryRecord {
   protection: boolean;
   pickup_pin?: string;
   dropoff_pin?: string;
+  pricing_zone: PricingZone;
   distance_km: number;
   created_at: string;
   updated_at: string;
@@ -83,11 +98,19 @@ export interface CreateDeliveryPayload {
   customer_id?: string;
   merchant_id?: string;
   category: DeliveryCategory;
-  pickup_address: string;
+  pickup_area: string;
+  pickup_landmark: string;
+  pickup_address?: string;
+  pickup_latitude: number;
+  pickup_longitude: number;
   pickup_contact: string;
   pickup_phone: string;
   pickup_notes?: string;
-  dropoff_address: string;
+  dropoff_area: string;
+  dropoff_landmark: string;
+  dropoff_address?: string;
+  dropoff_latitude: number;
+  dropoff_longitude: number;
   dropoff_contact: string;
   dropoff_phone: string;
   dropoff_notes?: string;
@@ -97,10 +120,7 @@ export interface CreateDeliveryPayload {
   fragile: boolean;
   delivery_notes?: string;
   courier_type: CourierType;
-  price: number;
-  courier_payout?: number;
   protection: boolean;
-  distance_km: number;
 }
 
 export interface AssignCourierPayload {

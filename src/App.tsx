@@ -138,7 +138,7 @@ const customerNav: NavItem[] = [
   { to: "/app/history", label: "History", icon: History },
   { to: "/app/notifications", label: "Notifications", icon: BellRing },
   { to: "/app/wallet", label: "Wallet", icon: Wallet },
-  { to: "/app/addresses", label: "Addresses", icon: MapPin },
+  { to: "/app/addresses", label: "Saved locations", icon: MapPin },
   { to: "/app/support", label: "Support", icon: LifeBuoy },
   { to: "/app/disputes", label: "Disputes", icon: AlertTriangle },
   { to: "/app/fraud-alert", label: "Fraud alert", icon: ShieldAlert },
